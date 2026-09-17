@@ -1,0 +1,31 @@
+{
+  "app_git_commit": "d0706c1750764d5b625eac69e3350dba6e23a7cf",
+  "dataset_hash": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
+  "eval_freeze_hash": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+  "execution_id": "full-baseline-v1__qwen3-4b-q5",
+  "experiment_config_hash": "6955a8fdae513cb0e5db4c2d39d4ec5949a47d552d46f40602f677afac545815",
+  "experiment_spec_id": "full-baseline-v1",
+  "grading_spec_hash": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+  "hardware_id": "Windows-AMD64-AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD",
+  "model_artifact_digest": "7b56805a15439abd489ff24764b46b349c2f5fa0d52cf41c66c6ba2492093138",
+  "model_artifact_size_bytes": 3397973439,
+  "model_config_hash": "3f3406a9d3165b11355a8ba617a6e3a5dbb789f9d0d5ea65878ce9706f8472bb",
+  "model_config_id": "qwen3-4b-q5",
+  "model_identifier": "hf.co/bartowski/Qwen_Qwen3-4B-Instruct-2507-GGUF:Q5_K_M",
+  "num_ctx": 4096,
+  "num_gpu": 99,
+  "num_predict": 512,
+  "ollama_version": "0.34.1",
+  "power_mode": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+  "python_version": "3.13.5",
+  "quantization": "Q5_K_M",
+  "started_at_utc": "2026-09-17T17:25:49+00:00",
+  "stop_tokens": [
+    "<|im_start|>",
+    "<|im_end|>"
+  ],
+  "temperature": 0.0,
+  "template_sha256": "8eb6214486f4b35b6a643afa2065ee6d4d6248dfd277455d0f535ff2429fe985",
+  "think": false,
+  "thinking_source": "explicit_config"
+}

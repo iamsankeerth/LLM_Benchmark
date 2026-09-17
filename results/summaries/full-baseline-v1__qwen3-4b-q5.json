@@ -1,0 +1,14 @@
+{
+  "experiment_spec_id": "full-baseline-v1",
+  "execution_id": "full-baseline-v1__qwen3-4b-q5",
+  "model_config_id": "qwen3-4b-q5",
+  "run_kind": "BASELINE",
+  "ran_this_invocation": 216,
+  "skipped_resume": 0,
+  "measured_rows": 216,
+  "verdicts": {
+    "PASS": 111,
+    "FAIL": 99,
+    "NEEDS_JUDGE": 6
+  }
+}

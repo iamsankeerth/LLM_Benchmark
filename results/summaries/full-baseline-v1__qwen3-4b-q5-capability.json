@@ -1,0 +1,159 @@
+{
+  "derived_rates": {
+    "deterministic_trial_accuracy": 0.5441176470588235,
+    "any_pass_3_rate": 0.5588235294117647,
+    "all_pass_3_rate": 0.5294117647058824
+  },
+  "deterministic_task_ids": [
+    "Q001",
+    "Q002",
+    "Q003",
+    "Q004",
+    "Q005",
+    "Q006",
+    "Q007",
+    "Q008",
+    "Q009",
+    "Q010",
+    "Q011",
+    "Q012",
+    "Q013",
+    "Q015",
+    "Q016",
+    "Q017",
+    "Q018",
+    "Q019",
+    "Q020",
+    "Q021",
+    "Q022",
+    "Q023",
+    "Q024",
+    "Q025",
+    "Q026",
+    "Q035",
+    "Q036",
+    "Q037",
+    "Q038",
+    "Q039",
+    "Q040",
+    "Q041",
+    "Q042",
+    "Q043",
+    "Q044",
+    "Q045",
+    "Q046",
+    "Q047",
+    "Q048",
+    "Q049",
+    "Q050",
+    "Q052",
+    "Q053",
+    "Q054",
+    "Q055",
+    "Q056",
+    "Q057",
+    "Q058",
+    "Q061",
+    "Q062",
+    "Q063",
+    "Q064",
+    "Q065",
+    "Q066",
+    "Q067",
+    "Q068",
+    "Q069",
+    "Q070",
+    "Q071",
+    "Q072",
+    "Q073",
+    "Q074",
+    "Q075",
+    "Q076",
+    "Q077",
+    "Q078",
+    "Q079",
+    "Q080"
+  ],
+  "deterministic_tasks": 68,
+  "deterministic_trials": 204,
+  "experiment_id": "full-baseline-v1__qwen3-4b-q5",
+  "judge_prechecks": {
+    "judge_task_trials": 12,
+    "deterministic_precheck_passes": 6,
+    "deterministic_precheck_total": 12,
+    "deterministic_precheck_pass_rate": 0.5,
+    "deterministic_precheck_fail_count": 6,
+    "judge_deferrals": 6,
+    "judge_deferral_rate": 0.5,
+    "per_task": {
+      "Q014": {
+        "n": 3,
+        "verdicts": [
+          "FAIL",
+          "FAIL",
+          "FAIL"
+        ],
+        "deterministic_precheck_passes": 0,
+        "deterministic_precheck_total": 3,
+        "deterministic_precheck_pass_rate": 0.0,
+        "judge_deferrals": 0,
+        "global_deterministic_denominator": "EXCLUDED"
+      },
+      "Q051": {
+        "n": 3,
+        "verdicts": [
+          "FAIL",
+          "FAIL",
+          "FAIL"
+        ],
+        "deterministic_precheck_passes": 0,
+        "deterministic_precheck_total": 3,
+        "deterministic_precheck_pass_rate": 0.0,
+        "judge_deferrals": 0,
+        "global_deterministic_denominator": "EXCLUDED"
+      },
+      "Q059": {
+        "n": 3,
+        "verdicts": [
+          "NEEDS_JUDGE",
+          "NEEDS_JUDGE",
+          "NEEDS_JUDGE"
+        ],
+        "deterministic_precheck_passes": 3,
+        "deterministic_precheck_total": 3,
+        "deterministic_precheck_pass_rate": 1.0,
+        "judge_deferrals": 3,
+        "global_deterministic_denominator": "EXCLUDED"
+      },
+      "Q060": {
+        "n": 3,
+        "verdicts": [
+          "NEEDS_JUDGE",
+          "NEEDS_JUDGE",
+          "NEEDS_JUDGE"
+        ],
+        "deterministic_precheck_passes": 3,
+        "deterministic_precheck_total": 3,
+        "deterministic_precheck_pass_rate": 1.0,
+        "judge_deferrals": 3,
+        "global_deterministic_denominator": "EXCLUDED"
+      }
+    }
+  },
+  "judge_task_ids": [
+    "Q014",
+    "Q051",
+    "Q059",
+    "Q060"
+  ],
+  "passes": 111,
+  "provenance": {
+    "grading_spec_hash": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+    "dataset_hash": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
+    "experiment_config_hash": "72e0f3b4d9727543a6b15b0296ac77be16bec3d6548a8b14f4670b7f81b11a5c",
+    "analysis_code_git_commit": "d0706c1750764d5b625eac69e3350dba6e23a7cf",
+    "analysis_worktree_dirty": false
+  },
+  "tasks_all_pass_3": 36,
+  "tasks_any_pass_3": 38
+}
