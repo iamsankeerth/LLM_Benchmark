@@ -79,8 +79,36 @@ _QWEN3_4B_Q4 = ModelConfig(
 )
 
 
+_QWEN3_4B_Q5 = ModelConfig(
+    config_id='qwen3-4b-q5',
+    ollama_identifier='hf.co/bartowski/Qwen_Qwen3-4B-Instruct-2507-GGUF:Q5_K_M',
+    quantization='Q5_K_M',
+    mode='raw',
+    template_id='qwen3-chatml-no-think-v1',
+    template_source=(
+        'ollama-show interrogated 2026-09-18: same qwen3 template mechanics '
+        'and stops as qwen3-4b-q4 (trailer opens <think>); raw template A '
+        'with thinking disabled verified live (output exactly 42)'
+    ),
+    template_text=_QWEN3_TEMPLATE_A,
+    template_sha256=_sha256_hex(_QWEN3_TEMPLATE_A),
+    ollama_model_digest=(
+        '7b56805a15439abd489ff24764b46b349c2f5fa0d52cf41c66c6ba2492093138'
+    ),
+    num_ctx=4096,
+    num_predict_default=512,
+    num_gpu=99,
+    temperature_default=0.0,
+    stop_tokens=('<|im_start|>', '<|im_end|>'),
+    think=False,
+    thinking_support='supported',
+    gpu_only=True,
+)
+
+
 MODEL_CONFIGS: dict[str, ModelConfig] = {
     _QWEN3_4B_Q4.config_id: _QWEN3_4B_Q4,
+    _QWEN3_4B_Q5.config_id: _QWEN3_4B_Q5,
 }
 
 
@@ -113,3 +141,35 @@ def verify_template_integrity(config: ModelConfig) -> None:
             f'template {config.template_id!r} integrity failure: '
             f'recorded {config.template_sha256} != actual {actual}'
         )
+
+
+def model_config_hash(config: ModelConfig) -> str:
+    """Canonical hash of the DECLARED adapter configuration.
+
+    Covers intent only: identifier, quantization, mode, template identity,
+    context/output budgets, offload request, stops, think setting. The live
+    model artifact digest is deliberately excluded (recorded separately as
+    observed evidence: a tag could re-resolve to different bytes later).
+    """
+    import json
+
+    canonical = json.dumps(
+        {
+            'ollama_identifier': config.ollama_identifier,
+            'quantization': config.quantization,
+            'mode': config.mode,
+            'template_id': config.template_id,
+            'template_sha256': config.template_sha256,
+            'num_ctx': config.num_ctx,
+            'num_predict_default': config.num_predict_default,
+            'num_gpu': config.num_gpu,
+            'temperature_default': config.temperature_default,
+            'stop_tokens': list(config.stop_tokens),
+            'think': config.think,
+            'thinking_support': config.thinking_support,
+            'gpu_only': config.gpu_only,
+        },
+        sort_keys=True,
+        separators=(',', ':'),
+    )
+    return hashlib.sha256(canonical.encode('utf-8')).hexdigest()

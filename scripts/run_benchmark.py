@@ -23,7 +23,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from evals.graders.engine import GraderResult, grade_output
 from evals.verdicts import ERROR, REFUSED_NOT_EXECUTABLE, reduce_verdict
-from inference.adapters import get_model_config, render_prompt, rendered_prompt_sha256
+from inference.adapters import (
+    get_model_config,
+    model_config_hash,
+    render_prompt,
+    rendered_prompt_sha256,
+)
 from inference.eligibility import check_eligibility
 from inference.ollama_client import (
     GenerationRequest,
@@ -43,7 +48,22 @@ from storage.db import (
     insert_run,
     run_config_hash,
 )
-from storage.manifest import build_manifest, collect_live_environment, git_commit
+from storage.execution import (
+    CREATE,
+    LEGACY_READ_ONLY,
+    MISMATCH,
+    RESUME,
+    derive_execution_id,
+    ensure_provenance_table,
+    record_execution_provenance,
+    resolve_execution,
+)
+from storage.manifest import (
+    build_manifest,
+    collect_live_environment,
+    git_commit,
+    hash_experiment_config,
+)
 
 WARMUP_PROMPTS = ('Return only the word OK.', 'Return only the digit 7.')
 WARMUP_VERDICT = 'WARMUP'
@@ -197,10 +217,32 @@ def insert_measured_row(
     conn.commit()
 
 
+def _load_probe(base_url: str, model_identifier: str) -> None:
+    """Unrecorded single-token generation: forces model load so the artifact
+    digest is observable before any benchmark write. Result discarded."""
+    generate(
+        base_url,
+        GenerationRequest(
+            model=model_identifier, prompt='OK', temperature=0.0,
+            num_ctx=512, num_predict=4, raw=False,
+        ),
+        timeout_s=300.0,
+    )
+
+
 def run_experiment(args: argparse.Namespace) -> int:
     root = Path(__file__).resolve().parent.parent
     run_config = yaml.safe_load(open(args.config, encoding='utf-8'))
-    experiment_id: str = str(run_config['experiment'])
+    # Identity split: the frozen YAML names the experimental CONTRACT;
+    # execution_id names one concrete execution of spec x model.
+    experiment_spec_id: str = str(run_config['experiment'])
+    model_config_id: str = str(args.model)
+    execution_id: str = (
+        str(args.execution_id)
+        if getattr(args, 'execution_id', None)
+        else derive_execution_id(experiment_spec_id, model_config_id)
+    )
+    experiment_id = execution_id  # operational identity from here on
     run_kind: str = str(run_config.get('run_kind', 'BASELINE'))
     temperature: float = float(run_config.get('temperature', 0.0))
     trials: int = int(run_config.get('trials', 1))
@@ -230,19 +272,65 @@ def run_experiment(args: argparse.Namespace) -> int:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = connect(str(db_path))
     init_schema(conn)
-    existing = conn.execute(
-        'SELECT experiment_id FROM experiments WHERE experiment_id=?', (experiment_id,)
-    ).fetchone()
-    if existing is None:
+    ensure_provenance_table(conn)
+
+    experiment_config = {
+        'config_file': Path(args.config).name,
+        'experiment_spec_id': experiment_spec_id,
+        'run_kind': run_kind,
+        'trials': trials,
+        'task_ids': task_ids,
+    }
+    experiment_config_hash = hash_experiment_config(experiment_config)
+    declared_config_hash = model_config_hash(config)
+
+    # Load probe (unrecorded): the artifact digest must be observed BEFORE
+    # any write, so a weights change under the same tag fails closed here.
+    _load_probe(args.base_url, config.ollama_identifier)
+    probe_eligibility = check_eligibility(
+        args.base_url, config.ollama_identifier,
+        expected_digest=config.ollama_model_digest,
+    )
+    observed_digest = probe_eligibility.observed_digest
+    observed_size = probe_eligibility.model_size_bytes
+
+    resolution = resolve_execution(
+        conn, execution_id,
+        experiment_spec_id=experiment_spec_id,
+        model_config_id=model_config_id,
+        experiment_config_hash=experiment_config_hash,
+        model_config_hash=declared_config_hash,
+        model_artifact_digest=observed_digest,
+    )
+    if resolution.decision == MISMATCH:
+        print(f'EXECUTION REFUSED: {resolution.detail}', flush=True)
+        conn.close()
+        return 4
+    if resolution.decision == LEGACY_READ_ONLY:
+        print(f'EXECUTION REFUSED: {resolution.detail}', flush=True)
+        conn.close()
+        return 5
+    if resolution.decision == CREATE:
         create_experiment(
-            conn, experiment_id=experiment_id, name=experiment_id,
+            conn, experiment_id=execution_id, name=execution_id,
             config_hash=config_hash,
             config_yaml=open(args.config, encoding='utf-8').read(),
             created_at_utc=utcnow(),
         )
-    elif not args.resume:
-        print(f'experiment {experiment_id} exists; use --resume to continue', flush=True)
+        record_execution_provenance(
+            conn, execution_id=execution_id,
+            experiment_spec_id=experiment_spec_id,
+            model_config_id=model_config_id,
+            experiment_config_hash=experiment_config_hash,
+            model_config_hash=declared_config_hash,
+            model_artifact_digest=observed_digest,
+            created_at_utc=utcnow(),
+        )
+    elif resolution.decision == RESUME and not args.resume:
+        print(f'execution {execution_id} exists; use --resume to continue', flush=True)
+        conn.close()
         return 2
+    print(f'execution: {execution_id} ({resolution.decision})', flush=True)
 
     ollama_ver = ollama_version(args.base_url)
 
@@ -314,17 +402,20 @@ def run_experiment(args: argparse.Namespace) -> int:
         eval_freeze_hash=str(freeze['artifacts']['eval-v1-grading.yaml']),
         grading_spec_hash=str(freeze['artifacts']['eval-v1-grading.yaml']),
         dataset_hash=str(freeze['artifacts']['executable-v1.jsonl']),
+        experiment_spec_id=experiment_spec_id,
+        execution_id=execution_id,
+        model_config_id=model_config_id,
+        experiment_config_hash=experiment_config_hash,
+        model_config_hash=declared_config_hash,
+        model_artifact_digest=observed_digest,
+        model_artifact_size_bytes=observed_size,
         model_identifier=config.ollama_identifier,
-        model_digest=eligibility.observed_digest or config.ollama_model_digest,
         quantization=config.quantization,
         template_sha256=config.template_sha256,
         temperature=temperature, num_ctx=config.num_ctx,
         num_predict=args.num_predict, num_gpu=config.num_gpu,
         stop_tokens=config.stop_tokens, think=config.think,
         thinking_source='explicit_config' if config.think is not None else 'model_default',
-        experiment_config={'config_file': Path(args.config).name,
-                           'run_kind': run_kind, 'trials': trials,
-                           'task_ids': task_ids},
         live=collect_live_environment(
             ollama_version=ollama_ver, started_at_utc=utcnow()),
     )
@@ -483,7 +574,9 @@ def run_experiment(args: argparse.Namespace) -> int:
     for row in measured:
         verdicts[row['grader_verdict']] = verdicts.get(row['grader_verdict'], 0) + 1
     summary = {
-        'experiment_id': experiment_id, 'model_config_id': args.model,
+        'experiment_spec_id': experiment_spec_id,
+        'execution_id': execution_id,
+        'model_config_id': args.model,
         'run_kind': run_kind, 'ran_this_invocation': ran,
         'skipped_resume': skipped, 'measured_rows': len(measured),
         'verdicts': verdicts,
@@ -502,6 +595,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--db', required=True, help='SQLite path (results/local/)')
     parser.add_argument('--base-url', default='http://127.0.0.1:11434')
     parser.add_argument('--resume', action='store_true')
+    parser.add_argument('--execution-id', default=None,
+                        help='explicit execution id (default: <spec>__<model>);'
+                             ' required with __rerun-NN suffix for fresh reruns')
     parser.add_argument('--num-predict', type=int, default=512)
     parser.add_argument('--timeout-s', type=float, default=300.0)
     parser.add_argument('--max-tasks', type=int, default=None)

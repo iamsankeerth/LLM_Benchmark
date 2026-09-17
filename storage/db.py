@@ -89,6 +89,15 @@ CREATE TABLE IF NOT EXISTS runs(
 );
 CREATE INDEX IF NOT EXISTS idx_runs_experiment
   ON runs(experiment_id, run_kind, is_warmup);
+CREATE TABLE IF NOT EXISTS execution_provenance(
+  execution_id TEXT PRIMARY KEY,
+  experiment_spec_id TEXT NOT NULL,
+  model_config_id TEXT NOT NULL,
+  experiment_config_hash TEXT NOT NULL,
+  model_config_hash TEXT NOT NULL,
+  model_artifact_digest TEXT,
+  created_at_utc TEXT NOT NULL
+);
 """
 
 

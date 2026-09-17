@@ -39,9 +39,17 @@ JSON_TASKS = frozenset(
 )
 
 
-def load_experiment_config(root: Path, experiment: str) -> dict[str, Any]:
-    for name in (f'{experiment}.yaml',):
-        path = root / 'configs' / name
+def load_experiment_config(
+    root: Path, experiment: str, *, config_override: str | None = None
+) -> dict[str, Any]:
+    candidates = []
+    if config_override:
+        candidates.append(Path(config_override))
+    candidates.append(root / 'configs' / f'{experiment}.yaml')
+    # Execution ids take the form <spec>__<model>: fall back to the spec file.
+    if '__' in experiment:
+        candidates.append(root / 'configs' / f'{experiment.split("__")[0]}.yaml')
+    for path in candidates:
         if path.exists():
             config = yaml.safe_load(open(path, encoding='utf-8'))
             assert isinstance(config, dict)
@@ -54,6 +62,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--db', required=True)
     parser.add_argument('--experiment', required=True)
     parser.add_argument('--out', default=None)
+    parser.add_argument('--config', default=None,
+                        help='experiment spec YAML (default: configs/<spec>.yaml)')
     parser.add_argument('--allow-dirty', action='store_true',
                         help='development-only: stamp dirty worktree instead of refusing')
     args = parser.parse_args(argv)
@@ -74,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
         return 4
     try:
         provenance = collect_provenance(
-            str(root), load_experiment_config(root, args.experiment),
+            str(root), load_experiment_config(root, args.experiment, config_override=args.config),
             allow_dirty=args.allow_dirty,
         )
     except DirtyWorktreeError as exc:

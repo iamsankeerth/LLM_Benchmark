@@ -31,8 +31,15 @@ class ExperimentManifest:
     eval_freeze_hash: str
     grading_spec_hash: str
     dataset_hash: str
+    # Identity triple: frozen contract x declared config x observed artifact.
+    experiment_spec_id: str
+    execution_id: str
+    model_config_id: str
+    experiment_config_hash: str
+    model_config_hash: str
+    model_artifact_digest: str | None
+    model_artifact_size_bytes: int | None
     model_identifier: str
-    model_digest: str
     quantization: str
     template_sha256: str
     ollama_version: str | None
@@ -46,7 +53,6 @@ class ExperimentManifest:
     stop_tokens: tuple[str, ...]
     think: bool | None
     thinking_source: str
-    experiment_config_hash: str
     started_at_utc: str
 
     def to_json(self) -> str:
@@ -106,8 +112,13 @@ def build_manifest(
     eval_freeze_hash: str,
     grading_spec_hash: str,
     dataset_hash: str,
+    experiment_spec_id: str,
+    execution_id: str,
+    model_config_id: str,
+    model_config_hash: str,
+    model_artifact_digest: str | None,
+    model_artifact_size_bytes: int | None,
     model_identifier: str,
-    model_digest: str,
     quantization: str,
     template_sha256: str,
     temperature: float,
@@ -117,7 +128,7 @@ def build_manifest(
     stop_tokens: tuple[str, ...],
     think: bool | None,
     thinking_source: str,
-    experiment_config: dict[str, Any],
+    experiment_config_hash: str,
     live: LiveEnvironment,
 ) -> ExperimentManifest:
     return ExperimentManifest(
@@ -125,8 +136,13 @@ def build_manifest(
         eval_freeze_hash=eval_freeze_hash,
         grading_spec_hash=grading_spec_hash,
         dataset_hash=dataset_hash,
+        experiment_spec_id=experiment_spec_id,
+        execution_id=execution_id,
+        model_config_id=model_config_id,
+        model_config_hash=model_config_hash,
+        model_artifact_digest=model_artifact_digest,
+        model_artifact_size_bytes=model_artifact_size_bytes,
         model_identifier=model_identifier,
-        model_digest=model_digest,
         quantization=quantization,
         template_sha256=template_sha256,
         ollama_version=live.ollama_version,
@@ -140,6 +156,6 @@ def build_manifest(
         stop_tokens=stop_tokens,
         think=think,
         thinking_source=thinking_source,
-        experiment_config_hash=hash_experiment_config(experiment_config),
+        experiment_config_hash=experiment_config_hash,
         started_at_utc=live.started_at_utc,
     )

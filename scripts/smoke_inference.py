@@ -16,6 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from scripts.run_benchmark import run_experiment
+from storage.execution import derive_execution_id
 
 EXPECTED_TASKS = ('Q071', 'Q001', 'Q011')
 
@@ -95,6 +96,7 @@ def main(argv: list[str] | None = None) -> int:
         db=args.db,
         base_url=args.base_url,
         resume=args.resume,
+        execution_id=None,
         num_predict=512,
         timeout_s=300.0,
         max_tasks=None,
@@ -102,7 +104,7 @@ def main(argv: list[str] | None = None) -> int:
     code = run_experiment(run_args)
     if code != 0:
         return code
-    verify(args.db)
+    verify(args.db, derive_execution_id('smoke-3', args.model))
     return 0
 
 

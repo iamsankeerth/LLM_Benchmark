@@ -54,6 +54,23 @@ class AdapterRegistryTests(unittest.TestCase):
         self.assertEqual(config.think, False)
         self.assertIn('<|im_end|>', config.stop_tokens)
 
+    def test_qwen5_config_matches_live_evidence(self) -> None:
+        config = get_model_config('qwen3-4b-q5')
+        self.assertEqual(
+            config.ollama_identifier,
+            'hf.co/bartowski/Qwen_Qwen3-4B-Instruct-2507-GGUF:Q5_K_M',
+        )
+        self.assertEqual(config.mode, 'raw')
+        self.assertEqual(config.think, False)
+        # Same template mechanics as Q4: shared template id and bytes.
+        q4 = get_model_config('qwen3-4b-q4')
+        self.assertEqual(config.template_id, q4.template_id)
+        self.assertEqual(config.template_sha256, q4.template_sha256)
+        self.assertEqual(
+            config.ollama_model_digest,
+            '7b56805a15439abd489ff24764b46b349c2f5fa0d52cf41c66c6ba2492093138',
+        )
+
     def test_unknown_config_raises_helpful_error(self) -> None:
         with self.assertRaises(KeyError) as ctx:
             get_model_config('nope')

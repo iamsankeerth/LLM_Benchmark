@@ -35,6 +35,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--db', required=True)
     parser.add_argument('--experiment', required=True)
     parser.add_argument('--out', default=None)
+    parser.add_argument('--config', default=None,
+                        help='experiment spec YAML (default: configs/<spec>.yaml)')
     parser.add_argument('--allow-dirty', action='store_true')
     args = parser.parse_args(argv)
     root = Path(__file__).resolve().parent.parent
@@ -57,7 +59,7 @@ def main(argv: list[str] | None = None) -> int:
         summary = build_capability_summary(
             args.experiment, tasks, statuses,
             collect_provenance(
-                str(root), load_experiment_config(root, args.experiment),
+                str(root), load_experiment_config(root, args.experiment, config_override=args.config),
                 allow_dirty=args.allow_dirty,
             ),
         )

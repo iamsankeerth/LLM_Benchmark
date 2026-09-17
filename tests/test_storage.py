@@ -221,8 +221,14 @@ class ManifestTests(unittest.TestCase):
             'eval_freeze_hash': 'f' * 64,
             'grading_spec_hash': 'g' * 64,
             'dataset_hash': 'd' * 64,
+            'experiment_spec_id': 'full-baseline-v1',
+            'execution_id': 'full-baseline-v1__qwen3-4b-q4',
+            'model_config_id': 'qwen3-4b-q4',
+            'experiment_config_hash': 'e' * 64,
+            'model_config_hash': 'm' * 64,
+            'model_artifact_digest': '0' * 64,
+            'model_artifact_size_bytes': 3178149969,
             'model_identifier': 'm',
-            'model_digest': '0' * 64,
             'quantization': 'Q4_K_M',
             'template_sha256': 't' * 64,
             'temperature': 0.0,
@@ -232,7 +238,6 @@ class ManifestTests(unittest.TestCase):
             'stop_tokens': ('a', 'b'),
             'think': False,
             'thinking_source': 'explicit_config',
-            'experiment_config': {'kind': 'BASELINE', 'tasks': ['Q001']},
             'live': self._live(),
         }
         kwargs.update(overrides)
@@ -243,11 +248,14 @@ class ManifestTests(unittest.TestCase):
         document = json.loads(manifest.to_json())
         required = {
             'app_git_commit', 'eval_freeze_hash', 'grading_spec_hash',
-            'dataset_hash', 'model_identifier', 'model_digest',
+            'dataset_hash', 'experiment_spec_id', 'execution_id',
+            'model_config_id', 'experiment_config_hash', 'model_config_hash',
+            'model_artifact_digest', 'model_artifact_size_bytes',
+            'model_identifier',
             'quantization', 'template_sha256', 'ollama_version',
             'python_version', 'hardware_id', 'power_mode', 'temperature',
             'num_ctx', 'num_predict', 'num_gpu', 'stop_tokens', 'think',
-            'thinking_source', 'experiment_config_hash', 'started_at_utc',
+            'thinking_source', 'started_at_utc',
         }
         self.assertTrue(required.issubset(document.keys()), required - set(document.keys()))
 
