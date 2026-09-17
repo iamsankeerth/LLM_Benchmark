@@ -1,0 +1,20 @@
+[tool.mypy]
+python_version = "3.12"
+
+strict = true
+
+warn_unused_configs = true
+warn_unreachable = true
+show_error_codes = true
+pretty = true
+
+exclude = [
+    "^results/",
+    "^evals/datasets/",
+    "^\\.venv/",
+    "^venv/"
+]
+
+[[tool.mypy.overrides]]
+module = "jsonschema.*"
+ignore_missing_imports = true

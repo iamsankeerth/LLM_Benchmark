@@ -1,0 +1,6 @@
+# Frozen eval artifacts must remain byte-identical (sha256-pinned in
+# evals/specs/eval-v1-grading.freeze.json). Force LF on checkout so the
+# working-tree hashes always match the freeze record.
+evals/datasets/** text eol=lf
+evals/specs/** text eol=lf
+*.xlsx binary

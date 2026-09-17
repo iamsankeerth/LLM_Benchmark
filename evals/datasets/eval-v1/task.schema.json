@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LocalLLM Lab eval-v1 task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "suite", "category", "difficulty", "prompt", "output_type", "expected_output", "expected_output_source", "graders", "graders_source", "grading_notes_source", "failure_modes", "failure_modes_source", "grading_status", "pending_reasons", "timeout_seconds", "context_size", "source_recommended_repeats", "source"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^Q[0-9]{3}$"},
+    "suite": {"enum": ["core-v1", "stress-v1", "coding-v1"]},
+    "category": {"type": "string", "minLength": 1},
+    "difficulty": {"enum": ["easy", "medium", "hard"]},
+    "prompt": {"type": "string", "minLength": 1},
+    "output_type": {"type": "string", "minLength": 1},
+    "expected_output": {},
+    "expected_output_source": {"type": "string", "minLength": 1},
+    "graders": {"type": "array", "items": {"type": "object"}},
+    "graders_source": {"type": "string", "minLength": 1},
+    "grading_notes_source": {"type": "string"},
+    "failure_modes": {"type": "array", "items": {"type": "string"}},
+    "failure_modes_source": {"type": "string"},
+    "grading_status": {"enum": ["READY_DETERMINISTIC", "READY_JUDGE", "READY_HUMAN", "PENDING_SPECIFICATION"]},
+    "pending_reasons": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "timeout_seconds": {"type": ["number", "null"], "exclusiveMinimum": 0},
+    "context_size": {"type": ["integer", "null"], "minimum": 1},
+    "source_recommended_repeats": {"type": "integer", "minimum": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["question_sheet", "question_row", "answer_sheet", "answer_row"],
+      "properties": {
+        "question_sheet": {"const": "Eval Questions"},
+        "question_row": {"type": "integer", "minimum": 5},
+        "answer_sheet": {"const": "Answer Key"},
+        "answer_row": {"type": "integer", "minimum": 5}
+      }
+    }
+  },
+  "allOf": [{
+    "if": {"properties": {"grading_status": {"const": "PENDING_SPECIFICATION"}}},
+    "then": {"properties": {"pending_reasons": {"minItems": 1}}},
+    "else": {"properties": {"pending_reasons": {"maxItems": 0}, "graders": {"minItems": 1}}}
+  }]
+}

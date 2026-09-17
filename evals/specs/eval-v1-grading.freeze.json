@@ -1,0 +1,24 @@
+{
+  "record_type": "grading-spec-freeze",
+  "frozen_at": "2026-09-17",
+  "approved_by": "iamsan",
+  "approved_tasks": [
+    "Q023",
+    "Q052",
+    "Q066",
+    "Q071"
+  ],
+  "spec_version": "eval-v1",
+  "spec_status": "FROZEN",
+  "artifacts": {
+    "eval-v1-grading.yaml": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+    "grading-spec.schema.json": "3f64905f994ad809821ede7b3720b02917ae6470aa6f6199712395aa08f14d37",
+    "task.schema.json": "e1101c0cca701548284aa453ddd40cfb87666227f177eebf3c963d0d92fba03b",
+    "source-v1.jsonl": "292bdb71001a09693881ea9bdaf5f1a9c979b5e8a12d9ce4ea6dad6fcabd1820",
+    "executable-v1.jsonl": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
+    "grading-review.json": "7f6161a1c9d27a7cc3190438f05826b5ebfc7020841d59993ad709bdfdd3b001",
+    "manifest.json": "e1fbac4e370b58657b52064f81eee074a7499c2f536def10c5c97added7d3212",
+    "LocalLLM_Eval_Questions.xlsx": "64b6ad7937ae60dd281d8e6f0d648915e2f6217f7a746163c5c22aaa99ff85a3"
+  },
+  "source_manifest_sha256_match": true
+}

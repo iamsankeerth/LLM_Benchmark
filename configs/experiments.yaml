@@ -1,0 +1,28 @@
+dataset_version: eval-v1
+dataset_path: evals/datasets/eval-v1/executable-v1.jsonl
+baseline:
+  suites: [core-v1, stress-v1]
+  baseline_repeats: 3
+  temperature: 0
+  warmup_requests: 2
+  pending_grading_policy: refuse_auto_grading
+reliability:
+  enabled: false
+  task_ids: []
+  repetitions: 5
+temperature_study:
+  enabled: false
+  task_ids: []
+  required_task_count: 15
+  temperatures: [0, 0.7]
+  repetitions: 5
+optional_suites:
+  coding-v1:
+    enabled: false
+    requires: executable_test_fixtures
+  long-context-v1:
+    enabled: false
+    status: NOT_AUTHORED
+  judge-bias-v1:
+    enabled: false
+    status: NOT_AUTHORED

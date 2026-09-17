@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Typecheck / lint caches
+.mypy_cache/
+.ruff_cache/
+
+# Benchmark outputs: raw generations, checkpoints and local DBs are
+# reproducible from code + frozen eval layer, so they stay out of git.
+results/local/
+results/raw/
+results/checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

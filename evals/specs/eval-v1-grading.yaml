@@ -1,0 +1,948 @@
+%YAML 1.2
+---
+spec_version: eval-v1
+status: FROZEN
+defaults:
+  unicode_normalization: NFC
+  trim_outer_whitespace: true
+  normalize_line_endings: true
+  text:
+    case_sensitive: true
+  word_count:
+    tokenizer: unicode_whitespace
+    definition: "Normalize to NFC, trim outer whitespace, then each contiguous non-whitespace sequence counts as one word, i.e. len(re.findall(r'\\S+', text))"
+  numeric:
+    absolute_tolerance: 0
+    relative_tolerance: 0
+  time:
+    precision: exact
+tasks:
+  Q001:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          customer: Arjun Rao
+          order_id: XQ-9127
+          date: '2026-09-14'
+          quantity: 2
+          unit_price: 2399
+          total: 4798
+        required_fields: [customer, order_id, date, quantity, unit_price, total]
+        allow_extra_fields: false
+  Q002:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          patient_name: Meera Shah
+          patient_id: P-4472
+          old_datetime: '2026-09-18 15:30'
+          new_datetime: '2026-09-21 10:00'
+        required_fields: [patient_name, patient_id, old_datetime, new_datetime]
+        allow_extra_fields: false
+  Q003:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          invoice_id: INV-9081
+          buyer: Kaveri Labs
+          gross_total: 22420
+          amount_paid: 10000
+          balance_due: 12420
+          due_date: '2026-09-30'
+        required_fields: [invoice_id, buyer, gross_total, amount_paid, balance_due, due_date]
+        allow_extra_fields: false
+  Q004:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          email: devika.r@example.com
+          app_version: 7.4.2
+          device: Galaxy S24
+          broken_feature: Export PDF
+          working_features: [Login, Sync]
+          priority: high
+        required_fields: [email, app_version, device, broken_feature, working_features, priority]
+        allow_extra_fields: false
+        normalization:
+          working_features:
+            order_insensitive: true
+            accepted_values: {Login: [login], Sync: [sync]}
+  Q005:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          outbound:
+            origin: HYD
+            destination: DEL
+            flight_no: AI 541
+            date: '2026-10-03'
+            time: 06:25
+          return:
+            origin: DEL
+            destination: HYD
+            flight_no: AI 542
+            date: '2026-10-07'
+            time: 21:10
+          seat_preference: aisle
+        required_fields: [outbound, return, seat_preference]
+        allow_extra_fields: false
+        notes: Cancelled booking AI 877 must not appear anywhere in output.
+  Q006:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          project: Atlas
+          owner: Sana
+          launch_date: '2026-11-12'
+          budget_cap_inr: 950000
+          security_review_deadline: '2026-11-02'
+          marketing_review: '2026-11-02'
+        required_fields: [project, owner, launch_date, budget_cap_inr, security_review_deadline, marketing_review]
+        allow_extra_fields: false
+  Q007:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          name: Aditi Menon
+          company: BluePeak
+          role: VP, Product
+          email: aditi@bluepeak.io
+          team_size: 42
+          approved_budget_inr: 8500000
+          decision_timeline_weeks:
+            min: 6
+            max: 8
+        required_fields: [name, company, role, email, team_size, approved_budget_inr, decision_timeline_weeks]
+        allow_extra_fields: false
+  Q008:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          request_id: ab91
+          initial_status: 502
+          initial_latency_ms: 1840
+          upstream: payments-v2
+          retry_attempted: true
+          retry_status: 200
+          total_observed_latency_ms: 2252
+        required_fields: [request_id, initial_status, initial_latency_ms, upstream, retry_attempted, retry_status, total_observed_latency_ms]
+        allow_extra_fields: false
+  Q009:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          start_date: '2027-01-01'
+          term_months: 18
+          notice_days: 60
+          annual_fee_inr: 480000
+          quarterly_invoice_inr: 120000
+          setup_fee_inr: 35000
+        required_fields: [start_date, term_months, notice_days, annual_fee_inr, quarterly_invoice_inr, setup_fee_inr]
+        allow_extra_fields: false
+  Q010:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          model_a:
+            n: 1250
+            accuracy_pct: 78.4
+          model_b_original:
+            n: 1250
+            accuracy_pct: 81.1
+          model_b_cleaned:
+            n: 1200
+            accuracy_pct: 82.0
+        required_fields: [model_a, model_b_original, model_b_cleaned]
+        allow_extra_fields: false
+  Q011:
+    primary_class: DETERMINISTIC_CONSTRAINT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: constraints
+        constraints:
+          - kind: bullet_count
+            value: 4
+          - kind: bullet_word_limit
+            max_words: 14
+          - kind: term_occurrence
+            term: latency
+            occurrence: exactly
+            count: 1
+          - kind: forbidden_terms
+            terms: [protocol]
+          - kind: bullet_prefix
+            index: -1
+            prefix: Therefore
+  Q012:
+    primary_class: DETERMINISTIC_CONSTRAINT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: constraints
+        constraints:
+          - kind: sentence_count
+            value: 3
+          - kind: sentence_contains
+            index: 1
+            terms: [chlorophyll]
+          - kind: sentence_numeric_tokens
+            index: 2
+            min: 1
+            max: 1
+          - kind: sentence_is_question
+            index: 3
+          - kind: forbidden_terms
+            terms: [plant, sunlight]
+  Q013:
+    primary_class: DETERMINISTIC_CONSTRAINT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: constraints
+        constraints:
+          - kind: markdown_table_shape
+            columns: [SSD, HDD]
+            data_rows: 5
+          - kind: forbidden_terms
+            terms: [price, cost, money]
+          - kind: trailing_literal
+            literal: END
+  Q014:
+    primary_class: DETERMINISTIC_CONSTRAINT
+    grading_status: READY_JUDGE
+    graders:
+      - type: constraints
+        constraints:
+          - kind: word_range
+            min: 50
+            max: 60
+          - kind: required_terms
+            terms: ['factorial(n)']
+          - kind: forbidden_terms
+            terms: [function, loop, itself]
+          - kind: ends_with
+            suffix: Base cases stop the chain.
+      - type: rubric_judge
+        criteria:
+          analogy_present:
+            type: boolean
+          explanation_meaningful:
+            type: boolean
+        rubric_required: true
+  Q015:
+    primary_class: DETERMINISTIC_CONSTRAINT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: constraints
+        constraints:
+          - kind: line_count
+            value: 6
+          - kind: line_prefix_sequence
+            prefixes: [A., B., C., D., E., F.]
+          - kind: line_word_limit
+            max_words: 9
+          - kind: line_contains
+            lines: [C, E]
+            term: query
+          - kind: term_occurrence
+            term: index
+            occurrence: exactly
+            count: 1
+          - kind: allowed_punctuation
+            allowed: ['A', '.', 'B', 'C', 'D', 'E', 'F']
+  Q016:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          benefit_1: '<6-10 words>'
+          benefit_2: '<6-10 words>'
+          risk: '<6-10 words mentioning staleness>'
+        required_fields: [benefit_1, benefit_2, risk]
+        allow_extra_fields: false
+        open_values:
+          - field: benefit_1
+            word_range: {min: 6, max: 10}
+          - field: benefit_2
+            word_range: {min: 6, max: 10}
+          - field: risk
+            word_range: {min: 6, max: 10}
+            required_terms: [staleness]
+      - type: constraints
+        constraints:
+          - kind: forbidden_terms
+            terms: [fast, faster, speed, performance]
+          - kind: term_occurrence
+            term: latency
+            occurrence: across_values
+            count: 1
+  Q017:
+    primary_class: DETERMINISTIC_CONSTRAINT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: constraints
+        constraints:
+          - kind: numbered_list_count
+            value: 4
+          - kind: item_prefix
+            index: 1
+            prefix: Measure
+          - kind: item_contains
+            index: 2
+            term: logs
+          - kind: item_contains
+            index: 3
+            term: ;
+          - kind: item_excludes_chars
+            index: 4
+            chars: [e, E]
+          - kind: item_sentence_count
+            value: 1
+          - kind: forbidden_terms
+            terms: [restart, restarting, restarts]
+  Q018:
+    primary_class: DETERMINISTIC_CONSTRAINT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: constraints
+        constraints:
+          - kind: word_count
+            value: 70
+          - kind: first_word
+            word: Quantization
+          - kind: term_occurrence
+            term: Q4
+            occurrence: exactly
+            count: 1
+          - kind: term_occurrence
+            term: Q5
+            occurrence: exactly
+            count: 1
+          - kind: term_occurrence
+            term: Q8
+            occurrence: exactly
+            count: 1
+          - kind: parenthetical_count
+            value: 1
+          - kind: forbidden_chars
+            chars: [':', ';']
+          - kind: last_word
+            word: tradeoff
+  Q019:
+    primary_class: DETERMINISTIC_NUMERIC
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: numeric
+        expected: 136
+  Q020:
+    primary_class: DETERMINISTIC_NUMERIC
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: numeric
+        expected: 66080
+  Q021:
+    primary_class: DETERMINISTIC_NUMERIC
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: numeric
+        expected: 2352
+  Q022:
+    primary_class: DETERMINISTIC_NUMERIC
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: numeric
+        expected: 218.4
+        absolute_tolerance: 0
+        relative_tolerance: 0
+        normalize_trailing_zeros: true
+  Q023:
+    primary_class: DETERMINISTIC_NUMERIC
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: time
+        expected: '11:37'
+        precision: minute
+        parsing:
+          - HH:MM
+          - 'H:MM AM'
+          - H:MM am
+          - 'H:MM a.m.'
+    provenance:
+      derived: false
+      review_status: APPROVED
+      approved_by: iamsan
+      approved_on: '2026-09-17'
+      decision: >-
+        Answer key states 11:37 and notes compute 11h 36m 55s. The prompt says
+        rounded to the nearest minute, which grounds minute precision, but the
+        rounding boundary rule (e.g. whether 11:36:30 passes) must be confirmed
+        by a human before this becomes READY_DETERMINISTIC.
+  Q024:
+    primary_class: DETERMINISTIC_NUMERIC
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: numeric
+        expected: 978
+  Q025:
+    primary_class: DETERMINISTIC_NUMERIC
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: time
+        expected: '11:36'
+        precision: minute
+        parsing: [HH:MM]
+  Q026:
+    primary_class: DETERMINISTIC_NUMERIC
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: numeric
+        expected: 85.83
+        absolute_tolerance: 0.01
+        relative_tolerance: 0
+  Q027:
+    primary_class: OPTIONAL_NOT_READY
+    grading_status: PENDING_SPECIFICATION
+    optional: true
+    graders: []
+    pending_reason: Executable coding fixtures not authored.
+  Q028:
+    primary_class: OPTIONAL_NOT_READY
+    grading_status: PENDING_SPECIFICATION
+    optional: true
+    graders: []
+    pending_reason: Executable coding fixtures not authored.
+  Q029:
+    primary_class: OPTIONAL_NOT_READY
+    grading_status: PENDING_SPECIFICATION
+    optional: true
+    graders: []
+    pending_reason: Executable coding fixtures not authored.
+  Q030:
+    primary_class: OPTIONAL_NOT_READY
+    grading_status: PENDING_SPECIFICATION
+    optional: true
+    graders: []
+    pending_reason: Executable coding fixtures not authored.
+  Q031:
+    primary_class: OPTIONAL_NOT_READY
+    grading_status: PENDING_SPECIFICATION
+    optional: true
+    graders: []
+    pending_reason: Executable coding fixtures not authored.
+  Q032:
+    primary_class: OPTIONAL_NOT_READY
+    grading_status: PENDING_SPECIFICATION
+    optional: true
+    graders: []
+    pending_reason: Executable coding fixtures not authored.
+  Q033:
+    primary_class: OPTIONAL_NOT_READY
+    grading_status: PENDING_SPECIFICATION
+    optional: true
+    graders: []
+    pending_reason: Executable coding fixtures not authored.
+  Q034:
+    primary_class: OPTIONAL_NOT_READY
+    grading_status: PENDING_SPECIFICATION
+    optional: true
+    graders: []
+    pending_reason: Executable coding fixtures not authored.
+  Q035:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: INSUFFICIENT_INFORMATION
+  Q036:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: UNKNOWN
+  Q037:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: UNKNOWN
+  Q038:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: UNKNOWN
+  Q039:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: CANNOT_DETERMINE
+  Q040:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: NOT_ESTABLISHED
+  Q041:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: ap-south-1
+  Q042:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: Farah
+  Q043:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: 150 GB
+        accepted_alternates: [150GB]
+        notes: Unit form accepted with or without space; digits are source-grounded.
+  Q044:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: 25 s
+        accepted_alternates: [25s]
+        notes: Unit form accepted with or without space; digits are source-grounded.
+  Q045:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: CACHE
+  Q046:
+    primary_class: DETERMINISTIC_NUMERIC
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: refusal
+        refusal_expected: false
+      - type: numeric
+        expected: 0.0001
+        accepted_alternates: ['1e-4']
+        numeric_alias_match: true
+        notes: >-
+          Source answer is 1e-4. Grader normalizes 1e-4, 0.0001, and equivalent
+          decimal forms to the same value. This grader list demonstrates that
+          grader lists may overlap; the refusal grader marks empty or refusing
+          output as failure because the answer exists.
+  Q047:
+    primary_class: DETERMINISTIC_CONSTRAINT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: fact_check
+        required_facts:
+          - 'currently enrolled undergraduate'
+          - '30 September 2026'
+          - '5:00 PM'
+          - '₹250'
+          - institute portal
+          - email not accepted
+        word_limit:
+          max: 45
+      - type: rubric_judge
+        rubric_required: false
+        criteria:
+          unsupported_claims:
+            type: boolean
+            desired: false
+  Q048:
+    primary_class: DETERMINISTIC_CONSTRAINT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: fact_check
+        required_facts:
+          - memory leak
+          - CSV delimiter
+          - schema
+          - worker
+          - imports longer than two hours
+        facts:
+          memory_leak_fix: {present: true}
+          csv_auto_detection: {present: true}
+          no_schema_change: {present: true, polarity: absence_of_change}
+          worker_restart_required: {present: true}
+          recommendation_long_imports: {present: true}
+        bullet_count:
+          value: 2
+        bullet_word_limit:
+          max: 20
+  Q049:
+    primary_class: DETERMINISTIC_CONSTRAINT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: fact_check
+        required_facts:
+          - connection pool
+          - '200'
+          - '20'
+          - '18%'
+          - '11'
+          - '14:21'
+          - '14:24'
+        sentence_count:
+          value: 3
+        sentence_roles:
+          1: cause
+          2: impact
+          3: resolution
+        forbidden_facts:
+          - database
+  Q050:
+    primary_class: DETERMINISTIC_CONSTRAINT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: fact_check
+        required_facts:
+          - '43'
+          - '47'
+          - '18.6'
+          - '46'
+          - '12.1'
+          - '1.3'
+          - multi-step
+          - not selected
+        word_range:
+          min: 60
+          max: 75
+  Q051:
+    primary_class: DETERMINISTIC_CONSTRAINT
+    grading_status: READY_JUDGE
+    graders:
+      - type: fact_check
+        required_facts:
+          - two
+          - manager
+          - 30 days
+          - HR
+          - restricted
+          - holidays
+          - carry
+        word_limit:
+          max: 80
+      - type: rubric_judge
+        rubric_required: true
+        criteria:
+          exceptions_preserved:
+            type: boolean
+          concise:
+            type: boolean
+          unsupported_claims:
+            type: boolean
+            desired: false
+  Q052:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          consistent: false
+          conflicting_statements: [A, B, C]
+        required_fields: [consistent, conflicting_statements]
+        allow_extra_fields: false
+    provenance:
+      derived: true
+      derived_from: 'answer_key.Expected Answer / Required Criteria'
+      review_status: APPROVED
+      approved_by: iamsan
+      approved_on: '2026-09-17'
+      reason: >-
+        Source prose says conflicts must identify the A/B/C relationship,
+        especially A with B+C. The canonical list [A,B,C] is our transcription;
+        equivalent encodings like [A,B,C] with explanation strings were not
+        pinned by the source.
+  Q053:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: INCONSISTENT
+  Q054:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: 'NO'
+  Q055:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: 'YES'
+  Q056:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: tool_call
+        expected_output:
+          function: book_table
+          arguments: {restaurant: Olive Bistro, people: 4}
+        required_arguments: {book_table: [restaurant, people]}
+  Q057:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: tool_call
+        expected_output:
+          function: lookup_order
+          arguments: {order_id: ZK-882}
+        required_arguments: {lookup_order: [order_id]}
+  Q058:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: tool_call
+        expected_output:
+          function: list_transactions
+          arguments: {account: savings, days: 1}
+        required_arguments: {list_transactions: [account, days]}
+        forbidden_functions: [transfer_money]
+  Q059:
+    primary_class: JUDGE_REQUIRED
+    grading_status: READY_JUDGE
+    graders:
+      - type: constraints
+        constraints:
+          - kind: word_limit
+            max: 180
+      - type: rubric_judge
+        rubric_required: true
+        criteria:
+          technically_sound:
+            type: boolean
+          prioritized:
+            type: boolean
+          actionable:
+            type: boolean
+  Q060:
+    primary_class: JUDGE_REQUIRED
+    grading_status: READY_JUDGE
+    graders:
+      - type: constraints
+        constraints:
+          - kind: word_limit
+            max: 220
+      - type: rubric_judge
+        rubric_required: true
+        criteria:
+          tradeoff_framing:
+            type: boolean
+          no_universal_winner:
+            type: boolean
+          test_suite_mentioned:
+            type: boolean
+  Q061:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          ticket_id: 5512
+          customer: Noor
+          issue: refund not received
+          current_priority: urgent
+        required_fields: [ticket_id, customer, issue, current_priority]
+        allow_extra_fields: false
+  Q062:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          current_production: 2.10.1
+          rollback_target: '2.9'
+        required_fields: [current_production, rollback_target]
+        allow_extra_fields: false
+  Q063:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: SAFE
+  Q064:
+    primary_class: DETERMINISTIC_CONSTRAINT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: constraints
+        constraints:
+          - kind: sentence_count
+            value: 2
+          - kind: sentence_contains
+            all_sentences: true
+            term: node
+          - kind: forbidden_chars
+            chars: [q, x, z, Q, X, Z]
+  Q065:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          name: "João da Silva"
+          city: "São Paulo"
+          score: 8.5
+        required_fields: [name, city, score]
+        allow_extra_fields: false
+        unicode_normalization: NFC
+        notes: ASCII-folded names must fail.
+  Q066:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          project: Nova
+          owners:
+            - {name: Leena, share_pct: 60}
+            - {name: Omar, share_pct: 40}
+          milestones:
+            - {name: Prototype, done: true}
+            - {name: Security review, done: false}
+            - {name: Launch, done: false}
+        required_fields: [project, owners, milestones]
+        allow_extra_fields: false
+    provenance:
+      derived: true
+      derived_from: 'answer_key.Expected Answer / Required Criteria'
+      review_status: APPROVED
+      approved_by: iamsan
+      approved_on: '2026-09-17'
+      reason: >-
+        Milestone names (Prototype, Security review, Launch) and owner object
+        shape were inferred from prompt + prose key; exact milestone strings
+        and owner ordering were not pinned by the source.
+  Q067:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: ASK_CLARIFICATION
+  Q068:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: 4/15
+        accepted_alternates: ['4 / 15']
+        notes: Simplified fraction required by the prompt; unsimplified 8/30 fails.
+  Q069:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          latency_ms: 200
+          memory_gb: 5
+        required_fields: [latency_ms, memory_gb]
+        allow_extra_fields: false
+        numeric_fields: {latency_ms: {absolute_tolerance: 0.01}, memory_gb: {absolute_tolerance: 0.01}}
+  Q070:
+    primary_class: DETERMINISTIC_NUMERIC
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: numeric
+        expected: 18
+  Q071:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: time
+        expected: '00:55'
+        precision: minute
+        parsing: [HH:MM]
+    provenance:
+      derived: false
+      review_status: APPROVED
+      approved_by: iamsan
+      approved_on: '2026-09-17'
+      decision: >-
+        Arithmetic is fully grounded (backup ends 00:25; verification starts
+        00:35; ends 00:55) and the answer key is minute-precision HH:MM, so
+        minute normalization applies. Flagged for review only because the task
+        was not pre-approved in the approved-classification table.
+  Q072:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: B
+  Q073:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: 'NO'
+  Q074:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: '[1,2,3,4,5,6,7,8]'
+        trim_outer_whitespace: false
+        notes: Prompt demands no spaces, no newline, no fence; strict byte-level intent.
+  Q075:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: '3'
+  Q076:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: 0.82
+  Q077:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: 'YES'
+  Q078:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: 'YES'
+  Q079:
+    primary_class: DETERMINISTIC_EXACT
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: exact
+        expected: '47'
+  Q080:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output:
+          accuracy_rate: 0.8
+          all_runs_consistent: false
+        required_fields: [accuracy_rate, all_runs_consistent]
+        allow_extra_fields: false
+        numeric_fields: {accuracy_rate: {absolute_tolerance: 0.0001}}

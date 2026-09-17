@@ -1,0 +1,317 @@
+{
+  "Model Configs": {
+    "1": {
+      "A": "Known Model / Quant Configurations",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "2": {
+      "A": "Your shared list contains 14 model-quant configurations. If your current benchmark has 17, add the remaining 3 configurations below.",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "4": {
+      "A": "Config ID",
+      "B": "Model",
+      "C": "Quant",
+      "D": "Run?"
+    },
+    "5": {
+      "A": "M01",
+      "B": "Qwen3-4B-Instruct-2507",
+      "C": "Q4_K_M",
+      "D": "Yes"
+    },
+    "6": {
+      "A": "M02",
+      "B": "Qwen3-4B-Instruct-2507",
+      "C": "Q5_K_M",
+      "D": "Yes"
+    },
+    "7": {
+      "A": "M03",
+      "B": "Llama-3.2-3B-Instruct",
+      "C": "Q4_K_M",
+      "D": "Yes"
+    },
+    "8": {
+      "A": "M04",
+      "B": "Llama-3.2-3B-Instruct",
+      "C": "Q5_K_M",
+      "D": "Yes"
+    },
+    "9": {
+      "A": "M05",
+      "B": "Llama-3.2-3B-Instruct",
+      "C": "Q6_K",
+      "D": "Yes"
+    },
+    "10": {
+      "A": "M06",
+      "B": "gemma-3n-E2B-it",
+      "C": "Q4_K_M",
+      "D": "Yes"
+    },
+    "11": {
+      "A": "M07",
+      "B": "gemma-3n-E2B-it",
+      "C": "Q5_K_M",
+      "D": "Yes"
+    },
+    "12": {
+      "A": "M08",
+      "B": "Phi-3.5-mini-instruct",
+      "C": "Q4_K_M",
+      "D": "Yes"
+    },
+    "13": {
+      "A": "M09",
+      "B": "Phi-3.5-mini-instruct",
+      "C": "Q5_K_M",
+      "D": "Yes"
+    },
+    "14": {
+      "A": "M10",
+      "B": "Phi-3.5-mini-instruct",
+      "C": "Q6_K",
+      "D": "Yes"
+    },
+    "15": {
+      "A": "M11",
+      "B": "SmolLM2-1.7B",
+      "C": "Q4_K_M",
+      "D": "Yes"
+    },
+    "16": {
+      "A": "M12",
+      "B": "SmolLM2-1.7B",
+      "C": "Q5_K_M",
+      "D": "Yes"
+    },
+    "17": {
+      "A": "M13",
+      "B": "SmolLM2-1.7B",
+      "C": "Q6_K",
+      "D": "Yes"
+    },
+    "18": {
+      "A": "M14",
+      "B": "SmolLM2-1.7B",
+      "C": "Q8_0",
+      "D": "Yes"
+    },
+    "19": {
+      "A": "M15",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "20": {
+      "A": "M16",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "21": {
+      "A": "M17",
+      "B": "",
+      "C": "",
+      "D": ""
+    }
+  },
+  "Scoring Guide": {
+    "1": {
+      "A": "Scoring Guide",
+      "B": "",
+      "C": "",
+      "D": "",
+      "E": ""
+    },
+    "3": {
+      "A": "Area",
+      "B": "Metric",
+      "C": "How to Score",
+      "D": "Best Grader",
+      "E": "Notes"
+    },
+    "4": {
+      "A": "Structured output",
+      "B": "JSON validity",
+      "C": "1 if parseable JSON, else 0",
+      "D": "Code",
+      "E": "Do not let an LLM judge valid JSON."
+    },
+    "5": {
+      "A": "Structured output",
+      "B": "Schema validity",
+      "C": "1 if all required fields/types pass, else 0",
+      "D": "Pydantic / JSON Schema",
+      "E": "Track first-pass and retry-pass separately."
+    },
+    "6": {
+      "A": "Extraction",
+      "B": "Field accuracy",
+      "C": "Correct fields / required fields",
+      "D": "Code",
+      "E": "Ignore field ordering where schema permits."
+    },
+    "7": {
+      "A": "Instruction following",
+      "B": "Constraint pass rate",
+      "C": "Passed constraints / total constraints",
+      "D": "Code assertions",
+      "E": "Score each constraint separately before aggregating."
+    },
+    "8": {
+      "A": "Reasoning",
+      "B": "Final-answer accuracy",
+      "C": "Exact match or numeric tolerance",
+      "D": "Code",
+      "E": "Prefer objective final answer over chain-of-thought grading."
+    },
+    "9": {
+      "A": "Coding",
+      "B": "Test pass rate",
+      "C": "Hidden tests passed / total tests",
+      "D": "Unit tests",
+      "E": "Also track compile/runtime failures."
+    },
+    "10": {
+      "A": "Grounding",
+      "B": "Correct abstention",
+      "C": "1 when model abstains only when evidence is insufficient",
+      "D": "Code / rule",
+      "E": "Track false refusals separately."
+    },
+    "11": {
+      "A": "Long context",
+      "B": "Retrieval accuracy",
+      "C": "Exact fact/label match",
+      "D": "Code",
+      "E": "Run across increasing context lengths."
+    },
+    "12": {
+      "A": "Summarization",
+      "B": "Required fact coverage",
+      "C": "Required facts preserved / total required facts",
+      "D": "Code + human",
+      "E": "Also detect unsupported additions."
+    },
+    "13": {
+      "A": "Open-ended",
+      "B": "Rubric pass",
+      "C": "Binary dimensions: correct, relevant, actionable, concise",
+      "D": "Human / calibrated judge",
+      "E": "Avoid vague 1–10 overall scores."
+    },
+    "14": {
+      "A": "Reliability",
+      "B": "pass^k",
+      "C": "1 only if all k repeated trials pass",
+      "D": "Code",
+      "E": "Useful for consistency-sensitive structured tasks."
+    },
+    "15": {
+      "A": "Reliability",
+      "B": "pass@k",
+      "C": "1 if at least one of k trials passes",
+      "D": "Code",
+      "E": "Useful for capability ceiling; do not confuse with reliability."
+    },
+    "16": {
+      "A": "Inference",
+      "B": "Prefill throughput",
+      "C": "input_tokens / prefill_seconds",
+      "D": "Runtime metrics",
+      "E": "Report tokens/s."
+    },
+    "17": {
+      "A": "Inference",
+      "B": "TTFT",
+      "C": "request start → first generated token",
+      "D": "Runtime metrics",
+      "E": "Report median and P95."
+    },
+    "18": {
+      "A": "Inference",
+      "B": "Decode throughput",
+      "C": "output_tokens / decode_seconds",
+      "D": "Runtime metrics",
+      "E": "Report tokens/s."
+    },
+    "19": {
+      "A": "Inference",
+      "B": "Decode latency/token",
+      "C": "decode_ms / output_tokens",
+      "D": "Runtime metrics",
+      "E": "Lower is better."
+    },
+    "20": {
+      "A": "Inference",
+      "B": "Total latency",
+      "C": "request start → final token",
+      "D": "Runtime metrics",
+      "E": "Report P50/P95."
+    },
+    "21": {
+      "A": "Resources",
+      "B": "Peak RAM / VRAM",
+      "C": "Peak usage during trial",
+      "D": "System monitor",
+      "E": "Mark unavailable rather than guessing."
+    },
+    "22": {
+      "A": "Judge robustness",
+      "B": "Position flip rate",
+      "C": "Fraction of pairwise judgments that change after A/B swap",
+      "D": "Code + judge",
+      "E": "Lower is better."
+    },
+    "23": {
+      "A": "Judge robustness",
+      "B": "Inter-judge agreement",
+      "C": "Agreement across independent judges",
+      "D": "Code",
+      "E": "Cohen's kappa if labels permit."
+    }
+  },
+  "Sources": {
+    "1": {
+      "A": "Evaluation Design Sources Used",
+      "B": "",
+      "C": ""
+    },
+    "3": {
+      "A": "Source",
+      "B": "Type",
+      "C": "URL / Note"
+    },
+    "4": {
+      "A": "Evals: How to know if Your AI System is Actually Getting Better",
+      "B": "Article",
+      "C": "https://jamwithai.substack.com/p/how-to-know-if-your-ai-system-is"
+    },
+    "5": {
+      "A": "Demystifying evals for AI agents",
+      "B": "Anthropic article",
+      "C": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"
+    },
+    "6": {
+      "A": "LLM Agent Evaluations & Project Overview",
+      "B": "User-provided PDF",
+      "C": "Systematic/repeatable evals; task types; outcome validity; challenging cases."
+    },
+    "7": {
+      "A": "AI Evals: Everything You Need to Know (evals-faq.pdf)",
+      "B": "User-provided PDF",
+      "C": "Error analysis first; objective code-based evals when possible; repeatable eval sets."
+    },
+    "8": {
+      "A": "Mastering LLM-as-a-Judge",
+      "B": "User-provided PDF",
+      "C": "Use judges for subjective tasks; discrete criteria; judge-bias and cross-model evaluation."
+    }
+  }
+}

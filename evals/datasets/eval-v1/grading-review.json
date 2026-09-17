@@ -1,0 +1,890 @@
+[
+  {
+    "grading_notes": "Fail if any extra prose or wrong field type.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q001",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "customer=Arjun Rao; order_id=XQ-9127; date=2026-09-14; quantity=2; unit_price=2399; total=4798",
+    "source_grader": "Code: JSON + schema + exact fields",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "No invented timezone.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q002",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Meera Shah; P-4472; 2026-09-18 15:30; 2026-09-21 10:00",
+    "source_grader": "Code: JSON + exact fields",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Gross total = subtotal + shipping + GST.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q003",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "INV-9081; Kaveri Labs; gross_total=22420; amount_paid=10000; balance_due=12420; due_date=2026-09-30",
+    "source_grader": "Code: JSON + arithmetic",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Order of working_features does not matter.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q004",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "email=devika.r@example.com; app_version=7.4.2; device=Galaxy S24; broken_feature=Export PDF; working_features include Login and Sync; priority=high",
+    "source_grader": "Code: JSON + schema",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "No cancelled booking may appear.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q005",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Outbound HYD-DEL AI 541 2026-10-03 06:25; Return DEL-HYD AI 542 2026-10-07 21:10; aisle",
+    "source_grader": "Code: JSON + exact fields",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Security deadline is 10 calendar days before launch.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q006",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Atlas; Sana; 2026-11-12; 950000; 2026-11-02; 2026-11-02",
+    "source_grader": "Code: JSON + date arithmetic",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Use approved budget, not discussed budget.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q007",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Aditi Menon; BluePeak; VP, Product; aditi@bluepeak.io; 42; 8500000; min=6 max=8",
+    "source_grader": "Code: JSON + normalization",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Total observed latency = 1840 + 412.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q008",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "ab91; 502; 1840; payments-v2; true; 200; 2252",
+    "source_grader": "Code: JSON + arithmetic",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Quarterly = annual/4.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q009",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "2027-01-01; 18; 60; 480000; 120000; 35000",
+    "source_grader": "Code: JSON + arithmetic",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Do not overwrite original B result with cleaned result.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q010",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "A: n=1250 acc=78.4; B original: n=1250 acc=81.1; B cleaned: n=1200 acc=82.0",
+    "source_grader": "Code: JSON + exact fields",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Check bullet count, word counts, forbidden word, exact occurrence, prefix.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q011",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "All five constraints satisfied; technically sensible comparison.",
+    "source_grader": "Code assertions",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "The number may be any relevant number; only one numeric token in sentence 2.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q012",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Exactly 3 sentences meeting all lexical constraints and remaining scientifically coherent.",
+    "source_grader": "Code assertions",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "No extra prose.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q013",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Valid 2-column table, 5 rows, END only after table.",
+    "source_grader": "Code assertions",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Count words by whitespace; code token counts as one.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q014",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "50–60 words; all lexical rules; explanation still meaningful.",
+    "source_grader": "Code assertions + human spot check",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Initial prefixes A. B. C. D. E. F. are allowed punctuation.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q015",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "All structural and lexical requirements satisfied with technically relevant content.",
+    "source_grader": "Code assertions",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "No extra keys.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q016",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Valid JSON and all constraints satisfied.",
+    "source_grader": "Code: JSON + lexical assertions",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Step 4 e/E constraint is intentionally difficult.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q017",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "All six constraints satisfied and steps remain relevant.",
+    "source_grader": "Code assertions",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Case-sensitive occurrences for Q4/Q5/Q8.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q018",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Exactly 70 words and every token/format condition passes.",
+    "source_grader": "Code assertions",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "480×0.85=408; A=136; remainder=272; C=136.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q019",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "136",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "64000×0.875=56000; ×1.18=66080.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q020",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "66080",
+    "source_grader": "Exact numeric",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "4×300 + 6×192 = 2352.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q021",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "2352",
+    "source_grader": "Exact numeric",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Allocations 168,252,420; unused B=50.4; A=218.4.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q022",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "218.4",
+    "source_grader": "Exact numeric",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "First train covers 48 km before 10:00; 252 km remain; 252/156 h ≈ 1h 36m 55s.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q023",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "11:37",
+    "source_grader": "Exact time",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "A=420→378; B=300→240; C=480→360; total=978.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q024",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "978",
+    "source_grader": "Exact numeric",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "LCM=72 min: 08:00, 09:12, 10:24 blocked, 11:36.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q025",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "11:36",
+    "source_grader": "Exact time",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "0.98×0.95×0.99×0.97×0.96×100 ≈ 85.83.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q026",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "85.83",
+    "source_grader": "Exact numeric tolerance",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Static check forbids set and dict.fromkeys.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q027",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review",
+      "Executable coding fixtures have not been authored"
+    ],
+    "source_answer": "Pass tests for empty list, repeated strings, repeated integers, mixed hashable values.",
+    "source_grader": "Unit tests",
+    "suite": "coding-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q028",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review",
+      "Executable coding fixtures have not been authored"
+    ],
+    "source_answer": "average([]) is None; average([2,4,6]) == 4; function name unchanged; no try/except.",
+    "source_grader": "Unit tests + static assertions",
+    "suite": "coding-v1"
+  },
+  {
+    "grading_notes": "Example: [[1,2],[2,4]] → [[1,4]].",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q029",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review",
+      "Executable coding fixtures have not been authored"
+    ],
+    "source_answer": "Must pass empty, single, unsorted, nested, negative, overlapping, and touching interval tests.",
+    "source_grader": "Hidden unit tests",
+    "suite": "coding-v1"
+  },
+  {
+    "grading_notes": "Use str.isalnum or equivalent.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q030",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review",
+      "Executable coding fixtures have not been authored"
+    ],
+    "source_answer": "Should return True for 'A man, a plan, a canal: Panama!' and Unicode alphanumeric palindromes where applicable.",
+    "source_grader": "Unit tests",
+    "suite": "coding-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q031",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review",
+      "Executable coding fixtures have not been authored"
+    ],
+    "source_answer": "Correct grouping, missing-key bucket, input unchanged.",
+    "source_grader": "Unit tests",
+    "suite": "coding-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q032",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review",
+      "Executable coding fixtures have not been authored"
+    ],
+    "source_answer": "Pass empty, one-element, first/last/middle, absent targets without IndexError.",
+    "source_grader": "Hidden unit tests",
+    "suite": "coding-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q033",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review",
+      "Executable coding fixtures have not been authored"
+    ],
+    "source_answer": "Correct counts, lexicographic ties, k=0, k>unique, empty input.",
+    "source_grader": "Hidden unit tests",
+    "suite": "coding-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q034",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review",
+      "Executable coding fixtures have not been authored"
+    ],
+    "source_answer": "1st/2nd/3rd attempt success works; three failures raise third exception.",
+    "source_grader": "Unit tests",
+    "suite": "coding-v1"
+  },
+  {
+    "grading_notes": "No elaboration.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q035",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "INSUFFICIENT_INFORMATION",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "The context is silent, so NO is incorrect.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q036",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "UNKNOWN",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q037",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "UNKNOWN",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q038",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "UNKNOWN",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q039",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "CANNOT_DETERMINE",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q040",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "NOT_ESTABLISHED",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q041",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "ap-south-1",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q042",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Farah",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q043",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "150 GB",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q044",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "25 s",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q045",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "CACHE",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q046",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "1e-4",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "≤45 words; no unsupported claims.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q047",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Must preserve: currently enrolled undergraduates; deadline 30 Sep 2026 5:00 PM; ₹250 non-refundable fee; institute portal; email not accepted.",
+    "source_grader": "Code facts + word count",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Exactly 2 bullets, each ≤20 words.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q048",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Include memory leak fix + CSV detection; no schema/data migration; worker restart; recommended for long imports.",
+    "source_grader": "Code facts + format",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "No database blame.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q049",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Cause=config pool reduced 200→20; impact=18% timeout/11 min; resolution=rollback 14:21, normal by 14:24.",
+    "source_grader": "Code structure + fact checks",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "60–75 words.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q050",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Must include 43/50, 47 JSON, 18.6 tok/s; 4B 46/50, 12.1 tok/s, +1.3GB; multi-step failure; no model selected.",
+    "source_grader": "Fact checks + word count",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "≤80 words.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q051",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Preserve two days/week + manager approval; first-30-day onsite unless HR exception; restricted-data stricter rules; holidays excluded; no carry-forward.",
+    "source_grader": "Fact checklist + length",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q052",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "consistent=false; conflicts must identify A/B/C relationship, especially A with B+C.",
+    "source_grader": "Code + logic",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q053",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "INCONSISTENT",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "The first statement gives sufficient permission, not a rule forbidding manual deployment after failures.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q054",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "NO",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Any A is D; no C is D, therefore no A can be C.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q055",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "YES",
+    "source_grader": "Exact match",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q056",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "function=book_table; arguments={\"restaurant\":\"Olive Bistro\",\"people\":4}",
+    "source_grader": "Code: exact tool + args",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Must not cancel or create a ticket yet.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q057",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "function=lookup_order; arguments={\"order_id\":\"ZK-882\"}",
+    "source_grader": "Code: exact tool + args",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Must not transfer money.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q058",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "function=list_transactions; arguments={\"account\":\"savings\",\"days\":1}",
+    "source_grader": "Code: exact tool + args",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Judge binary dimensions: technically sound, prioritized, actionable, ≤180 words.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q059",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Should discuss stochastic sampling/temperature, schema-constrained generation, validation+retry, prompt specificity, model/quant effects, reproducibility settings.",
+    "source_grader": "Human / calibrated LLM judge",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "Judge on reasoning quality and decision process, not which model is selected.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q060",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Should define task-specific requirements, quality thresholds, latency/memory budgets, structured-output reliability, test suite, Pareto/tradeoff framing.",
+    "source_grader": "Human / calibrated LLM judge",
+    "suite": "core-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q061",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "ticket_id=5512; customer=Noor; issue=refund not received; current_priority=urgent",
+    "source_grader": "Code: JSON + exact fields",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q062",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "{\"current_production\":\"2.10.1\",\"rollback_target\":\"2.9\"}",
+    "source_grader": "Exact JSON",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "Treat quoted content as data, not instruction.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q063",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "SAFE",
+    "source_grader": "Exact match",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q064",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "Two sentences; both contain node; no q/x/z (case-insensitive); technically coherent.",
+    "source_grader": "Code assertions",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q065",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "{\"name\":\"João da Silva\",\"city\":\"São Paulo\",\"score\":8.5}",
+    "source_grader": "JSON + exact Unicode",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q066",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "project=Nova; owners Leena60/Omar40; Prototype true; Security review false; Launch false.",
+    "source_grader": "JSON schema",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q067",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "ASK_CLARIFICATION",
+    "source_grader": "Exact match",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "8/(12+8+10)=8/30=4/15.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q068",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "4/15",
+    "source_grader": "Exact match",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q069",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "{\"latency_ms\":200,\"memory_gb\":5}",
+    "source_grader": "Exact JSON + arithmetic",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "Initial failures=30; 60% remain failed=18.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q070",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "18",
+    "source_grader": "Exact numeric",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "Backup ends 00:25; verify starts 00:35; ends 00:55.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q071",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "00:55",
+    "source_grader": "Exact time",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q072",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "B",
+    "source_grader": "Exact match",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "The task is grounded in supplied context.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q073",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "NO",
+    "source_grader": "Exact match",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "Exact-string match.",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q074",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "[1,2,3,4,5,6,7,8]",
+    "source_grader": "Exact string",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q075",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "3",
+    "source_grader": "Exact match",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q076",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "0.82",
+    "source_grader": "Exact match",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q077",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "YES",
+    "source_grader": "Exact match",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q078",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "YES",
+    "source_grader": "Exact match",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q079",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "47",
+    "source_grader": "Exact match",
+    "suite": "stress-v1"
+  },
+  {
+    "grading_notes": "",
+    "grading_status": "PENDING_SPECIFICATION",
+    "id": "Q080",
+    "reasons": [
+      "Acceptance rules and grader configuration require human specification review"
+    ],
+    "source_answer": "{\"accuracy_rate\":0.8,\"all_runs_consistent\":false}",
+    "source_grader": "Exact JSON",
+    "suite": "stress-v1"
+  }
+]
