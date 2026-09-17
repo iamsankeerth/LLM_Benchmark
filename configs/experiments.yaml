@@ -7,9 +7,12 @@ baseline:
   warmup_requests: 2
   pending_grading_policy: refuse_auto_grading
 reliability:
-  enabled: false
-  task_ids: []
+  enabled: true
+  suite_version: reliability-v1
+  config: configs/reliability-v1.yaml
   repetitions: 5
+  temperature: 0
+  run_kind: RELIABILITY
 temperature_study:
   enabled: false
   task_ids: []

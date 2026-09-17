@@ -1,0 +1,38 @@
+# RELIABILITY_V1 subset: 14 tasks x 5 fresh consecutive trials, T=0.
+# Frozen 2026-09-17 BEFORE the first CREATOR_BASELINE generation.
+# Purpose: behavioral consistency (pass^5, grader flips), NOT capability.
+# Operationally separate from CREATOR_BASELINE: distinct experiment_id and
+# run_kind=RELIABILITY. Trials are never merged across experiments at
+# collection time (joint analysis of all 8 generations stays possible later
+# because rows carry distinct identities).
+#
+# Subset rationale: tasks chosen to expose instability (strict formatting,
+# verbosity-prone, mixed deterministic+judge, abstention), spread across
+# easy/medium/hard and core/stress, covering every verdict path.
+# Tasks marked selected_from_pilot were informed by pilot-10 observations;
+# the reason is recorded permanently below (no silent cherry-picking).
+experiment: reliability-v1
+run_kind: RELIABILITY
+temperature: 0.0
+trials: 5
+task_ids:
+  # multi-constraint (3)
+  - Q011 # selected_from_pilot: T=0 output flipped a strict grader (280 vs 277 chars)
+  - Q013
+  - Q016 # constraints+structured overlap: cross-type instability surface
+  # structured JSON (3)
+  - Q001 # pilot PASS anchor
+  - Q005
+  - Q009
+  # exact/time (2)
+  - Q071 # selected_from_pilot: strict time-parse FAIL on correct-but-verbose output
+  - Q025
+  # reasoning/numeric (2)
+  - Q019 # selected_from_pilot: 891-char ramble at T=0
+  - Q024
+  # refusal/abstention (2)
+  - Q046 # only refusal-grader task in the frozen suite
+  - Q073 # refusal_calibration category, stress-hard
+  # judge (2): Q059 clean NEEDS_JUDGE path, Q051 mixed deterministic+judge
+  - Q059
+  - Q051
