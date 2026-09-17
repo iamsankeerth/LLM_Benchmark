@@ -429,8 +429,34 @@ def run_experiment(args: argparse.Namespace) -> int:
             metrics = derive_metrics(result)
             sample = sampler.sample()
             post, _ = sample_vram_once()
-            details = grade_output(result.text, entry['graders'])
-            verdict = reduce_verdict(status, details)
+            try:
+                details = grade_output(result.text, entry['graders'])
+                verdict = reduce_verdict(status, details)
+            except Exception as exc:
+                # Grading must never kill an experiment: record the failure
+                # as an ERROR row (retried on resume) and keep going. Any
+                # ERROR verdict demands investigation before interpreting
+                # results.
+                insert_measured_row(
+                    conn, base=base, text=result.text,
+                    thinking=result.thinking,
+                    done_reason=result.done_reason, metrics=metrics,
+                    sampler_ram=(sample.ram_baseline_mb, sample.ram_peak_mb),
+                    vram_pre=(sample.vram_baseline_mib, sample.vram_peak_mib,
+                              sample.vram_total_mib),
+                    vram_post_mib=post, verdict=ERROR, details=[],
+                    status='ERROR',
+                    error=f'grading failure {type(exc).__name__}: {exc}',
+                    eligibility_status=eligibility.status,
+                    residency_ratio=eligibility.gpu_residency_ratio,
+                    evidence_json=eligibility.eligibility_evidence_json,
+                    ollama_ver=ollama_ver,
+                    model_digest=config.ollama_model_digest,
+                )
+                print(f'{task_id} t{trial}: ERROR grading {type(exc).__name__}: {exc}',
+                      flush=True)
+                ran += 1
+                continue
             insert_measured_row(
                 conn, base=base, text=result.text, thinking=result.thinking,
                 done_reason=result.done_reason, metrics=metrics,

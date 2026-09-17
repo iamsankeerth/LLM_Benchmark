@@ -172,7 +172,7 @@ class ConstraintGraderTests(unittest.TestCase):
             'type': 'constraints',
             'constraints': [
                 {'kind': 'sentence_count', 'value': 3},
-                {'kind': 'sentence_contains', 'index': 1, 'terms': ['chlorophyll']} if False else {'kind': 'sentence_contains', 'index': 1, 'term': 'chlorophyll'},
+                {'kind': 'sentence_contains', 'index': 1, 'terms': ['chlorophyll']},
                 {'kind': 'sentence_numeric_tokens', 'index': 2, 'min': 1, 'max': 1},
                 {'kind': 'sentence_is_question', 'index': 3},
             ],
@@ -181,6 +181,10 @@ class ConstraintGraderTests(unittest.TestCase):
         self.assertTrue(grade_constraints(good, grader).passed)
         bad = 'Chlorophyll drives the process. About 6 or 7 molecules cooperate. Does that surprise you?'
         self.assertFalse(grade_constraints(bad, grader).passed)
+        missing_term = 'Plants grow tall. About 6 molecules cooperate. Does that surprise you?'
+        result = grade_constraints(missing_term, grader)
+        self.assertFalse(result.passed)
+        self.assertTrue(any('chlorophyll' in v for v in result.violations))
 
     def test_bullets_and_prefix(self) -> None:
         grader = {
@@ -213,6 +217,84 @@ class ConstraintGraderTests(unittest.TestCase):
         self.assertEqual(words('João São  test'), ['João', 'São', 'test'])
         self.assertEqual(words("don't stop"), ["don't", 'stop'])
         self.assertEqual(normalize_text('  spaced  \n'), 'spaced')
+
+    def test_allowed_punctuation_markers_only(self) -> None:
+        # Q015 shape: "No punctuation except the initial letter's period."
+        grader = {
+            'type': 'constraints',
+            'constraints': [
+                {'kind': 'allowed_punctuation', 'allowed': ['A', '.', 'B', 'C', 'D', 'E', 'F']}
+            ],
+        }
+        good = 'A. Foo bar baz qux quux corge grault\nB. Second line here now today'
+        self.assertTrue(grade_constraints(good, grader).passed)
+        self.assertFalse(grade_constraints('A. Wow, really?', grader).passed)
+        self.assertFalse(grade_constraints('A. Trailing period here.', grader).passed)
+
+    def test_term_occurrence_across_json_values(self) -> None:
+        # Q016 shape: exactly one JSON value may contain the word.
+        grader = {
+            'type': 'constraints',
+            'constraints': [
+                {'kind': 'term_occurrence', 'term': 'latency', 'occurrence': 'across_values', 'count': 1}
+            ],
+        }
+        good = '{"benefit_1": "caching cuts latency drops", "benefit_2": "fewer backend calls daily", "risk": "stale data served"}'
+        self.assertTrue(grade_constraints(good, grader).passed)
+        both = '{"benefit_1": "lower latency here", "benefit_2": "latency again", "risk": "stale data"}'
+        self.assertFalse(grade_constraints(both, grader).passed)
+        self.assertFalse(grade_constraints('not json at all', grader).passed)
+
+    def test_item_sentence_count_all_items(self) -> None:
+        # Q017 shape: no index means every numbered item holds one sentence.
+        grader = {
+            'type': 'constraints',
+            'constraints': [{'kind': 'item_sentence_count', 'value': 1}],
+        }
+        good = '1. Measure latency first.\n2. Check logs now.\n3. Split; retry.'
+        self.assertTrue(grade_constraints(good, grader).passed)
+        bad = '1. Measure latency first. Then record it.\n2. Check logs now.'
+        result = grade_constraints(bad, grader)
+        self.assertFalse(result.passed)
+        self.assertTrue(any('item 1' in v for v in result.violations))
+        self.assertFalse(grade_constraints('No numbered items here.', grader).passed)
+
+    def test_bullet_prefix_first_and_last(self) -> None:
+        last = {
+            'type': 'constraints',
+            'constraints': [{'kind': 'bullet_prefix', 'index': -1, 'prefix': 'Therefore'}],
+        }
+        self.assertTrue(grade_constraints('- Fast.\n- Therefore slow.', last).passed)
+        self.assertFalse(grade_constraints('- Therefore fast.\n- Slow end.', last).passed)
+        first = {
+            'type': 'constraints',
+            'constraints': [{'kind': 'bullet_prefix', 'index': 1, 'prefix': 'First'}],
+        }
+        self.assertTrue(grade_constraints('- First point.\n- Second point.', first).passed)
+        self.assertFalse(grade_constraints('- Zeroth.\n- First later.', first).passed)
+
+    def test_engine_covers_every_frozen_constraint_shape(self) -> None:
+        # Regression lock: every (kind, key-shape) in the frozen grading spec
+        # must be handled by the engine — no KeyError, no "unknown kind".
+        # A gap here once crashed a live 129-generation baseline run (Q012).
+        import yaml
+
+        spec_path = Path(__file__).resolve().parents[1] / 'evals/specs/eval-v1-grading.yaml'
+        spec = yaml.safe_load(spec_path.read_text(encoding='utf-8'))
+        sample = 'Alpha beta gamma. Second sentence here? Third one follows!'
+        checked = 0
+        for task_id, entry in spec['tasks'].items():
+            for grader_entry in entry.get('graders') or []:
+                if grader_entry.get('type') != 'constraints':
+                    continue
+                result = grade_constraints(sample, grader_entry)
+                self.assertNotIn(
+                    'unknown constraint kind',
+                    '; '.join(result.violations),
+                    f'{task_id} uses an unhandled constraint kind',
+                )
+                checked += 1
+        self.assertGreater(checked, 0)
 
 
 class FactCheckGraderTests(unittest.TestCase):
