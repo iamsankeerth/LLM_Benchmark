@@ -1,763 +1,981 @@
 {
-  "deterministic_tasks": {
-    "Q001": {
-      "all_pass_5": true,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.0010141401528926059,
-        "mean": 37.89617955849729,
-        "n": 5,
-        "stdev": 0.03843203733150009
-      },
-      "deterministic_sub_pass_rate": 1.0,
-      "e2e_stats": {
-        "cv": 0.017310865429435596,
-        "mean": 1904.9138200000002,
-        "n": 5,
-        "stdev": 32.97570679269211
-      },
-      "failure_code_distribution": {},
-      "final_success": true,
-      "grader_flip": false,
-      "initial_attempt_success": 1.0,
-      "is_judge_task": false,
-      "judge_deferrals": 0,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.7535430028063457,
-          "mean": 296.25369655003135,
-          "n": 5,
-          "stdev": 519.4935966408219
-        }
-      },
-      "success_rate": 1.0,
-      "task_id": "Q001",
-      "ttft_stats": {
-        "cv": 0.5409990112627524,
-        "mean": 57.8645,
-        "n": 5,
-        "stdev": 31.304637287213534
-      },
-      "unique_canonical_json_count": 1,
-      "unique_normalized_output_count": 1,
-      "unique_raw_output_count": 1,
-      "verdicts": [
-        "PASS",
-        "PASS",
-        "PASS",
-        "PASS",
-        "PASS"
-      ]
-    },
-    "Q005": {
-      "all_pass_5": false,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.00201231295398273,
-        "mean": 37.68632884600864,
-        "n": 5,
-        "stdev": 0.07583668772487623
-      },
-      "deterministic_sub_pass_rate": 0.0,
-      "e2e_stats": {
-        "cv": 0.011076076739036309,
-        "mean": 3485.9426599999997,
-        "n": 5,
-        "stdev": 38.61056841004035
-      },
-      "failure_code_distribution": {
-        "structured:$.outbound.date: expected '2026-10-03', got '3 Oct 2026'": 5
-      },
-      "final_success": false,
-      "grader_flip": false,
-      "initial_attempt_success": 0.0,
-      "is_judge_task": false,
-      "judge_deferrals": 0,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.7563812544743391,
-          "mean": 301.4185419963976,
-          "n": 5,
-          "stdev": 529.4058769134591
-        }
-      },
-      "success_rate": 0.0,
-      "task_id": "Q005",
-      "ttft_stats": {
-        "cv": 0.5344051142682675,
-        "mean": 63.170320000000004,
-        "n": 5,
-        "stdev": 33.75854207796303
-      },
-      "unique_canonical_json_count": 1,
-      "unique_normalized_output_count": 1,
-      "unique_raw_output_count": 1,
-      "verdicts": [
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL"
-      ]
-    },
-    "Q009": {
-      "all_pass_5": true,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.0028093325843352042,
-        "mean": 38.08124092303038,
-        "n": 5,
-        "stdev": 0.10698287097698847
-      },
-      "deterministic_sub_pass_rate": 1.0,
-      "e2e_stats": {
-        "cv": 0.01676292774314191,
-        "mean": 1734.31526,
-        "n": 5,
-        "stdev": 29.072201387208377
-      },
-      "failure_code_distribution": {},
-      "final_success": true,
-      "grader_flip": false,
-      "initial_attempt_success": 1.0,
-      "is_judge_task": false,
-      "judge_deferrals": 0,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.7498010388703538,
-          "mean": 293.0684391408679,
-          "n": 5,
-          "stdev": 512.8114592688037
-        }
-      },
-      "success_rate": 1.0,
-      "task_id": "Q009",
-      "ttft_stats": {
-        "cv": 0.45971432015010116,
-        "mean": 53.68684,
-        "n": 5,
-        "stdev": 24.680609151607257
-      },
-      "unique_canonical_json_count": 1,
-      "unique_normalized_output_count": 1,
-      "unique_raw_output_count": 1,
-      "verdicts": [
-        "PASS",
-        "PASS",
-        "PASS",
-        "PASS",
-        "PASS"
-      ]
-    },
-    "Q011": {
-      "all_pass_5": false,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.0034693776982279156,
-        "mean": 38.00505935020436,
-        "n": 5,
-        "stdev": 0.13185390532942734
-      },
-      "deterministic_sub_pass_rate": 0.8,
-      "e2e_stats": {
-        "cv": 0.013386586352891059,
-        "mean": 1524.32762,
-        "n": 5,
-        "stdev": 20.405543315226907
-      },
-      "failure_code_distribution": {
-        "constraints:term_occurrence(latency): expected 1, got 2": 1
-      },
-      "final_success": true,
-      "grader_flip": true,
-      "initial_attempt_success": 0.0,
-      "is_judge_task": false,
-      "judge_deferrals": 0,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.683619682225543,
-          "mean": 230.88327069796955,
-          "n": 5,
-          "stdev": 388.7196188437095
-        }
-      },
-      "success_rate": 0.8,
-      "task_id": "Q011",
-      "ttft_stats": {
-        "cv": 0.3127448189494431,
-        "mean": 51.35943999999999,
-        "n": 5,
-        "stdev": 16.062398764144785
-      },
-      "unique_canonical_json_count": null,
-      "unique_normalized_output_count": 2,
-      "unique_raw_output_count": 2,
-      "verdicts": [
-        "FAIL",
-        "PASS",
-        "PASS",
-        "PASS",
-        "PASS"
-      ]
-    },
-    "Q013": {
-      "all_pass_5": true,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.0014205163434112779,
-        "mean": 37.76090328380651,
-        "n": 5,
-        "stdev": 0.05363998025661974
-      },
-      "deterministic_sub_pass_rate": 1.0,
-      "e2e_stats": {
-        "cv": 0.011409372853941235,
-        "mean": 2769.98002,
-        "n": 5,
-        "stdev": 31.603734846147596
-      },
-      "failure_code_distribution": {},
-      "final_success": true,
-      "grader_flip": false,
-      "initial_attempt_success": 1.0,
-      "is_judge_task": false,
-      "judge_deferrals": 0,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.695766173584516,
-          "mean": 242.0176624144117,
-          "n": 5,
-          "stdev": 410.40536533235604
-        }
-      },
-      "success_rate": 1.0,
-      "task_id": "Q013",
-      "ttft_stats": {
-        "cv": 0.26976643068009304,
-        "mean": 63.780719999999995,
-        "n": 5,
-        "stdev": 17.20589718060642
-      },
-      "unique_canonical_json_count": null,
-      "unique_normalized_output_count": 2,
-      "unique_raw_output_count": 2,
-      "verdicts": [
-        "PASS",
-        "PASS",
-        "PASS",
-        "PASS",
-        "PASS"
-      ]
-    },
-    "Q016": {
-      "all_pass_5": false,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.005583395030111666,
-        "mean": 38.013723981241114,
-        "n": 5,
-        "stdev": 0.2122456375528983
-      },
-      "deterministic_sub_pass_rate": 0.0,
-      "e2e_stats": {
-        "cv": 0.018696515976362696,
-        "mean": 1473.85624,
-        "n": 5,
-        "stdev": 27.55597673802185
-      },
-      "failure_code_distribution": {
-        "constraints:term_occurrence(latency): expected 1 values, got 0": 5,
-        "structured:$.benefit_1: expected '<6-10 words>', got 'Reduces server load by storing frequently accessed data.'": 5
-      },
-      "final_success": false,
-      "grader_flip": false,
-      "initial_attempt_success": 0.0,
-      "is_judge_task": false,
-      "judge_deferrals": 0,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.744888809203276,
-          "mean": 288.25131853243676,
-          "n": 5,
-          "stdev": 502.9664999453378
-        }
-      },
-      "success_rate": 0.0,
-      "task_id": "Q016",
-      "ttft_stats": {
-        "cv": 0.3762089221853247,
-        "mean": 53.28116,
-        "n": 5,
-        "stdev": 20.044847776383836
-      },
-      "unique_canonical_json_count": 1,
-      "unique_normalized_output_count": 1,
-      "unique_raw_output_count": 1,
-      "verdicts": [
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL"
-      ]
-    },
-    "Q019": {
-      "all_pass_5": false,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.00038919504920042705,
-        "mean": 37.344898149466346,
-        "n": 5,
-        "stdev": 0.014534449472666492
-      },
-      "deterministic_sub_pass_rate": 0.0,
-      "e2e_stats": {
-        "cv": 0.0015457338073274274,
-        "mean": 8286.238679999999,
-        "n": 5,
-        "stdev": 12.808319263260195
-      },
-      "failure_code_distribution": {
-        "numeric:output is not a bare number (prompts require only the number): 'We are given:\\n\\n- Total batteries in warehouse: **480**": 5
-      },
-      "final_success": false,
-      "grader_flip": false,
-      "initial_attempt_success": 0.0,
-      "is_judge_task": false,
-      "judge_deferrals": 0,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.7540263625034438,
-          "mean": 224.89949801402025,
-          "n": 5,
-          "stdev": 394.47964843038244
-        }
-      },
-      "success_rate": 0.0,
-      "task_id": "Q019",
-      "ttft_stats": {
-        "cv": 0.19570044137606213,
-        "mean": 65.74972,
-        "n": 5,
-        "stdev": 12.867249224352499
-      },
-      "unique_canonical_json_count": null,
-      "unique_normalized_output_count": 1,
-      "unique_raw_output_count": 1,
-      "verdicts": [
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL"
-      ]
-    },
-    "Q024": {
-      "all_pass_5": false,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.0012603280750096615,
-        "mean": 37.1970297440696,
-        "n": 5,
-        "stdev": 0.046880460893420364
-      },
-      "deterministic_sub_pass_rate": 0.0,
-      "e2e_stats": {
-        "cv": 0.0027852945686321585,
-        "mean": 10656.07224,
-        "n": 5,
-        "stdev": 29.68030013302392
-      },
-      "failure_code_distribution": {
-        "numeric:output is not a bare number (prompts require only the number): 'We are given:\\n\\n- Total examples: 1,200  \\n- Class A: 3": 5
-      },
-      "final_success": false,
-      "grader_flip": false,
-      "initial_attempt_success": 0.0,
-      "is_judge_task": false,
-      "judge_deferrals": 0,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.75465636725798,
-          "mean": 245.0389860071392,
-          "n": 5,
-          "stdev": 429.95921702386585
-        }
-      },
-      "success_rate": 0.0,
-      "task_id": "Q024",
-      "ttft_stats": {
-        "cv": 0.3263452293009666,
-        "mean": 63.91426,
-        "n": 5,
-        "stdev": 20.858113835301598
-      },
-      "unique_canonical_json_count": null,
-      "unique_normalized_output_count": 1,
-      "unique_raw_output_count": 1,
-      "verdicts": [
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL"
-      ]
-    },
-    "Q025": {
-      "all_pass_5": false,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.001002276260591048,
-        "mean": 37.05163221622853,
-        "n": 5,
-        "stdev": 0.037135971386476334
-      },
-      "deterministic_sub_pass_rate": 0.0,
-      "e2e_stats": {
-        "cv": 0.002373625798879448,
-        "mean": 13890.846179999999,
-        "n": 5,
-        "stdev": 32.97167086111403
-      },
-      "failure_code_distribution": {
-        "time:could not parse time from 'We are given:\\n\\n- Job A runs every **18 minutes**.\\n- Job B runs every **24 minutes**.\\n- Bo": 4,
-        "time:could not parse time from 'We are given:\\n\\n- Job A runs every **18 minutes**\\n- Job B runs every **24 minutes**\\n- Both": 1
-      },
-      "final_success": false,
-      "grader_flip": false,
-      "initial_attempt_success": 0.0,
-      "is_judge_task": false,
-      "judge_deferrals": 0,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.7671225944825941,
-          "mean": 251.00462051812514,
-          "n": 5,
-          "stdev": 443.55593623710826
-        }
-      },
-      "success_rate": 0.0,
-      "task_id": "Q025",
-      "ttft_stats": {
-        "cv": 0.2756714387585201,
-        "mean": 72.59134,
-        "n": 5,
-        "stdev": 20.011359139208913
-      },
-      "unique_canonical_json_count": null,
-      "unique_normalized_output_count": 2,
-      "unique_raw_output_count": 2,
-      "verdicts": [
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL"
-      ]
-    },
-    "Q046": {
-      "all_pass_5": true,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.023709598307015446,
-        "mean": 46.080390659428915,
-        "n": 5,
-        "stdev": 1.0925475523654062
-      },
-      "deterministic_sub_pass_rate": 1.0,
-      "e2e_stats": {
-        "cv": 0.2283918919052682,
-        "mean": 170.35165999999998,
-        "n": 5,
-        "stdev": 38.906937916603
-      },
-      "failure_code_distribution": {},
-      "final_success": true,
-      "grader_flip": false,
-      "initial_attempt_success": 1.0,
-      "is_judge_task": false,
-      "judge_deferrals": 0,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.7528657223691133,
-          "mean": 295.84429477582864,
-          "n": 5,
-          "stdev": 518.5753234710138
-        }
-      },
-      "success_rate": 1.0,
-      "task_id": "Q046",
-      "ttft_stats": {
-        "cv": 0.5840715386988812,
-        "mean": 61.759080000000004,
-        "n": 5,
-        "stdev": 36.071720884227304
-      },
-      "unique_canonical_json_count": null,
-      "unique_normalized_output_count": 1,
-      "unique_raw_output_count": 1,
-      "verdicts": [
-        "PASS",
-        "PASS",
-        "PASS",
-        "PASS",
-        "PASS"
-      ]
-    },
-    "Q051": {
-      "all_pass_5": false,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.002607907074426288,
-        "mean": 37.96632177924586,
-        "n": 5,
-        "stdev": 0.09901263915804014
-      },
-      "deterministic_sub_pass_rate": 0.0,
-      "e2e_stats": {
-        "cv": 0.014568261157181949,
-        "mean": 1738.84788,
-        "n": 5,
-        "stdev": 25.33199002845218
-      },
-      "failure_code_distribution": {
-        "fact_check:missing fact: 'carry'": 5
-      },
-      "final_success": false,
-      "grader_flip": false,
-      "initial_attempt_success": 0.0,
-      "is_judge_task": false,
-      "judge_deferrals": 0,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.7414841446091764,
-          "mean": 278.30939518564304,
-          "n": 5,
-          "stdev": 484.6713990115668
-        }
-      },
-      "success_rate": 0.0,
-      "task_id": "Q051",
-      "ttft_stats": {
-        "cv": 0.4062216057590646,
-        "mean": 53.1639,
-        "n": 5,
-        "stdev": 21.59632482641433
-      },
-      "unique_canonical_json_count": null,
-      "unique_normalized_output_count": 1,
-      "unique_raw_output_count": 1,
-      "verdicts": [
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL"
-      ]
-    },
-    "Q071": {
-      "all_pass_5": false,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.0005935539510400508,
-        "mean": 37.56503246643291,
-        "n": 5,
-        "stdev": 0.022296873441399037
-      },
-      "deterministic_sub_pass_rate": 0.0,
-      "e2e_stats": {
-        "cv": 0.002937609676609831,
-        "mean": 5729.06474,
-        "n": 5,
-        "stdev": 16.829756018148185
-      },
-      "failure_code_distribution": {
-        "time:could not parse time from \"Let's break down the timeline step by step:\\n\\n1. **Backup starts at 23:50**  \\n2. **Backup l": 5
-      },
-      "final_success": false,
-      "grader_flip": false,
-      "initial_attempt_success": 0.0,
-      "is_judge_task": false,
-      "judge_deferrals": 0,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.7221105110465271,
-          "mean": 217.30614784124108,
-          "n": 5,
-          "stdev": 374.22520131243186
-        }
-      },
-      "success_rate": 0.0,
-      "task_id": "Q071",
-      "ttft_stats": {
-        "cv": 0.269832190872244,
-        "mean": 59.037279999999996,
-        "n": 5,
-        "stdev": 15.930158605538114
-      },
-      "unique_canonical_json_count": null,
-      "unique_normalized_output_count": 1,
-      "unique_raw_output_count": 1,
-      "verdicts": [
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL",
-        "FAIL"
-      ]
-    },
-    "Q073": {
-      "all_pass_5": true,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.08351603514217401,
-        "mean": 71.991380613664,
-        "n": 5,
-        "stdev": 6.012434673264388
-      },
-      "deterministic_sub_pass_rate": 1.0,
-      "e2e_stats": {
-        "cv": 0.240722662727108,
-        "mean": 78.36012000000001,
-        "n": 5,
-        "stdev": 18.86305673801571
-      },
-      "failure_code_distribution": {},
-      "final_success": true,
-      "grader_flip": false,
-      "initial_attempt_success": 1.0,
-      "is_judge_task": false,
-      "judge_deferrals": 0,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.6283169939877435,
-          "mean": 191.33208203191145,
-          "n": 5,
-          "stdev": 311.5492806676184
-        }
-      },
-      "success_rate": 1.0,
-      "task_id": "Q073",
-      "ttft_stats": {
-        "cv": 0.32191327103675027,
-        "mean": 50.14424,
-        "n": 5,
-        "stdev": 16.142096322051856
-      },
-      "unique_canonical_json_count": null,
-      "unique_normalized_output_count": 1,
-      "unique_raw_output_count": 1,
-      "verdicts": [
-        "PASS",
-        "PASS",
-        "PASS",
-        "PASS",
-        "PASS"
-      ]
-    }
+  "provenance": {
+    "analysis_code_git_commit": "4ec870ed03e0b906522d1721089b483c84928483",
+    "analysis_worktree_dirty": false,
+    "dataset_hash": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
+    "experiment_config_hash": "600f3c46d2e57322a1c1aa40ed8087ab18d6f94f0a3bcfc076e556f28bb9783f",
+    "grading_spec_hash": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f"
   },
-  "experiment_id": "reliability-v1",
-  "flipped_tasks": [
-    "Q011"
-  ],
-  "grader_flip_rate": 0.07692307692307693,
-  "judge_tasks": {
-    "Q059": {
-      "all_pass_5": null,
-      "cache_state_distribution": {
-        "PARTIAL": 5
-      },
-      "decode_stats": {
-        "cv": 0.0012496603578291167,
-        "mean": 37.487238027678444,
+  "report": {
+    "deterministic_tasks": {
+      "Q001": {
+        "all_pass_5": true,
+        "any_pass_5": true,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.0010141401528926059,
+          "mean": 37.89617955849729,
+          "n": 5,
+          "stdev": 0.03843203733150009
+        },
+        "deterministic_sub_pass_rate": 1.0,
+        "deterministic_sub_passes": 5,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.017310865429435596,
+          "mean": 1904.9138200000002,
+          "n": 5,
+          "stdev": 32.97570679269211
+        },
+        "failure_code_distribution": {},
+        "grader_flip": false,
+        "grading_status": "READY_DETERMINISTIC",
+        "initial_attempt_success": 1.0,
+        "is_judge_task": false,
+        "judge_deferrals": 0,
         "n": 5,
-        "stdev": 0.04684631528769392
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.7535430028063457,
+            "mean": 296.25369655003135,
+            "n": 5,
+            "stdev": 519.4935966408219
+          }
+        },
+        "success_rate": 1.0,
+        "task_id": "Q001",
+        "ttft_stats": {
+          "cv": 0.5409990112627524,
+          "mean": 57.8645,
+          "n": 5,
+          "stdev": 31.304637287213534
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            112,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": 1,
+        "unique_normalized_output_count": 1,
+        "unique_raw_output_count": 1,
+        "verdicts": [
+          "PASS",
+          "PASS",
+          "PASS",
+          "PASS",
+          "PASS"
+        ]
       },
-      "deterministic_sub_pass_rate": 1.0,
-      "e2e_stats": {
-        "cv": 0.003228115291369342,
-        "mean": 6070.80084,
+      "Q005": {
+        "all_pass_5": false,
+        "any_pass_5": false,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.00201231295398273,
+          "mean": 37.68632884600864,
+          "n": 5,
+          "stdev": 0.07583668772487623
+        },
+        "deterministic_sub_pass_rate": 0.0,
+        "deterministic_sub_passes": 0,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.011076076739036309,
+          "mean": 3485.9426599999997,
+          "n": 5,
+          "stdev": 38.61056841004035
+        },
+        "failure_code_distribution": {
+          "structured:$.outbound.date: expected '2026-10-03', got '3 Oct 2026'": 5
+        },
+        "grader_flip": false,
+        "grading_status": "READY_DETERMINISTIC",
+        "initial_attempt_success": 0.0,
+        "is_judge_task": false,
+        "judge_deferrals": 0,
         "n": 5,
-        "stdev": 19.597245022461845
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.7563812544743391,
+            "mean": 301.4185419963976,
+            "n": 5,
+            "stdev": 529.4058769134591
+          }
+        },
+        "success_rate": 0.0,
+        "task_id": "Q005",
+        "ttft_stats": {
+          "cv": 0.5344051142682675,
+          "mean": 63.170320000000004,
+          "n": 5,
+          "stdev": 33.75854207796303
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            112,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": 1,
+        "unique_normalized_output_count": 1,
+        "unique_raw_output_count": 1,
+        "verdicts": [
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL"
+        ]
       },
-      "failure_code_distribution": {},
-      "final_success": null,
-      "grader_flip": null,
-      "initial_attempt_success": null,
-      "is_judge_task": true,
+      "Q009": {
+        "all_pass_5": true,
+        "any_pass_5": true,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.0028093325843352042,
+          "mean": 38.08124092303038,
+          "n": 5,
+          "stdev": 0.10698287097698847
+        },
+        "deterministic_sub_pass_rate": 1.0,
+        "deterministic_sub_passes": 5,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.01676292774314191,
+          "mean": 1734.31526,
+          "n": 5,
+          "stdev": 29.072201387208377
+        },
+        "failure_code_distribution": {},
+        "grader_flip": false,
+        "grading_status": "READY_DETERMINISTIC",
+        "initial_attempt_success": 1.0,
+        "is_judge_task": false,
+        "judge_deferrals": 0,
+        "n": 5,
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.7498010388703538,
+            "mean": 293.0684391408679,
+            "n": 5,
+            "stdev": 512.8114592688037
+          }
+        },
+        "success_rate": 1.0,
+        "task_id": "Q009",
+        "ttft_stats": {
+          "cv": 0.45971432015010116,
+          "mean": 53.68684,
+          "n": 5,
+          "stdev": 24.680609151607257
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            116,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": 1,
+        "unique_normalized_output_count": 1,
+        "unique_raw_output_count": 1,
+        "verdicts": [
+          "PASS",
+          "PASS",
+          "PASS",
+          "PASS",
+          "PASS"
+        ]
+      },
+      "Q011": {
+        "all_pass_5": false,
+        "any_pass_5": true,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.0034693776982279156,
+          "mean": 38.00505935020436,
+          "n": 5,
+          "stdev": 0.13185390532942734
+        },
+        "deterministic_sub_pass_rate": 0.8,
+        "deterministic_sub_passes": 4,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.013386586352891059,
+          "mean": 1524.32762,
+          "n": 5,
+          "stdev": 20.405543315226907
+        },
+        "failure_code_distribution": {
+          "constraints:term_occurrence(latency): expected 1, got 2": 1
+        },
+        "grader_flip": true,
+        "grading_status": "READY_DETERMINISTIC",
+        "initial_attempt_success": 0.0,
+        "is_judge_task": false,
+        "judge_deferrals": 0,
+        "n": 5,
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.683619682225543,
+            "mean": 230.88327069796955,
+            "n": 5,
+            "stdev": 388.7196188437095
+          }
+        },
+        "success_rate": 0.8,
+        "task_id": "Q011",
+        "ttft_stats": {
+          "cv": 0.3127448189494431,
+          "mean": 51.35943999999999,
+          "n": 5,
+          "stdev": 16.062398764144785
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            67,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": null,
+        "unique_normalized_output_count": 2,
+        "unique_raw_output_count": 2,
+        "verdicts": [
+          "FAIL",
+          "PASS",
+          "PASS",
+          "PASS",
+          "PASS"
+        ]
+      },
+      "Q013": {
+        "all_pass_5": true,
+        "any_pass_5": true,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.0014205163434112779,
+          "mean": 37.76090328380651,
+          "n": 5,
+          "stdev": 0.05363998025661974
+        },
+        "deterministic_sub_pass_rate": 1.0,
+        "deterministic_sub_passes": 5,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.011409372853941235,
+          "mean": 2769.98002,
+          "n": 5,
+          "stdev": 31.603734846147596
+        },
+        "failure_code_distribution": {},
+        "grader_flip": false,
+        "grading_status": "READY_DETERMINISTIC",
+        "initial_attempt_success": 1.0,
+        "is_judge_task": false,
+        "judge_deferrals": 0,
+        "n": 5,
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.695766173584516,
+            "mean": 242.0176624144117,
+            "n": 5,
+            "stdev": 410.40536533235604
+          }
+        },
+        "success_rate": 1.0,
+        "task_id": "Q013",
+        "ttft_stats": {
+          "cv": 0.26976643068009304,
+          "mean": 63.780719999999995,
+          "n": 5,
+          "stdev": 17.20589718060642
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            70,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": null,
+        "unique_normalized_output_count": 2,
+        "unique_raw_output_count": 2,
+        "verdicts": [
+          "PASS",
+          "PASS",
+          "PASS",
+          "PASS",
+          "PASS"
+        ]
+      },
+      "Q016": {
+        "all_pass_5": false,
+        "any_pass_5": false,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.005583395030111666,
+          "mean": 38.013723981241114,
+          "n": 5,
+          "stdev": 0.2122456375528983
+        },
+        "deterministic_sub_pass_rate": 0.0,
+        "deterministic_sub_passes": 0,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.018696515976362696,
+          "mean": 1473.85624,
+          "n": 5,
+          "stdev": 27.55597673802185
+        },
+        "failure_code_distribution": {
+          "constraints:term_occurrence(latency): expected 1 values, got 0": 5,
+          "structured:$.benefit_1: expected '<6-10 words>', got 'Reduces server load by storing frequently accessed data.'": 5
+        },
+        "grader_flip": false,
+        "grading_status": "READY_DETERMINISTIC",
+        "initial_attempt_success": 0.0,
+        "is_judge_task": false,
+        "judge_deferrals": 0,
+        "n": 5,
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.744888809203276,
+            "mean": 288.25131853243676,
+            "n": 5,
+            "stdev": 502.9664999453378
+          }
+        },
+        "success_rate": 0.0,
+        "task_id": "Q016",
+        "ttft_stats": {
+          "cv": 0.3762089221853247,
+          "mean": 53.28116,
+          "n": 5,
+          "stdev": 20.044847776383836
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            96,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": 1,
+        "unique_normalized_output_count": 1,
+        "unique_raw_output_count": 1,
+        "verdicts": [
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL"
+        ]
+      },
+      "Q019": {
+        "all_pass_5": false,
+        "any_pass_5": false,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.00038919504920042705,
+          "mean": 37.344898149466346,
+          "n": 5,
+          "stdev": 0.014534449472666492
+        },
+        "deterministic_sub_pass_rate": 0.0,
+        "deterministic_sub_passes": 0,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.0015457338073274274,
+          "mean": 8286.238679999999,
+          "n": 5,
+          "stdev": 12.808319263260195
+        },
+        "failure_code_distribution": {
+          "numeric:output is not a bare number (prompts require only the number): 'We are given:\\n\\n- Total batteries in warehouse: **480**": 5
+        },
+        "grader_flip": false,
+        "grading_status": "READY_DETERMINISTIC",
+        "initial_attempt_success": 0.0,
+        "is_judge_task": false,
+        "judge_deferrals": 0,
+        "n": 5,
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.7540263625034438,
+            "mean": 224.89949801402025,
+            "n": 5,
+            "stdev": 394.47964843038244
+          }
+        },
+        "success_rate": 0.0,
+        "task_id": "Q019",
+        "ttft_stats": {
+          "cv": 0.19570044137606213,
+          "mean": 65.74972,
+          "n": 5,
+          "stdev": 12.867249224352499
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            65,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": null,
+        "unique_normalized_output_count": 1,
+        "unique_raw_output_count": 1,
+        "verdicts": [
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL"
+        ]
+      },
+      "Q024": {
+        "all_pass_5": false,
+        "any_pass_5": false,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.0012603280750096615,
+          "mean": 37.1970297440696,
+          "n": 5,
+          "stdev": 0.046880460893420364
+        },
+        "deterministic_sub_pass_rate": 0.0,
+        "deterministic_sub_passes": 0,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.0027852945686321585,
+          "mean": 10656.07224,
+          "n": 5,
+          "stdev": 29.68030013302392
+        },
+        "failure_code_distribution": {
+          "numeric:output is not a bare number (prompts require only the number): 'We are given:\\n\\n- Total examples: 1,200  \\n- Class A: 3": 5
+        },
+        "grader_flip": false,
+        "grading_status": "READY_DETERMINISTIC",
+        "initial_attempt_success": 0.0,
+        "is_judge_task": false,
+        "judge_deferrals": 0,
+        "n": 5,
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.75465636725798,
+            "mean": 245.0389860071392,
+            "n": 5,
+            "stdev": 429.95921702386585
+          }
+        },
+        "success_rate": 0.0,
+        "task_id": "Q024",
+        "ttft_stats": {
+          "cv": 0.3263452293009666,
+          "mean": 63.91426,
+          "n": 5,
+          "stdev": 20.858113835301598
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            75,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": null,
+        "unique_normalized_output_count": 1,
+        "unique_raw_output_count": 1,
+        "verdicts": [
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL"
+        ]
+      },
+      "Q025": {
+        "all_pass_5": false,
+        "any_pass_5": false,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.001002276260591048,
+          "mean": 37.05163221622853,
+          "n": 5,
+          "stdev": 0.037135971386476334
+        },
+        "deterministic_sub_pass_rate": 0.0,
+        "deterministic_sub_passes": 0,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.002373625798879448,
+          "mean": 13890.846179999999,
+          "n": 5,
+          "stdev": 32.97167086111403
+        },
+        "failure_code_distribution": {
+          "time:could not parse time from 'We are given:\\n\\n- Job A runs every **18 minutes**.\\n- Job B runs every **24 minutes**.\\n- Bo": 4,
+          "time:could not parse time from 'We are given:\\n\\n- Job A runs every **18 minutes**\\n- Job B runs every **24 minutes**\\n- Both": 1
+        },
+        "grader_flip": false,
+        "grading_status": "READY_DETERMINISTIC",
+        "initial_attempt_success": 0.0,
+        "is_judge_task": false,
+        "judge_deferrals": 0,
+        "n": 5,
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.7671225944825941,
+            "mean": 251.00462051812514,
+            "n": 5,
+            "stdev": 443.55593623710826
+          }
+        },
+        "success_rate": 0.0,
+        "task_id": "Q025",
+        "ttft_stats": {
+          "cv": 0.2756714387585201,
+          "mean": 72.59134,
+          "n": 5,
+          "stdev": 20.011359139208913
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            76,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": null,
+        "unique_normalized_output_count": 2,
+        "unique_raw_output_count": 2,
+        "verdicts": [
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL"
+        ]
+      },
+      "Q046": {
+        "all_pass_5": true,
+        "any_pass_5": true,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.023709598307015446,
+          "mean": 46.080390659428915,
+          "n": 5,
+          "stdev": 1.0925475523654062
+        },
+        "deterministic_sub_pass_rate": 1.0,
+        "deterministic_sub_passes": 5,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.2283918919052682,
+          "mean": 170.35165999999998,
+          "n": 5,
+          "stdev": 38.906937916603
+        },
+        "failure_code_distribution": {},
+        "grader_flip": false,
+        "grading_status": "READY_DETERMINISTIC",
+        "initial_attempt_success": 1.0,
+        "is_judge_task": false,
+        "judge_deferrals": 0,
+        "n": 5,
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.7528657223691133,
+            "mean": 295.84429477582864,
+            "n": 5,
+            "stdev": 518.5753234710138
+          }
+        },
+        "success_rate": 1.0,
+        "task_id": "Q046",
+        "ttft_stats": {
+          "cv": 0.5840715386988812,
+          "mean": 61.759080000000004,
+          "n": 5,
+          "stdev": 36.071720884227304
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            147,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": null,
+        "unique_normalized_output_count": 1,
+        "unique_raw_output_count": 1,
+        "verdicts": [
+          "PASS",
+          "PASS",
+          "PASS",
+          "PASS",
+          "PASS"
+        ]
+      },
+      "Q071": {
+        "all_pass_5": false,
+        "any_pass_5": false,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.0005935539510400508,
+          "mean": 37.56503246643291,
+          "n": 5,
+          "stdev": 0.022296873441399037
+        },
+        "deterministic_sub_pass_rate": 0.0,
+        "deterministic_sub_passes": 0,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.002937609676609831,
+          "mean": 5729.06474,
+          "n": 5,
+          "stdev": 16.829756018148185
+        },
+        "failure_code_distribution": {
+          "time:could not parse time from \"Let's break down the timeline step by step:\\n\\n1. **Backup starts at 23:50**  \\n2. **Backup l": 5
+        },
+        "grader_flip": false,
+        "grading_status": "READY_DETERMINISTIC",
+        "initial_attempt_success": 0.0,
+        "is_judge_task": false,
+        "judge_deferrals": 0,
+        "n": 5,
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.7221105110465271,
+            "mean": 217.30614784124108,
+            "n": 5,
+            "stdev": 374.22520131243186
+          }
+        },
+        "success_rate": 0.0,
+        "task_id": "Q071",
+        "ttft_stats": {
+          "cv": 0.269832190872244,
+          "mean": 59.037279999999996,
+          "n": 5,
+          "stdev": 15.930158605538114
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            56,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": null,
+        "unique_normalized_output_count": 1,
+        "unique_raw_output_count": 1,
+        "verdicts": [
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL"
+        ]
+      },
+      "Q073": {
+        "all_pass_5": true,
+        "any_pass_5": true,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.08351603514217401,
+          "mean": 71.991380613664,
+          "n": 5,
+          "stdev": 6.012434673264388
+        },
+        "deterministic_sub_pass_rate": 1.0,
+        "deterministic_sub_passes": 5,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.240722662727108,
+          "mean": 78.36012000000001,
+          "n": 5,
+          "stdev": 18.86305673801571
+        },
+        "failure_code_distribution": {},
+        "grader_flip": false,
+        "grading_status": "READY_DETERMINISTIC",
+        "initial_attempt_success": 1.0,
+        "is_judge_task": false,
+        "judge_deferrals": 0,
+        "n": 5,
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.6283169939877435,
+            "mean": 191.33208203191145,
+            "n": 5,
+            "stdev": 311.5492806676184
+          }
+        },
+        "success_rate": 1.0,
+        "task_id": "Q073",
+        "ttft_stats": {
+          "cv": 0.32191327103675027,
+          "mean": 50.14424,
+          "n": 5,
+          "stdev": 16.142096322051856
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            45,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": null,
+        "unique_normalized_output_count": 1,
+        "unique_raw_output_count": 1,
+        "verdicts": [
+          "PASS",
+          "PASS",
+          "PASS",
+          "PASS",
+          "PASS"
+        ]
+      }
+    },
+    "experiment_id": "reliability-v1",
+    "flipped_tasks": [
+      "Q011"
+    ],
+    "grader_flip_rate": 0.08333333333333333,
+    "judge_prechecks": {
+      "deterministic_precheck_fail_count": 5,
+      "deterministic_precheck_pass_rate": 0.5,
+      "deterministic_precheck_passes": 5,
+      "deterministic_precheck_total": 10,
+      "judge_deferral_rate": 0.5,
       "judge_deferrals": 5,
-      "n": 5,
-      "prefill_by_cache_state": {
-        "PARTIAL": {
-          "cv": 1.7401981701677274,
-          "mean": 214.6738694412855,
+      "judge_task_trials": 10,
+      "per_task": {
+        "Q051": {
+          "deterministic_precheck_pass_rate": 0.0,
+          "deterministic_precheck_passes": 0,
+          "deterministic_precheck_total": 5,
+          "global_deterministic_denominator": "EXCLUDED",
+          "judge_deferrals": 0,
           "n": 5,
-          "stdev": 373.5750747845506
+          "verdicts": [
+            "FAIL",
+            "FAIL",
+            "FAIL",
+            "FAIL",
+            "FAIL"
+          ]
+        },
+        "Q059": {
+          "deterministic_precheck_pass_rate": 1.0,
+          "deterministic_precheck_passes": 5,
+          "deterministic_precheck_total": 5,
+          "global_deterministic_denominator": "EXCLUDED",
+          "judge_deferrals": 5,
+          "n": 5,
+          "verdicts": [
+            "NEEDS_JUDGE",
+            "NEEDS_JUDGE",
+            "NEEDS_JUDGE",
+            "NEEDS_JUDGE",
+            "NEEDS_JUDGE"
+          ]
         }
-      },
-      "success_rate": null,
-      "task_id": "Q059",
-      "ttft_stats": {
-        "cv": 0.2045933753672899,
-        "mean": 68.98982,
+      }
+    },
+    "judge_tasks": {
+      "Q051": {
+        "all_pass_5": null,
+        "any_pass_5": null,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.002607907074426288,
+          "mean": 37.96632177924586,
+          "n": 5,
+          "stdev": 0.09901263915804014
+        },
+        "deterministic_sub_pass_rate": 0.0,
+        "deterministic_sub_passes": 0,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.014568261157181949,
+          "mean": 1738.84788,
+          "n": 5,
+          "stdev": 25.33199002845218
+        },
+        "failure_code_distribution": {
+          "fact_check:missing fact: 'carry'": 5
+        },
+        "grader_flip": null,
+        "grading_status": "READY_JUDGE",
+        "initial_attempt_success": null,
+        "is_judge_task": true,
+        "judge_deferrals": 0,
         "n": 5,
-        "stdev": 14.114860139781761
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.7414841446091764,
+            "mean": 278.30939518564304,
+            "n": 5,
+            "stdev": 484.6713990115668
+          }
+        },
+        "success_rate": null,
+        "task_id": "Q051",
+        "ttft_stats": {
+          "cv": 0.4062216057590646,
+          "mean": 53.1639,
+          "n": 5,
+          "stdev": 21.59632482641433
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            91,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": null,
+        "unique_normalized_output_count": 1,
+        "unique_raw_output_count": 1,
+        "verdicts": [
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL",
+          "FAIL"
+        ]
       },
-      "unique_canonical_json_count": null,
-      "unique_normalized_output_count": 2,
-      "unique_raw_output_count": 2,
-      "verdicts": [
-        "NEEDS_JUDGE",
-        "NEEDS_JUDGE",
-        "NEEDS_JUDGE",
-        "NEEDS_JUDGE",
-        "NEEDS_JUDGE"
-      ]
-    }
-  },
-  "mean_all_pass_5": 0.38461538461538464,
-  "mean_final_success": 0.46153846153846156,
-  "mean_initial_attempt_success": 0.38461538461538464,
-  "mean_success_rate": 0.4461538461538461,
-  "retry_recovery_fraction": "1/8",
-  "retry_recovery_rate": 0.125
+      "Q059": {
+        "all_pass_5": null,
+        "any_pass_5": null,
+        "cache_state_distribution": {
+          "PARTIAL": 5
+        },
+        "decode_stats": {
+          "cv": 0.0012496603578291167,
+          "mean": 37.487238027678444,
+          "n": 5,
+          "stdev": 0.04684631528769392
+        },
+        "deterministic_sub_pass_rate": 1.0,
+        "deterministic_sub_passes": 5,
+        "deterministic_sub_total": 5,
+        "e2e_stats": {
+          "cv": 0.003228115291369342,
+          "mean": 6070.80084,
+          "n": 5,
+          "stdev": 19.597245022461845
+        },
+        "failure_code_distribution": {},
+        "grader_flip": null,
+        "grading_status": "READY_JUDGE",
+        "initial_attempt_success": null,
+        "is_judge_task": true,
+        "judge_deferrals": 5,
+        "n": 5,
+        "prefill_by_cache_state": {
+          "PARTIAL": {
+            "cv": 1.7401981701677274,
+            "mean": 214.6738694412855,
+            "n": 5,
+            "stdev": 373.5750747845506
+          }
+        },
+        "success_rate": null,
+        "task_id": "Q059",
+        "ttft_stats": {
+          "cv": 0.2045933753672899,
+          "mean": 68.98982,
+          "n": 5,
+          "stdev": 14.114860139781761
+        },
+        "uncached_counts_by_state": {
+          "PARTIAL": [
+            54,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "unique_canonical_json_count": null,
+        "unique_normalized_output_count": 2,
+        "unique_raw_output_count": 2,
+        "verdicts": [
+          "NEEDS_JUDGE",
+          "NEEDS_JUDGE",
+          "NEEDS_JUDGE",
+          "NEEDS_JUDGE",
+          "NEEDS_JUDGE"
+        ]
+      }
+    },
+    "later_trial_recovery_fraction": "1/7",
+    "later_trial_recovery_rate": 0.14285714285714285,
+    "mean_all_pass_5": 0.4166666666666667,
+    "mean_any_pass_5": 0.5,
+    "mean_initial_attempt_success": 0.4166666666666667,
+    "mean_success_rate": 0.48333333333333334
+  }
 }
