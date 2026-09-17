@@ -18,3 +18,15 @@ exclude = [
 [[tool.mypy.overrides]]
 module = "jsonschema.*"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "urllib3.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "requests.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["pynvml", "psutil.*"]
+ignore_missing_imports = true

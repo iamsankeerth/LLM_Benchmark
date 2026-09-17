@@ -1,0 +1,7 @@
+# Inference/persistence runtime dependencies (pinned; also present in
+# requirements-dev.lock). Dev tools (ruff, mypy, jsonschema) stay in
+# requirements-dev.txt.
+requests==2.32.5
+psutil==7.0.0
+nvidia-ml-py==13.595.45
+pyyaml==6.0.2

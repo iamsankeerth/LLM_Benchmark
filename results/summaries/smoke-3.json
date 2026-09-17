@@ -1,0 +1,12 @@
+{
+  "experiment_id": "smoke-3",
+  "model_config_id": "qwen3-4b-q4",
+  "run_kind": "BASELINE",
+  "ran_this_invocation": 0,
+  "skipped_resume": 3,
+  "measured_rows": 3,
+  "verdicts": {
+    "FAIL": 2,
+    "PASS": 1
+  }
+}

@@ -1,0 +1,9 @@
+# 3-task inference smoke: exact (Q071), structured JSON (Q001), constraint (Q011).
+experiment: smoke-3
+run_kind: BASELINE
+temperature: 0.0
+trials: 1
+task_ids:
+  - Q071
+  - Q001
+  - Q011

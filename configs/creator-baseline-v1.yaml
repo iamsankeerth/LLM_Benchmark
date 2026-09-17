@@ -1,0 +1,58 @@
+# CREATOR_BASELINE subset v1: 43 tasks, stratified by suite x difficulty.
+# Frozen 2026-09-17 BEFORE looking at any model performance on these tasks.
+# Mechanical rule: all core-easy + every 2nd core-medium/hard + every 3rd
+# stress-hard + half of stress-medium, plus the 10 pilot tasks and all 4
+# READY_JUDGE tasks (Q014, Q051, Q059, Q060) to exercise NEEDS_JUDGE.
+experiment: creator-baseline-v1
+run_kind: BASELINE
+temperature: 0.0
+trials: 3
+task_ids:
+  # core-v1 easy (all 10)
+  - Q001
+  - Q002
+  - Q011
+  - Q019
+  - Q020
+  - Q035
+  - Q036
+  - Q041
+  - Q052
+  - Q056
+  # core-v1 medium (9 mechanical + Q014/Q023/Q059 via pilot overlap)
+  - Q003
+  - Q005
+  - Q012
+  - Q014
+  - Q021
+  - Q023
+  - Q037
+  - Q042
+  - Q047
+  - Q053
+  - Q057
+  - Q059
+  # core-v1 hard (10 mechanical + Q051/Q060 judges)
+  - Q006
+  - Q009
+  - Q015
+  - Q018
+  - Q024
+  - Q026
+  - Q039
+  - Q044
+  - Q049
+  - Q051
+  - Q055
+  - Q060
+  # stress-v1 hard (5 mechanical + Q066/Q071 via pilot overlap)
+  - Q062
+  - Q066
+  - Q067
+  - Q071
+  - Q072
+  - Q076
+  - Q079
+  # stress-v1 medium (2 of 4)
+  - Q061
+  - Q068

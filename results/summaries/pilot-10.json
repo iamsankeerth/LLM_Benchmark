@@ -1,0 +1,13 @@
+{
+  "experiment_id": "pilot-10",
+  "model_config_id": "qwen3-4b-q4",
+  "run_kind": "BASELINE",
+  "ran_this_invocation": 10,
+  "skipped_resume": 0,
+  "measured_rows": 10,
+  "verdicts": {
+    "FAIL": 5,
+    "PASS": 4,
+    "NEEDS_JUDGE": 1
+  }
+}

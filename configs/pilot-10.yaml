@@ -1,0 +1,20 @@
+# 10-task end-to-end pilot: fixed IDs covering every verdict path.
+# Frozen 2026-09-17 BEFORE any benchmark output was observed.
+# Q071 exact/time, Q001 structured JSON, Q011 constraint,
+# Q019 numeric, Q014 mixed constraint+judge, Q059 judge-only,
+# Q035 exact, Q052/Q066/Q023 approved-after-review tasks.
+experiment: pilot-10
+run_kind: BASELINE
+temperature: 0.0
+trials: 1
+task_ids:
+  - Q071
+  - Q001
+  - Q011
+  - Q019
+  - Q014
+  - Q059
+  - Q035
+  - Q052
+  - Q023
+  - Q066
