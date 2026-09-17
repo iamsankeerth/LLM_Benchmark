@@ -1,0 +1,13 @@
+{
+  "experiment_id": "reliability-v1",
+  "model_config_id": "qwen3-4b-q4",
+  "run_kind": "RELIABILITY",
+  "ran_this_invocation": 70,
+  "skipped_resume": 0,
+  "measured_rows": 70,
+  "verdicts": {
+    "FAIL": 36,
+    "PASS": 29,
+    "NEEDS_JUDGE": 5
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "experiment_id": "creator-baseline-v1",
+  "model_config_id": "qwen3-4b-q4",
+  "run_kind": "BASELINE",
+  "ran_this_invocation": 93,
+  "skipped_resume": 36,
+  "measured_rows": 129,
+  "verdicts": {
+    "PASS": 53,
+    "FAIL": 70,
+    "NEEDS_JUDGE": 6
+  }
+}
