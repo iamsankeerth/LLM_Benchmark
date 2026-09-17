@@ -179,7 +179,12 @@ def _failure_signature(detail: dict[str, Any]) -> str:
 
 
 def git_worktree_status(repo_dir: str) -> tuple[str | None, bool]:
-    """Return (HEAD commit, is_dirty); (None, True) when git is unavailable."""
+    """Return (HEAD commit, is_dirty); (None, True) when git is unavailable.
+
+    Dirty means: any tracked modification/staged change, or any untracked
+    *.py file (which could alter analyzer behavior). Untracked non-Python
+    files (result JSONs, reports) do not affect the analyzer and are ignored.
+    """
     try:
         head = subprocess.run(
             ['git', 'rev-parse', 'HEAD'],
@@ -194,7 +199,19 @@ def git_worktree_status(repo_dir: str) -> tuple[str | None, bool]:
     if head.returncode != 0:
         return None, True
     commit = head.stdout.strip() or None
-    dirty = porcelain.returncode != 0 or bool(porcelain.stdout.strip())
+    dirty = porcelain.returncode != 0
+    if not dirty:
+        for line in porcelain.stdout.splitlines():
+            if not line.strip():
+                continue
+            if line.startswith('??'):
+                path = line[3:].strip().strip('"')
+                if path.endswith('.py'):
+                    dirty = True
+                    break
+            else:
+                dirty = True
+                break
     return commit, dirty
 
 

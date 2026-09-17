@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -296,12 +297,15 @@ class ProvenanceTests(unittest.TestCase):
             }
         )
 
+    def _with_freeze(self, tmp: str) -> None:
+        Path(tmp, 'evals', 'specs').mkdir(parents=True)
+        Path(tmp, 'evals', 'specs', 'eval-v1-grading.freeze.json').write_text(
+            self._freeze_doc(), encoding='utf-8'
+        )
+
     def test_non_git_dir_fails_closed(self) -> None:
         with TemporaryDirectory() as tmp:
-            Path(tmp, 'evals', 'specs').mkdir(parents=True)
-            Path(tmp, 'evals', 'specs', 'eval-v1-grading.freeze.json').write_text(
-                self._freeze_doc(), encoding='utf-8'
-            )
+            self._with_freeze(tmp)
             with self.assertRaises(DirtyWorktreeError):
                 collect_provenance(tmp, {'experiment': 'x'})
             provenance = collect_provenance(tmp, {'experiment': 'x'}, allow_dirty=True)
@@ -310,6 +314,43 @@ class ProvenanceTests(unittest.TestCase):
             self.assertEqual(provenance.grading_spec_hash, 'g' * 64)
             self.assertEqual(provenance.dataset_hash, 'd' * 64)
             self.assertEqual(len(provenance.experiment_config_hash), 64)
+
+    def test_untracked_json_does_not_dirty(self) -> None:
+        from analysis.reliability import git_worktree_status
+
+        with TemporaryDirectory() as tmp:
+            self._with_freeze(tmp)
+            subprocess.run(['git', 'init', '-q'], cwd=tmp, check=True,
+                           capture_output=True)
+            subprocess.run(['git', 'config', 'user.email', 't@t'],
+                           cwd=tmp, check=True, capture_output=True)
+            subprocess.run(['git', 'config', 'user.name', 't'],
+                           cwd=tmp, check=True, capture_output=True)
+            Path(tmp, 'results', 'summaries').mkdir(parents=True)
+            Path(tmp, 'results', 'summaries', 'out.json').write_text(
+                '{}', encoding='utf-8'
+            )
+            subprocess.run(['git', 'add', '-A'], cwd=tmp, check=True,
+                           capture_output=True)
+            subprocess.run(['git', 'commit', '-qm', 'init'], cwd=tmp, check=True,
+                           capture_output=True)
+            # New untracked result JSON: clean.
+            Path(tmp, 'results', 'summaries', 'new.json').write_text(
+                '{}', encoding='utf-8'
+            )
+            commit, dirty = git_worktree_status(tmp)
+            self.assertFalse(dirty)
+            self.assertTrue(commit)
+            # New untracked python file: dirty (could alter behavior).
+            Path(tmp, 'sneaky.py').write_text('x = 1\n', encoding='utf-8')
+            _, dirty = git_worktree_status(tmp)
+            self.assertTrue(dirty)
+            # Tracked modification: dirty.
+            Path(tmp, 'evals', 'specs', 'eval-v1-grading.freeze.json').write_text(
+                self._freeze_doc() + ' ', encoding='utf-8'
+            )
+            _, dirty = git_worktree_status(tmp)
+            self.assertTrue(dirty)
 
 
 if __name__ == '__main__':
