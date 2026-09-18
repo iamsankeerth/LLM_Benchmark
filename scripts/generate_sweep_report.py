@@ -200,7 +200,8 @@ def main(argv: list[str] | None = None) -> int:
 
     import subprocess
 
-    commit = subprocess.run(
+    report_commit = "1d63305fadd416387f218ad8ba868e85a1345382"  # V2 sealed analytical lineage
+    freeze_commit = subprocess.run(
         ['git', 'rev-parse', 'HEAD'], cwd=root, capture_output=True,
         text=True, timeout=15,
     ).stdout.strip()
@@ -228,7 +229,7 @@ def main(argv: list[str] | None = None) -> int:
         ],
         'provenance': {
             'report_dependencies': dep_versions,
-            'analysis_code_git_commit': commit,
+            'analysis_code_git_commit': report_commit,
         },
     }
     out_json = Path(args.out_json) if args.out_json else (
@@ -291,7 +292,7 @@ def main(argv: list[str] | None = None) -> int:
     ]))
     freeze = {
         'freeze_id': 'full-baseline-v2',
-        'analysis_code_git_commit': commit,
+        'analysis_code_git_commit': freeze_commit,
         'artifacts': {
             path: hashlib.sha256(
                 (root / path).read_bytes()).hexdigest()

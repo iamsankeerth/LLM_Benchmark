@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 
 from analysis.cross_model import (
     build_registry_row,
@@ -104,6 +105,30 @@ class QuantPairTests(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]['net_task_gain'], 1)
         self.assertEqual(rows[0]['mcnemar_exact_p'], 0.5)
+
+
+class ProvenanceSplitTests(unittest.TestCase):
+    def test_report_pinned_freeze_live(self) -> None:
+        # Report provenance must remain the sealed commit even when HEAD
+        # is an arbitrary maintenance commit; freeze tracks live HEAD.
+        import json
+
+        V2_SEALED = '1d63305fadd416387f218ad8ba868e85a1345382'
+        root = Path(__file__).resolve().parents[1]
+        report = json.loads(
+            (root / 'results/reports/sweep-v2-report.json').read_text(encoding='utf-8')
+        )
+        freeze = json.loads(
+            (root / 'results/reports/sweep-v2-freeze.json').read_text(encoding='utf-8')
+        )
+        self.assertEqual(
+            report['provenance']['analysis_code_git_commit'], V2_SEALED
+        )
+        self.assertRegex(freeze['analysis_code_git_commit'], r'^[0-9a-f]{40}$')
+        self.assertNotEqual(
+            report['provenance']['analysis_code_git_commit'],
+            freeze['analysis_code_git_commit'],
+        )
 
 
 if __name__ == '__main__':
