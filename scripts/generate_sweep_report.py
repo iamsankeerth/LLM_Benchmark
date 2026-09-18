@@ -156,7 +156,13 @@ def main(argv: list[str] | None = None) -> int:
 
     comparisons = {}
     for path in sorted(summaries.glob('*-vs-*.json')):
-        comparisons[path.stem] = _read_json(path)
+        document = _read_json(path)
+        # Lineage guard: V1 comparisons (e.g. qwen-q4-vs-q5.json) must never
+        # leak into the V2 report even though the filename pattern matches.
+        if document.get('experiment_spec_id') != args.spec:
+            print(f'skip non-{args.spec} comparison: {path.name}', flush=True)
+            continue
+        comparisons[path.stem] = document
         hashed_paths.append(f'results/summaries/{path.name}')
     quant_pairs = summarize_quant_pairs(comparisons)
 
@@ -255,14 +261,20 @@ def main(argv: list[str] | None = None) -> int:
         '## Licensed claims',
         '',
     ]
-    for claim in document['licensed_claims']:
+    claims_raw = document.get('licensed_claims', [])
+    claims: list[object] = claims_raw if isinstance(claims_raw, list) else []
+    for claim in claims:
         lines.append(f'- {claim}')
     lines += [
         '',
         '## Limitations',
         '',
     ]
-    for limitation in document.get('limitations', LIMITATIONS):
+    limitations_raw = document.get('limitations', LIMITATIONS)
+    limitations: list[object] = (
+        limitations_raw if isinstance(limitations_raw, list) else []
+    )
+    for limitation in limitations:
         lines.append(f'- {limitation}')
     out_md = Path(args.out_md) if args.out_md else (
         root / 'results/reports/sweep-v2-report.md'

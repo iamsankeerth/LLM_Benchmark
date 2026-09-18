@@ -65,6 +65,7 @@ from scripts.smoke_inference import main as smoke_main
 from scripts.summarize_baseline import main as summarize_main
 from storage.db import connect
 from storage.execution import derive_execution_id
+from storage.paths import results_path
 from storage.pause import (
     PauseFlag,
     PauseRecord,
@@ -853,7 +854,8 @@ def write_sweep_summary(
         'failed_ids': sorted(failed),
         'sweep_status': 'COMPLETE',
     }
-    out = root / 'results/summaries' / f'sweep-{args.spec}-complete.json'
+    out = results_path(root, 'summaries', f'sweep-{args.spec}-complete.json')
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(document, indent=2) + '\n', encoding='utf-8')
     return out
 

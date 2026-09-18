@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 import unittest
 from pathlib import Path
@@ -352,40 +353,41 @@ class OllamaHelperTests(unittest.TestCase):
 
         def _run(order: list[str], stop_after: object) -> tuple[list[str], int]:
             with TemporaryDirectory() as tmp:
-                state_file = str(Path(tmp) / 'sweep.json')
-                registry_file = str(Path(tmp) / 'registry.yaml')
-                Path(registry_file).write_text(
-                    yaml.safe_dump({
-                        'experiment_spec': 'full-baseline-v2',
-                        'models': [{'model_config_id': m} for m in order],
-                    }),
-                    encoding='utf-8',
-                )
-                state = new_sweep_state('s', order)
-                save_sweep_state(state_file, state)
-                calls: list[str] = []
+                with patch.dict(os.environ, {'LLM_BENCH_RESULTS_ROOT': tmp}):
+                    state_file = str(Path(tmp) / 'sweep.json')
+                    registry_file = str(Path(tmp) / 'registry.yaml')
+                    Path(registry_file).write_text(
+                        yaml.safe_dump({
+                            'experiment_spec': 'full-baseline-v2',
+                            'models': [{'model_config_id': m} for m in order],
+                        }),
+                        encoding='utf-8',
+                    )
+                    state = new_sweep_state('s', order)
+                    save_sweep_state(state_file, state)
+                    calls: list[str] = []
 
-                def fake_run(args: object, entry: dict[str, object]) -> str:
-                    mid = str(entry['model_config_id'])
-                    calls.append(mid)
-                    live = load_sweep_state(state_file)
-                    assert live is not None
-                    set_lifecycle(live, mid, COMPLETE)
-                    save_sweep_state(state_file, live)
-                    return COMPLETE
+                    def fake_run(args: object, entry: dict[str, object]) -> str:
+                        mid = str(entry['model_config_id'])
+                        calls.append(mid)
+                        live = load_sweep_state(state_file)
+                        assert live is not None
+                        set_lifecycle(live, mid, COMPLETE)
+                        save_sweep_state(state_file, live)
+                        return COMPLETE
 
-                with patch.object(
-                    run_model_sweep, 'run_one_model', side_effect=fake_run
-                ):
                     with patch.object(
-                        run_model_sweep, 'load_overlays_from_dir', return_value=0
+                        run_model_sweep, 'run_one_model', side_effect=fake_run
                     ):
-                        argv = ['--state-file', state_file,
-                                '--registry', registry_file, '--db-dir', tmp]
-                        if stop_after is not None:
-                            argv += ['--stop-after', str(stop_after)]
-                        code = run_model_sweep.main(argv)
-                return calls, code
+                        with patch.object(
+                            run_model_sweep, 'load_overlays_from_dir', return_value=0
+                        ):
+                            argv = ['--state-file', state_file,
+                                    '--registry', registry_file, '--db-dir', tmp]
+                            if stop_after is not None:
+                                argv += ['--stop-after', str(stop_after)]
+                            code = run_model_sweep.main(argv)
+                    return calls, code
 
         calls, code = _run(['m1', 'm2'], None)
         self.assertEqual(calls, ['m1', 'm2'])
@@ -504,10 +506,11 @@ class OllamaHelperTests(unittest.TestCase):
                 return COMPLETE
 
             with patch.object(run_model_sweep, 'run_one_model', side_effect=fake_run):
-                code = run_model_sweep.main([
-                    '--only', 'm1', '--state-file', state_file,
-                    '--registry', registry_file, '--db-dir', tmp,
-                ])
+                with patch.dict(os.environ, {'LLM_BENCH_RESULTS_ROOT': tmp}):
+                    code = run_model_sweep.main([
+                        '--only', 'm1', '--state-file', state_file,
+                        '--registry', registry_file, '--db-dir', tmp,
+                    ])
             self.assertEqual(code, 0)
             self.assertEqual(calls, [])
 
@@ -543,10 +546,11 @@ class OllamaHelperTests(unittest.TestCase):
                 with patch.object(
                     run_model_sweep, 'load_overlays_from_dir', return_value=0
                 ):
-                    code = run_model_sweep.main([
-                        '--state-file', state_file,
-                        '--registry', registry_file, '--db-dir', tmp,
-                    ])
+                    with patch.dict(os.environ, {'LLM_BENCH_RESULTS_ROOT': tmp}):
+                        code = run_model_sweep.main([
+                            '--state-file', state_file,
+                            '--registry', registry_file, '--db-dir', tmp,
+                        ])
             # Exactly one advancement: m2 ran once, then next_model is None.
             self.assertEqual(calls, ['m2'])
             self.assertEqual(code, 0)

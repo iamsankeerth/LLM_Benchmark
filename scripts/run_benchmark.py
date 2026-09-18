@@ -72,6 +72,7 @@ from storage.manifest import (
     git_commit,
     hash_experiment_config,
 )
+from storage.paths import results_path
 from storage.pause import PauseFlag, consume_pause_request, pause_requested
 from storage.sweep import (
     append_retry_event,
@@ -691,14 +692,17 @@ def run_experiment(args: argparse.Namespace) -> int:
         live=collect_live_environment(
             ollama_version=ollama_ver, started_at_utc=utcnow()),
     )
-    manifest_path = root / 'results/experiment-manifests' / f'{experiment_id}.json'
+    manifest_path = results_path(root, 'experiment-manifests', f'{experiment_id}.json')
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(manifest.to_json() + '\n', encoding='utf-8')
     print(f'manifest: {manifest_path.name}', flush=True)
 
     done = completed_identities(conn, experiment_id, run_kind)
     ran = 0
     skipped = 0
-    retry_log_path = root / 'results/logs' / f'transient-retries-{experiment_spec_id}.jsonl'
+    retry_log_path = results_path(
+        root, 'logs', f'transient-retries-{experiment_spec_id}.jsonl'
+    )
     retry_events: list[dict[str, Any]] = []
     ollama_bin = resolve_ollama_bin(getattr(args, 'ollama_bin', None))
 
@@ -946,7 +950,8 @@ def run_experiment(args: argparse.Namespace) -> int:
             'log': str(retry_log_path),
         },
     }
-    summary_path = root / 'results/summaries' / f'{experiment_id}.json'
+    summary_path = results_path(root, 'summaries', f'{experiment_id}.json')
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_path.write_text(json.dumps(summary, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(summary, indent=2), flush=True)
     conn.close()

@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import os
 import signal
 import sqlite3
 import unittest
-from typing import Any
+from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Any, Iterator
 from unittest.mock import patch
 
 from inference.ollama_client import GenerationResult
@@ -28,6 +30,13 @@ from storage.sweep import (
     new_sweep_state,
     save_sweep_state,
 )
+
+
+@contextmanager
+def _isolated_results(tmp: str) -> Iterator[None]:
+    """Route release-artifact writes to tmp so tests never touch the repo."""
+    with patch.dict(os.environ, {'LLM_BENCH_RESULTS_ROOT': tmp}):
+        yield
 
 
 def _generation(text: str = 'ok') -> GenerationResult:
@@ -216,7 +225,8 @@ class RunnerPauseTests(unittest.TestCase):
                 _generation('r3'),
             ])
             try:
-                code = run_benchmark.run_experiment(_namespace(db))
+                with _isolated_results(tmp):
+                    code = run_benchmark.run_experiment(_namespace(db))
                 self.assertEqual(code, run_benchmark.PAUSED_EXIT)
                 conn = sqlite3.connect(db)
                 measured = conn.execute(
@@ -240,18 +250,20 @@ class RunnerPauseTests(unittest.TestCase):
                 _generation('r1'),
             ])
             try:
-                code1 = run_benchmark.run_experiment(
-                    _namespace(db, max_tasks=1)
-                )
+                with _isolated_results(tmp):
+                    code1 = run_benchmark.run_experiment(
+                        _namespace(db, max_tasks=1)
+                    )
                 self.assertEqual(code1, 0)
                 patcher.stop()
                 patcher = self._start_scripted([
                     _generation('probe'), _generation('OK'), _generation('7'),
                     _generation('r2'),
                 ])
-                code2 = run_benchmark.run_experiment(
-                    _namespace(db, resume=True)
-                )
+                with _isolated_results(tmp):
+                    code2 = run_benchmark.run_experiment(
+                        _namespace(db, resume=True)
+                    )
                 self.assertEqual(code2, 4)
             finally:
                 patcher.stop()
@@ -272,18 +284,20 @@ class RunnerPauseTests(unittest.TestCase):
                     _generation('probe'), _generation('OK'), _generation('7'),
                     _generation('r1'), 'CREATE_SENTINEL', _generation('r2'),
                 ])
-                code1 = run_benchmark.run_experiment(
-                    _namespace(db)
-                )
+                with _isolated_results(tmp):
+                    code1 = run_benchmark.run_experiment(
+                        _namespace(db)
+                    )
                 self.assertEqual(code1, run_benchmark.PAUSED_EXIT)
                 patcher.stop()
                 patcher = self._start_scripted([
                     _generation('probe'), _generation('OK'), _generation('7'),
                     _generation('r3'),
                 ])
-                code2 = run_benchmark.run_experiment(
-                    _namespace(db, resume=True)
-                )
+                with _isolated_results(tmp):
+                    code2 = run_benchmark.run_experiment(
+                        _namespace(db, resume=True)
+                    )
                 self.assertEqual(code2, 0)
                 conn = sqlite3.connect(db)
                 measured = conn.execute(

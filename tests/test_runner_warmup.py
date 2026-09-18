@@ -7,15 +7,25 @@ profiling run for real against a temp DB.
 from __future__ import annotations
 
 import argparse
+import os
 import sqlite3
 import unittest
+from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Iterator
 from unittest.mock import patch
 
 from inference.eligibility import EligibilityResult
 from inference.ollama_client import GenerationResult, OllamaTimeoutError
 from scripts import run_benchmark
+
+
+@contextmanager
+def _isolated_results(tmp: str) -> Iterator[None]:
+    """Route release-artifact writes to tmp so tests never touch the repo."""
+    with patch.dict(os.environ, {'LLM_BENCH_RESULTS_ROOT': tmp}):
+        yield
 
 
 def _generation(
@@ -67,7 +77,8 @@ class WarmupSessionTests(unittest.TestCase):
             with patch.object(
                 run_benchmark, 'check_eligibility', return_value=_eligible()
             ):
-                return run_benchmark.run_experiment(_namespace(db))
+                with _isolated_results(str(Path(db).parent)):
+                    return run_benchmark.run_experiment(_namespace(db))
 
     def test_fresh_warmups_then_measured(self) -> None:
         with TemporaryDirectory() as tmp:
@@ -213,7 +224,8 @@ class WarmupSessionTests(unittest.TestCase):
                             run_benchmark, 'wait_until_unloaded', return_value=True
                         ):
                             with patch('time.sleep', return_value=None):
-                                code = run_benchmark.run_experiment(_namespace(db))
+                                with _isolated_results(tmp):
+                                    code = run_benchmark.run_experiment(_namespace(db))
             self.assertEqual(code, 0)
             conn = sqlite3.connect(db)
             warmups = conn.execute(
@@ -226,10 +238,9 @@ class WarmupSessionTests(unittest.TestCase):
             self.assertEqual([r[0] for r in warmups], [1, 2, 3, 4])
             self.assertEqual(len(measured), 1)
             self.assertEqual(measured[0][2], 'COMPLETE')
-            # Retry telemetry appended incrementally as JSONL.
-            root = Path(__file__).resolve().parents[1]
+            # Retry telemetry appended incrementally as JSONL (isolated).
             log_path = (
-                root / 'results/logs/transient-retries-smoke-3.jsonl'
+                Path(tmp) / 'logs/transient-retries-smoke-3.jsonl'
             )
             self.assertTrue(log_path.exists())
             lines = [
@@ -277,7 +288,8 @@ class WarmupSessionTests(unittest.TestCase):
                             run_benchmark, 'wait_until_unloaded', return_value=True
                         ):
                             with patch('time.sleep', return_value=None):
-                                code = run_benchmark.run_experiment(_namespace(db))
+                                with _isolated_results(tmp):
+                                    code = run_benchmark.run_experiment(_namespace(db))
             self.assertEqual(code, run_benchmark.MEASUREMENT_FAILED_EXIT)
             conn = sqlite3.connect(db)
             measured = conn.execute(
