@@ -295,6 +295,9 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
     start_stage = RESTART_STAGE.get(
         state.models[model_config_id].lifecycle, 'pulled'
     )
+    print(f'[{model_config_id}] resume: lifecycle='
+          f'{state.models[model_config_id].lifecycle} start_stage={start_stage}',
+          flush=True)
 
     def checkpoint(lifecycle: str, detail: str = '') -> None:
         set_lifecycle(state, model_config_id, lifecycle, detail)
@@ -562,7 +565,7 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
         smoke_code = smoke_main([
             '--db', smoke_db, '--model', model_config_id,
             '--base-url', base_url, '--config', 'smoke-v2.yaml',
-            '--num-predict', '2048',
+            '--num-predict', '2048', '--resume',
         ])
         if smoke_code != 0:
             checkpoint(BENCHMARK_ERROR, 'smoke failed')
