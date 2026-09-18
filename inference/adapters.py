@@ -232,7 +232,16 @@ def get_model_config(config_id: str) -> ModelConfig:
 
 
 def render_prompt(config: ModelConfig, task_prompt: str) -> str:
-    """Render a task prompt through the model's pinned template (byte-exact)."""
+    """Render a task prompt for sending.
+
+    Raw mode substitutes the pinned template's single {prompt} slot
+    (byte-exact). Chat mode returns the bare task prompt: the server owns
+    templating (template_application == 'server_managed'), so there is
+    nothing client-side to render. Either way the return value is exactly
+    what the client transmits.
+    """
+    if config.mode == 'chat':
+        return task_prompt
     if config.template_text.count('{prompt}') != 1:
         raise ValueError(f'template {config.template_id!r} must contain one {{prompt}} slot')
     return config.template_text.replace('{prompt}', task_prompt)
