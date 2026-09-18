@@ -181,16 +181,23 @@ RunFn = Callable[..., subprocess.CompletedProcess[str]]
 def default_run(
     argv: Sequence[str], *, timeout_s: float = 3600.0
 ) -> subprocess.CompletedProcess[str]:
+    # Explicit UTF-8 with replacement: ollama progress output breaks the
+    # Windows locale decoder (cp1252) inside subprocess reader threads.
     return subprocess.run(
-        list(argv), capture_output=True, text=True, timeout=timeout_s
+        list(argv), capture_output=True, encoding='utf-8',
+        errors='replace', timeout=timeout_s,
     )
+
+
+def _output(proc: subprocess.CompletedProcess[str]) -> str:
+    return ((proc.stdout or '') + '\n' + (proc.stderr or '')).strip()
 
 
 def ollama_pull(
     ollama_bin: str, identifier: str, run: RunFn = default_run
 ) -> tuple[bool, str]:
     proc = run([ollama_bin, 'pull', identifier], timeout_s=7200.0)
-    output = (proc.stdout + '\n' + proc.stderr).strip()
+    output = _output(proc)
     if proc.returncode != 0:
         return False, f'DOWNLOAD_FAILED: {output[-500:]}'
     return True, 'pulled'
@@ -200,7 +207,7 @@ def ollama_stop(
     ollama_bin: str, identifier: str, run: RunFn = default_run
 ) -> tuple[bool, str]:
     proc = run([ollama_bin, 'stop', identifier], timeout_s=300.0)
-    output = (proc.stdout + '\n' + proc.stderr).strip()
+    output = _output(proc)
     if proc.returncode != 0:
         return False, f'stop failed: {output[-500:]}'
     return True, 'stopped'
@@ -210,7 +217,7 @@ def ollama_remove(
     ollama_bin: str, identifier: str, run: RunFn = default_run
 ) -> tuple[bool, str]:
     proc = run([ollama_bin, 'rm', identifier], timeout_s=600.0)
-    output = (proc.stdout + '\n' + proc.stderr).strip()
+    output = _output(proc)
     if proc.returncode != 0:
         return False, f'remove failed: {output[-500:]}'
     return True, 'removed'
@@ -222,7 +229,7 @@ def ollama_model_present(
     proc = run([ollama_bin, 'list'], timeout_s=120.0)
     if proc.returncode != 0:
         return True  # fail closed: assume present, do not advance blindly
-    return identifier in proc.stdout
+    return identifier in (proc.stdout or '')
 
 
 def disk_free_bytes(path: str | Path) -> int:

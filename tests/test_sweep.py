@@ -239,6 +239,20 @@ class OllamaHelperTests(unittest.TestCase):
         self.assertTrue(wait_until_unloaded(absent, timeout_s=30.0, poll_s=0.01))
         self.assertFalse(wait_until_unloaded(lambda: False, timeout_s=0.05, poll_s=0.01))
 
+    def test_default_run_survives_non_utf8_bytes(self) -> None:
+        import sys
+
+        from storage.sweep import default_run
+
+        proc = default_run(
+            [sys.executable, '-c',
+             'import sys; sys.stdout.buffer.write(b"progress \\x8f done\\n")'],
+            timeout_s=30.0,
+        )
+        self.assertEqual(proc.returncode, 0)
+        self.assertIn('progress', proc.stdout)
+        self.assertIn('done', proc.stdout)
+
 
 if __name__ == '__main__':
     unittest.main()
