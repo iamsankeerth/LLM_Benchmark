@@ -1,0 +1,11 @@
+# Pause-drill contract (NON-CANONICAL): 2 tasks x 1 trial, 2048 ceiling.
+# Exists solely to exercise pause/resume/unload/delete against live Ollama.
+# Never compared with benchmark executions; never enters reports.
+experiment: pause-drill-v1
+run_kind: BASELINE
+temperature: 0.0
+trials: 1
+num_predict: 2048
+task_ids:
+  - Q001
+  - Q071
