@@ -1,0 +1,33 @@
+{
+  "app_git_commit": "89878b72b6d44507afa296c92514fbd69c52c522",
+  "dataset_hash": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
+  "eval_freeze_hash": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+  "execution_id": "full-baseline-v2__llama3.2-3b-q6",
+  "experiment_config_hash": "87ac482c71e25a8c49f33e160c694c4e254fb1486722d32e171605798d4a5f1c",
+  "experiment_spec_id": "full-baseline-v2",
+  "grading_spec_hash": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+  "hardware_id": "Windows-AMD64-AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD",
+  "model_artifact_digest": "0d4b86d1730825cde7cb2ebcd09c040f200d3230af45c2d03f656cfa4cd00a8f",
+  "model_artifact_size_bytes": 3118674737,
+  "model_config_hash": "2b0445e1074feb16a68a38865f78aeb9c0b3f7e9eaa554343788c8acdcc8d8e0",
+  "model_config_id": "llama3.2-3b-q6",
+  "model_identifier": "hf.co/bartowski/Llama-3.2-3B-Instruct-GGUF:Q6_K",
+  "num_ctx": 4096,
+  "num_gpu": 99,
+  "num_predict": 2048,
+  "ollama_version": "0.34.1",
+  "power_mode": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+  "python_version": "3.13.5",
+  "quantization": "Q6_K",
+  "reload_evidence_load_duration_ms": 1000.0,
+  "started_at_utc": "2026-09-18T13:17:54+00:00",
+  "stop_tokens": [
+    "<|start_header_id|>",
+    "<|end_header_id|>",
+    "<|eot_id|>"
+  ],
+  "temperature": 0.0,
+  "template_sha256": "948af2743fc78a328dcb3b0f5a31b3d75f415840fdb699e8b1235978392ecf85",
+  "think": null,
+  "thinking_source": "model_default"
+}

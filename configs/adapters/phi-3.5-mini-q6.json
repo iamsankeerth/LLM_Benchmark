@@ -1,0 +1,25 @@
+{
+  "config_id": "phi-3.5-mini-q6",
+  "gpu_only": true,
+  "mode": "chat",
+  "num_ctx": 4096,
+  "num_gpu": 99,
+  "num_predict_default": 512,
+  "ollama_identifier": "hf.co/bartowski/Phi-3.5-mini-instruct-GGUF:Q6_K",
+  "ollama_model_digest": "86f9527aff1196fdffc87ee6a7102572f8744a0395a68d04119b5b21e4f613e5",
+  "quantization": "Q6_K",
+  "stop_tokens": [
+    "<|system|>",
+    "<|user|>",
+    "<|end|>",
+    "<|assistant|>"
+  ],
+  "temperature_default": 0.0,
+  "template_application": "server_managed",
+  "template_id": "auto-phi-3.5-mini-q6-chat-v1",
+  "template_sha256": "c608dc615584cd20d9d830363dabf8a4783ae5d34245c3d8c115edb3bc7b28e4",
+  "template_source": "ollama-show auto-derive (default route verified)",
+  "template_text": "{{ if .System }}<|system|>\n{{ .System }}<|end|>\n{{ end }}{{ if .Prompt }}<|user|>\n{{ .Prompt }}<|end|>\n{{ end }}<|assistant|>\n{{ .Response }}<|end|>\n",
+  "think": null,
+  "thinking_support": "supported"
+}

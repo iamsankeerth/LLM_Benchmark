@@ -1,0 +1,406 @@
+{
+  "all_pass_delta": -3,
+  "any_pass_delta": -3,
+  "base": {
+    "decode": {
+      "mean": 45.61965460024475,
+      "median": 49.20917349842321,
+      "n": 204,
+      "p25": 44.249567904125136,
+      "p75": 49.92746476280505,
+      "p95": 50.32243528563414
+    },
+    "decode_by_token_bucket": {
+      "1-4": {
+        "mean": 30.855974648293685,
+        "median": 32.295916719596086,
+        "n": 27,
+        "p25": 30.02124002731933,
+        "p75": 33.61834216748658,
+        "p95": 36.30488845323023
+      },
+      "129+": {
+        "mean": 49.67738358288229,
+        "median": 49.627664289922045,
+        "n": 51,
+        "p25": 49.324769861007994,
+        "p75": 50.16430120865972,
+        "p95": 50.56387818397831
+      },
+      "33-128": {
+        "mean": 49.31731988694675,
+        "median": 49.821745720000656,
+        "n": 81,
+        "p25": 49.16827985371279,
+        "p75": 50.12186080165948,
+        "p95": 50.32243528563414
+      },
+      "5-32": {
+        "mean": 43.22330554169591,
+        "median": 44.651367276386814,
+        "n": 45,
+        "p25": 40.15935297429847,
+        "p75": 47.66985046694809,
+        "p95": 48.14945591114821
+      }
+    },
+    "deterministic_tasks": 68,
+    "deterministic_trials": 204,
+    "display_id": "full-baseline-v2__gemma-3n-e2b-q4",
+    "execution_id": "full-baseline-v2__gemma-3n-e2b-q4",
+    "flips": [],
+    "model_artifact_digest": "2880ed3fd1ad200cefb415c4377bf1929175885f45f268480d49559030eb8b11",
+    "model_size_bytes": 1653006663,
+    "passes": 72,
+    "peak_vram_mib": 1857.50390625,
+    "tasks_all_pass": 24,
+    "tasks_any_pass": 24,
+    "trial_accuracy": 0.35294117647058826,
+    "ttft": {
+      "mean": 179.34033774509803,
+      "median": 167.59545,
+      "n": 204,
+      "p25": 152.74785,
+      "p75": 195.977575,
+      "p95": 254.2354
+    }
+  },
+  "base_execution_id": "full-baseline-v2__gemma-3n-e2b-q4",
+  "candidate": {
+    "decode": {
+      "mean": 41.68351241774378,
+      "median": 44.097571458710156,
+      "n": 204,
+      "p25": 41.63828422710931,
+      "p75": 44.52863237302648,
+      "p95": 44.803702017275334
+    },
+    "decode_by_token_bucket": {
+      "1-4": {
+        "mean": 30.161829067546357,
+        "median": 32.02844125583518,
+        "n": 21,
+        "p25": 29.67208619920955,
+        "p75": 32.87421466128194,
+        "p95": 34.51668018569974
+      },
+      "129+": {
+        "mean": 44.43968565330013,
+        "median": 44.423039903877005,
+        "n": 59,
+        "p25": 44.230834749417376,
+        "p75": 44.6493235100134,
+        "p95": 44.94510320063798
+      },
+      "33-128": {
+        "mean": 44.135652383294534,
+        "median": 44.37750182415541,
+        "n": 76,
+        "p25": 43.908862652846906,
+        "p75": 44.58472078305789,
+        "p95": 44.8471875207526
+      },
+      "5-32": {
+        "mean": 39.453897669295095,
+        "median": 39.27471463319466,
+        "n": 48,
+        "p25": 36.88643560917037,
+        "p75": 43.1001713870484,
+        "p95": 43.50474201687984
+      }
+    },
+    "deterministic_tasks": 68,
+    "deterministic_trials": 204,
+    "display_id": "full-baseline-v2__gemma-3n-e2b-q5",
+    "execution_id": "full-baseline-v2__gemma-3n-e2b-q5",
+    "flips": [],
+    "model_artifact_digest": "c9555a5981a2470e4dc981c3b04c45eab7b33659fd70307058fa5aa94471cd7a",
+    "model_size_bytes": 1920917831,
+    "passes": 63,
+    "peak_vram_mib": 2111.50390625,
+    "tasks_all_pass": 21,
+    "tasks_any_pass": 21,
+    "trial_accuracy": 0.3088235294117647,
+    "ttft": {
+      "mean": 183.76640931372552,
+      "median": 172.77685000000002,
+      "n": 204,
+      "p25": 154.895525,
+      "p75": 205.831925,
+      "p95": 258.0667
+    }
+  },
+  "candidate_execution_id": "full-baseline-v2__gemma-3n-e2b-q5",
+  "difficulty_deltas": {
+    "easy": {
+      "base_rate": 0.5,
+      "candidate_rate": 0.5,
+      "delta": 0.0
+    },
+    "hard": {
+      "base_rate": 0.2972972972972973,
+      "candidate_rate": 0.24324324324324326,
+      "delta": -0.05405405405405406
+    },
+    "medium": {
+      "base_rate": 0.38095238095238093,
+      "candidate_rate": 0.3333333333333333,
+      "delta": -0.047619047619047616
+    }
+  },
+  "experiment_spec_id": "full-baseline-v2",
+  "grader_family": {
+    "DETERMINISTIC_CONSTRAINT": {
+      "base_rate": 0.09090909090909091,
+      "base_trials": 33,
+      "candidate_rate": 0.09090909090909091,
+      "candidate_trials": 33,
+      "delta": 0.0,
+      "note": "overlapping denominators by design; not a class split"
+    },
+    "DETERMINISTIC_EXACT": {
+      "base_rate": 0.5,
+      "base_trials": 78,
+      "candidate_rate": 0.38461538461538464,
+      "candidate_trials": 78,
+      "delta": -0.11538461538461536,
+      "note": "overlapping denominators by design; not a class split"
+    },
+    "DETERMINISTIC_NUMERIC": {
+      "base_rate": 0.0,
+      "base_trials": 30,
+      "candidate_rate": 0.0,
+      "candidate_trials": 30,
+      "delta": 0.0,
+      "note": "overlapping denominators by design; not a class split"
+    },
+    "DETERMINISTIC_STRUCTURED": {
+      "base_rate": 0.47619047619047616,
+      "base_trials": 63,
+      "candidate_rate": 0.47619047619047616,
+      "candidate_trials": 63,
+      "delta": 0.0,
+      "note": "overlapping denominators by design; not a class split"
+    }
+  },
+  "mcnemar_b": 1,
+  "mcnemar_c": 4,
+  "mcnemar_exact_p": 0.375,
+  "mcnemar_n": 5,
+  "mean_unique_normalized_outputs_base": 1.3088235294117647,
+  "mean_unique_normalized_outputs_candidate": 1.25,
+  "suite_deltas": {
+    "core-v1": {
+      "base_rate": 0.2708333333333333,
+      "candidate_rate": 0.22916666666666666,
+      "delta": -0.04166666666666666
+    },
+    "stress-v1": {
+      "base_rate": 0.55,
+      "candidate_rate": 0.5,
+      "delta": -0.050000000000000044
+    }
+  },
+  "systematic_fail_both": [
+    "Q003",
+    "Q005",
+    "Q007",
+    "Q008",
+    "Q010",
+    "Q011",
+    "Q012",
+    "Q015",
+    "Q016",
+    "Q017",
+    "Q018",
+    "Q019",
+    "Q020",
+    "Q021",
+    "Q022",
+    "Q023",
+    "Q024",
+    "Q025",
+    "Q026",
+    "Q036",
+    "Q037",
+    "Q038",
+    "Q039",
+    "Q040",
+    "Q044",
+    "Q045",
+    "Q046",
+    "Q047",
+    "Q048",
+    "Q049",
+    "Q050",
+    "Q052",
+    "Q054",
+    "Q055",
+    "Q058",
+    "Q064",
+    "Q066",
+    "Q068",
+    "Q070",
+    "Q071",
+    "Q072",
+    "Q074",
+    "Q080"
+  ],
+  "transitions_any_pass": {
+    "fail_to_fail": [
+      "Q003",
+      "Q005",
+      "Q007",
+      "Q008",
+      "Q010",
+      "Q011",
+      "Q012",
+      "Q015",
+      "Q016",
+      "Q017",
+      "Q018",
+      "Q019",
+      "Q020",
+      "Q021",
+      "Q022",
+      "Q023",
+      "Q024",
+      "Q025",
+      "Q026",
+      "Q036",
+      "Q037",
+      "Q038",
+      "Q039",
+      "Q040",
+      "Q044",
+      "Q045",
+      "Q046",
+      "Q047",
+      "Q048",
+      "Q049",
+      "Q050",
+      "Q052",
+      "Q054",
+      "Q055",
+      "Q058",
+      "Q064",
+      "Q066",
+      "Q068",
+      "Q070",
+      "Q071",
+      "Q072",
+      "Q074",
+      "Q080"
+    ],
+    "fail_to_pass": [
+      "Q069"
+    ],
+    "pass_to_fail": [
+      "Q006",
+      "Q043",
+      "Q063",
+      "Q075"
+    ],
+    "pass_to_pass": [
+      "Q001",
+      "Q002",
+      "Q004",
+      "Q009",
+      "Q013",
+      "Q035",
+      "Q041",
+      "Q042",
+      "Q053",
+      "Q056",
+      "Q057",
+      "Q061",
+      "Q062",
+      "Q065",
+      "Q067",
+      "Q073",
+      "Q076",
+      "Q077",
+      "Q078",
+      "Q079"
+    ]
+  },
+  "transitions_strict": {
+    "fail_to_fail": [
+      "Q003",
+      "Q005",
+      "Q007",
+      "Q008",
+      "Q010",
+      "Q011",
+      "Q012",
+      "Q015",
+      "Q016",
+      "Q017",
+      "Q018",
+      "Q019",
+      "Q020",
+      "Q021",
+      "Q022",
+      "Q023",
+      "Q024",
+      "Q025",
+      "Q026",
+      "Q036",
+      "Q037",
+      "Q038",
+      "Q039",
+      "Q040",
+      "Q044",
+      "Q045",
+      "Q046",
+      "Q047",
+      "Q048",
+      "Q049",
+      "Q050",
+      "Q052",
+      "Q054",
+      "Q055",
+      "Q058",
+      "Q064",
+      "Q066",
+      "Q068",
+      "Q070",
+      "Q071",
+      "Q072",
+      "Q074",
+      "Q080"
+    ],
+    "fail_to_pass": [
+      "Q069"
+    ],
+    "pass_to_fail": [
+      "Q006",
+      "Q043",
+      "Q063",
+      "Q075"
+    ],
+    "pass_to_pass": [
+      "Q001",
+      "Q002",
+      "Q004",
+      "Q009",
+      "Q013",
+      "Q035",
+      "Q041",
+      "Q042",
+      "Q053",
+      "Q056",
+      "Q057",
+      "Q061",
+      "Q062",
+      "Q065",
+      "Q067",
+      "Q073",
+      "Q076",
+      "Q077",
+      "Q078",
+      "Q079"
+    ]
+  },
+  "trial_accuracy_delta": -0.04411764705882354
+}

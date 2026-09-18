@@ -1,0 +1,28 @@
+{
+  "experiment_spec_id": "full-baseline-v2",
+  "registry_count": 14,
+  "attempted": 14,
+  "complete": 11,
+  "complete_ineligible": 3,
+  "failed_integrity": 0,
+  "completed_ids": [
+    "gemma-3n-e2b-q4",
+    "gemma-3n-e2b-q5",
+    "llama3.2-3b-q4",
+    "llama3.2-3b-q5",
+    "llama3.2-3b-q6",
+    "qwen3-4b-q4",
+    "qwen3-4b-q5",
+    "smolm2-1.7b-q4",
+    "smolm2-1.7b-q5",
+    "smolm2-1.7b-q6",
+    "smolm2-1.7b-q8"
+  ],
+  "ineligible_ids": [
+    "phi-3.5-mini-q4",
+    "phi-3.5-mini-q5",
+    "phi-3.5-mini-q6"
+  ],
+  "failed_ids": [],
+  "sweep_status": "COMPLETE"
+}

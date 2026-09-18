@@ -1,0 +1,16 @@
+{
+  "execution_id": "full-baseline-v2__gemma-3n-e2b-q5",
+  "taxonomy_version": "failure-modes-v1",
+  "scope_note": "auto modes only; substantive review is a separate process",
+  "deterministic_fail_rows": 141,
+  "judge_precheck_fail_rows": 6,
+  "mode_counts_deterministic": {
+    "CONTENT_ERROR": 51,
+    "LEXICAL_CONSTRAINT": 18,
+    "MIXED": 3,
+    "OUTPUT_CONTRACT": 63,
+    "UNKNOWN": 3,
+    "STRUCTURE_ERROR": 3
+  },
+  "total_fail_rows": 147
+}

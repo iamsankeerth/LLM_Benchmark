@@ -1,0 +1,32 @@
+{
+  "app_git_commit": "a0f6bba0c6ef43f4e48f9b84621c5035a5ba3ce2",
+  "dataset_hash": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
+  "eval_freeze_hash": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+  "execution_id": "smoke-v2__gemma-3n-e2b-q5",
+  "experiment_config_hash": "3c5f592f8e313a5e0726dc79e0da20031882f9d34eb15535d03738e1f1068b71",
+  "experiment_spec_id": "smoke-v2",
+  "grading_spec_hash": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+  "hardware_id": "Windows-AMD64-AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD",
+  "model_artifact_digest": "c9555a5981a2470e4dc981c3b04c45eab7b33659fd70307058fa5aa94471cd7a",
+  "model_artifact_size_bytes": 1899946311,
+  "model_config_hash": "c406cb8941baa4b35f78f36d7b26bb658e693d8d51f7e48c5174327750c628e9",
+  "model_config_id": "gemma-3n-e2b-q5",
+  "model_identifier": "hf.co/unsloth/gemma-3n-E2B-it-GGUF:Q5_K_M",
+  "num_ctx": 4096,
+  "num_gpu": 99,
+  "num_predict": 2048,
+  "ollama_version": "0.34.1",
+  "power_mode": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+  "python_version": "3.13.5",
+  "quantization": "Q5_K_M",
+  "reload_evidence_load_duration_ms": 1000.0,
+  "started_at_utc": "2026-09-18T14:33:23+00:00",
+  "stop_tokens": [
+    "<end_of_turn>",
+    "<start_of_turn>"
+  ],
+  "temperature": 0.0,
+  "template_sha256": "ca2868c165f954b50535658de436e3365800df16b36710454a1f651926b98774",
+  "think": false,
+  "thinking_source": "explicit_config"
+}

@@ -1,0 +1,23 @@
+{
+  "config_id": "smolm2-1.7b-q4",
+  "gpu_only": true,
+  "mode": "chat",
+  "num_ctx": 4096,
+  "num_gpu": 99,
+  "num_predict_default": 512,
+  "ollama_identifier": "hf.co/bartowski/SmolLM2-1.7B-Instruct-GGUF:Q4_K_M",
+  "ollama_model_digest": "d85d621a51f5805fe4f33f241bfc7eb7382d54581abbc999c2c62883c802fd7b",
+  "quantization": "Q4_K_M",
+  "stop_tokens": [
+    "<|im_start|>",
+    "<|im_end|>"
+  ],
+  "temperature_default": 0.0,
+  "template_application": "server_managed",
+  "template_id": "auto-smolm2-1.7b-q4-chat-v1",
+  "template_sha256": "d502d55c1d609104ae6127aee92eb940e51e15c56dfb26dbd067e2771ee746f1",
+  "template_source": "ollama-show auto-derive (default route verified)",
+  "template_text": "{{- if .Messages }}\n{{- if .System }}<|im_start|>system\n{{ .System }}<|im_end|>\n{{ end }}\n{{- range $i, $_ := .Messages }}\n{{- $last := eq (len (slice $.Messages $i)) 1 -}}\n{{- if eq .Role \"user\" }}<|im_start|>user\n{{ .Content }}<|im_end|>\n{{ else if eq .Role \"assistant\" }}<|im_start|>assistant\n{{ .Content }}{{ if not $last }}<|im_end|>\n{{ end }}\n{{- end }}\n{{- if and (ne .Role \"assistant\") $last }}<|im_start|>assistant\n{{ end }}\n{{- end }}\n{{- else }}\n{{- if .System }}<|im_start|>system\n{{ .System }}<|im_end|>\n{{ end }}{{ if .Prompt }}<|im_start|>user\n{{ .Prompt }}<|im_end|>\n{{ end }}<|im_start|>assistant\n{{ end }}{{ .Response }}{{ if .Response }}<|im_end|>{{ end }}",
+  "think": null,
+  "thinking_support": "supported"
+}

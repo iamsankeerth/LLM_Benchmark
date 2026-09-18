@@ -1,0 +1,15 @@
+{
+  "execution_id": "full-baseline-v2__llama3.2-3b-q4",
+  "taxonomy_version": "failure-modes-v1",
+  "scope_note": "auto modes only; substantive review is a separate process",
+  "deterministic_fail_rows": 133,
+  "judge_precheck_fail_rows": 9,
+  "mode_counts_deterministic": {
+    "UNKNOWN": 16,
+    "CONTENT_ERROR": 49,
+    "LEXICAL_CONSTRAINT": 18,
+    "MIXED": 2,
+    "OUTPUT_CONTRACT": 48
+  },
+  "total_fail_rows": 142
+}

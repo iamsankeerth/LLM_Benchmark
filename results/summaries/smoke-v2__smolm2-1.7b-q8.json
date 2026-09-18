@@ -1,0 +1,18 @@
+{
+  "experiment_spec_id": "smoke-v2",
+  "execution_id": "smoke-v2__smolm2-1.7b-q8",
+  "model_config_id": "smolm2-1.7b-q8",
+  "run_kind": "BASELINE",
+  "ran_this_invocation": 3,
+  "skipped_resume": 0,
+  "measured_rows": 3,
+  "verdicts": {
+    "FAIL": 2,
+    "PASS": 1
+  },
+  "transient_retries": {
+    "events": 0,
+    "by_error": {},
+    "log": "C:\\Users\\lenovo\\Desktop\\San\\Fun_Projects\\LLM_Benchmark\\results\\logs\\transient-retries-smoke-v2.jsonl"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "execution_id": "full-baseline-v2__smolm2-1.7b-q5",
+  "taxonomy_version": "failure-modes-v1",
+  "scope_note": "auto modes only; substantive review is a separate process",
+  "deterministic_fail_rows": 145,
+  "judge_precheck_fail_rows": 11,
+  "mode_counts_deterministic": {
+    "CONTENT_ERROR": 53,
+    "UNKNOWN": 22,
+    "LEXICAL_CONSTRAINT": 19,
+    "OUTPUT_CONTRACT": 45,
+    "STRUCTURE_ERROR": 6
+  },
+  "total_fail_rows": 156
+}

@@ -1,0 +1,18 @@
+{
+  "experiment_spec_id": "full-baseline-v2",
+  "execution_id": "full-baseline-v2__smolm2-1.7b-q6",
+  "model_config_id": "smolm2-1.7b-q6",
+  "run_kind": "BASELINE",
+  "ran_this_invocation": 216,
+  "skipped_resume": 0,
+  "measured_rows": 216,
+  "verdicts": {
+    "PASS": 64,
+    "FAIL": 152
+  },
+  "transient_retries": {
+    "events": 0,
+    "by_error": {},
+    "log": "C:\\Users\\lenovo\\Desktop\\San\\Fun_Projects\\LLM_Benchmark\\results\\logs\\transient-retries-full-baseline-v2.jsonl"
+  }
+}
