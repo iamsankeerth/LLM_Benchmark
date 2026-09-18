@@ -1,0 +1,31 @@
+{
+  "config_id": "gemma-3n-e2b-q4",
+  "derivation_source": "human_pinned",
+  "gpu_only": true,
+  "mode": "raw",
+  "num_ctx": 4096,
+  "num_gpu": 99,
+  "num_predict_default": 512,
+  "ollama_identifier": "hf.co/unsloth/gemma-3n-E2B-it-GGUF:Q4_K_M",
+  "ollama_model_digest": "2880ed3fd1ad200cefb415c4377bf1929175885f45f268480d49559030eb8b11",
+  "quantization": "Q4_K_M",
+  "review_status": "APPROVED",
+  "source_family": "gemma-3n",
+  "source_reference": "https://huggingface.co/unsloth/gemma-3n-E2B-it-GGUF (README, Gemma 3n Usage Guidelines, chat template section)",
+  "stop_tokens": [
+    "<end_of_turn>",
+    "<start_of_turn>"
+  ],
+  "stops_provenance": {
+    "kind": "derived_from_pinned_template",
+    "rationale": "Gemma turn-boundary markers (not an authoritative stop list)"
+  },
+  "temperature_default": 0.0,
+  "template_application": "client_rendered",
+  "template_id": "gemma3n-turn-human-pinned-v1",
+  "template_sha256": "ca2868c165f954b50535658de436e3365800df16b36710454a1f651926b98774",
+  "template_source": "human handbook pin from unsloth Gemma-3n README chat template section, corroborated by Google Gemma docs turn format",
+  "template_text": "<bos><start_of_turn>user\n{prompt}<end_of_turn>\n<start_of_turn>model\n",
+  "think": false,
+  "thinking_support": "unsupported"
+}

@@ -201,6 +201,8 @@ def register_overlay(config: ModelConfig) -> None:
 
 def load_overlays_from_dir(directory: str | Path) -> int:
     """Load and validate every overlay JSON; returns count loaded."""
+    from inference.derive_adapter import assert_overlay_approved
+
     path = Path(directory)
     if not path.is_dir():
         return 0
@@ -209,6 +211,7 @@ def load_overlays_from_dir(directory: str | Path) -> int:
         document = json.loads(file.read_text(encoding='utf-8'))
         if not isinstance(document, dict):
             raise ValueError(f'overlay {file.name} is not an object')
+        assert_overlay_approved(document)
         register_overlay(config_from_overlay_json(document))
         count += 1
     return count

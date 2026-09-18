@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import unittest
 from pathlib import Path
@@ -247,6 +248,61 @@ class ParseTests(unittest.TestCase):
         self.assertFalse(
             trial_default_route(lambda req: _result('x', None), 'm')
         )
+
+
+class GemmaPinTests(unittest.TestCase):
+    # Byte-level fixture: the Gemma template is LF-only UTF-8, hashed from
+    # parsed (not file) bytes so Windows CRLF can never slip in silently.
+    EXPECTED_HEX = (
+        '3c626f733e3c73746172745f6f665f7475726e3e757365720a'
+        '7b70726f6d70747d3c656e645f6f665f7475726e3e0a3c737461'
+        '72745f6f665f7475726e3e6d6f64656c0a'
+    )
+    EXPECTED_SHA = 'ca2868c165f954b50535658de436e3365800df16b36710454a1f651926b98774'
+
+    def _overlay_doc(self) -> dict[str, object]:
+        root = Path(__file__).resolve().parents[1]
+        document = json.loads(
+            (root / 'configs/adapters/gemma-3n-e2b-q4.json').read_text(encoding='utf-8')
+        )
+        assert isinstance(document, dict)
+        return document
+
+    def test_exact_template_bytes(self) -> None:
+        document = self._overlay_doc()
+        raw = str(document['template_text']).encode('utf-8')
+        self.assertEqual(raw.hex(), self.EXPECTED_HEX)
+        self.assertNotIn(b'\r', raw)
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), self.EXPECTED_SHA)
+        self.assertEqual(document['template_sha256'], self.EXPECTED_SHA)
+
+    def test_no_qwen_markers(self) -> None:
+        document = self._overlay_doc()
+        text = str(document['template_text'])
+        self.assertNotIn('<|im_start|>', text)
+        self.assertNotIn('<|im_end|>', text)
+        self.assertEqual(text.count('{prompt}'), 1)
+
+    def test_raw_canonical_provenance(self) -> None:
+        document = self._overlay_doc()
+        self.assertEqual(document['mode'], 'raw')
+        self.assertEqual(document['template_application'], 'client_rendered')
+        self.assertEqual(document['derivation_source'], 'human_pinned')
+        self.assertEqual(document['review_status'], 'APPROVED')
+        stops = document.get('stops_provenance', {})
+        assert isinstance(stops, dict)
+        self.assertEqual(stops.get('kind'), 'derived_from_pinned_template')
+
+    def test_draft_human_pin_refused(self) -> None:
+        from inference.derive_adapter import UnapprovedPinError, assert_overlay_approved
+
+        with self.assertRaises(UnapprovedPinError):
+            assert_overlay_approved({
+                'config_id': 'x', 'derivation_source': 'human_pinned',
+                'review_status': 'DRAFT',
+            })
+        # Machine-derived overlays are exempt (verified at derive time).
+        assert_overlay_approved({'config_id': 'y'})
 
 
 if __name__ == '__main__':

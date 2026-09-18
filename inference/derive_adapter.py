@@ -39,6 +39,25 @@ class OverlayExistsError(Exception):
     """Overlay already pinned: create-once forbids regeneration."""
 
 
+class UnapprovedPinError(Exception):
+    """A human-pinned overlay without review_status APPROVED."""
+
+
+def assert_overlay_approved(document: Mapping[str, Any]) -> None:
+    """Human-pinned overlays require explicit APPROVED review status.
+
+    Machine-derived overlays (derivation_source != human_pinned) were
+    verified at derive time and are exempt.
+    """
+    if document.get('derivation_source') != 'human_pinned':
+        return
+    if document.get('review_status') != 'APPROVED':
+        raise UnapprovedPinError(
+            f"human-pinned overlay {document.get('config_id')!r} "
+            f"has review_status {document.get('review_status')!r}, not APPROVED"
+        )
+
+
 @dataclass(frozen=True)
 class AdapterMismatch:
     field: str
