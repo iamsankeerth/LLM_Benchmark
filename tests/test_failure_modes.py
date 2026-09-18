@@ -201,6 +201,19 @@ class AssertedValueTests(unittest.TestCase):
         self.assertEqual(sigs, ['time:asserted_value_mismatch'])
         self.assertEqual(modes, [CONTENT_ERROR])
 
+    def test_mid_derivation_assertion_counts(self) -> None:
+        # Q025-V2-t2 shape: explicit "answer is" mid-derivation, then the
+        # run continues (and truncates). The asserted final still counts;
+        # truncation is recorded orthogonally, not as a mode.
+        text = (
+            'Step 1: every 72 minutes.\n'
+            'So, answer is **12:36**\n'
+            'Wait \u2014 is there a time after 10:3'
+        )
+        asserted = extract_asserted_value(text, kind='time')
+        self.assertEqual(asserted.status, ASSERTED_SINGLE)
+        self.assertEqual(asserted.values, ('12:36',))
+
     def test_contradiction_check(self) -> None:
         grader = {'type': 'numeric', 'expected': 66080}
         status, sigs, modes = asserted_value_check(

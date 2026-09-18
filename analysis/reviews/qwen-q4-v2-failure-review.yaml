@@ -1,0 +1,1981 @@
+artifact: qwen3-4b-q4 V2 failure review (post-hoc diagnostic, 2048-token lineage)
+execution_id: full-baseline-v2__qwen3-4b-q4
+taxonomy_version: failure-modes-v1
+review_status: DRAFT
+populations:
+  ready_deterministic_fail_rows: 97
+  ready_judge_precheck_fail_rows: 6
+  total_fail_rows: 103
+tasks:
+- task_id: Q003
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    signatures:
+    - 'structured:$.gross_total: expected 22420, got 22020'
+    excerpts:
+    - trial: 1
+      excerpt: "{\n  \"invoice_id\": \"INV-9081\",\n  \"buyer\": \"Kaveri Labs\",\n\
+        \  \"gross_total\": 22020,\n  \"amount_paid\": 10000,\n  \"balance_due\":\
+        \ 12020,\n  \"due_date\": \"2026-09-30\"\n}"
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: "{\n  \"invoice_id\": \"INV-9081\",\n  \"buyer\": \"Kaveri Labs\",\n\
+        \  \"gross_total\": 22020,\n  \"amount_paid\": 10000,\n  \"balance_due\":\
+        \ 12020,\n  \"due_date\": \"2026-09-30\"\n}"
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: "{\n  \"invoice_id\": \"INV-9081\",\n  \"buyer\": \"Kaveri Labs\",\n\
+        \  \"gross_total\": 22020,\n  \"amount_paid\": 10000,\n  \"balance_due\":\
+        \ 12020,\n  \"due_date\": \"2026-09-30\"\n}"
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: INCORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: 'Arithmetic slip: 18500+500+3420=22420, model wrote 22020/12020. Wrong
+      value.'
+- task_id: Q005
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    signatures:
+    - 'structured:$.outbound.date: expected ''2026-10-03'', got ''3 Oct 2026'''
+    excerpts:
+    - trial: 1
+      excerpt: "{\n  \"outbound\": {\n    \"origin\": \"HYD\",\n    \"destination\"\
+        : \"DEL\",\n    \"flight_no\": \"AI 541\",\n    \"date\": \"3 Oct 2026\",\n\
+        \    \"time\": \"06:25\"\n  },\n  \"return\": {\n    \"origin\": \"DEL\",\n\
+        \    \"destination\": \"HYD\",\n    \"flight_no\": \"AI 542\",\n    \"date\"\
+        : \"7 Oct 2026\",\n    \"time\": \"21:10\"\n  },\n  \"seat_preference"
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: "{\n  \"outbound\": {\n    \"origin\": \"HYD\",\n    \"destination\"\
+        : \"DEL\",\n    \"flight_no\": \"AI 541\",\n    \"date\": \"3 Oct 2026\",\n\
+        \    \"time\": \"06:25\"\n  },\n  \"return\": {\n    \"origin\": \"DEL\",\n\
+        \    \"destination\": \"HYD\",\n    \"flight_no\": \"AI 542\",\n    \"date\"\
+        : \"7 Oct 2026\",\n    \"time\": \"21:10\"\n  },\n  \"seat_preference"
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: "{\n  \"outbound\": {\n    \"origin\": \"HYD\",\n    \"destination\"\
+        : \"DEL\",\n    \"flight_no\": \"AI 541\",\n    \"date\": \"3 Oct 2026\",\n\
+        \    \"time\": \"06:25\"\n  },\n  \"return\": {\n    \"origin\": \"DEL\",\n\
+        \    \"destination\": \"HYD\",\n    \"flight_no\": \"AI 542\",\n    \"date\"\
+        : \"7 Oct 2026\",\n    \"time\": \"21:10\"\n  },\n  \"seat_preference"
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Dates/times semantically identical (3 Oct 2026 = 2026-10-03; 21:10 = 1270
+      min). Failure is format (ISO date, minutes-integer time), not substance.
+- task_id: Q006
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    signatures:
+    - 'structured:$.project: expected ''Atlas'', got ''Project Atlas'''
+    excerpts:
+    - trial: 1
+      excerpt: "{\n  \"project\": \"Project Atlas\",\n  \"owner\": \"Sana\",\n  \"\
+        launch_date\": \"2026-11-12\",\n  \"budget_cap_inr\": 950000,\n  \"security_review_deadline\"\
+        : \"2026-11-02\",\n  \"marketing_review\": \"2026-11-02\"\n}"
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: "{\n  \"project\": \"Project Atlas\",\n  \"owner\": \"Sana\",\n  \"\
+        launch_date\": \"2026-11-12\",\n  \"budget_cap_inr\": 950000,\n  \"security_review_deadline\"\
+        : \"2026-11-02\",\n  \"marketing_review\": \"2026-11-02\"\n}"
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: "{\n  \"project\": \"Project Atlas\",\n  \"owner\": \"Sana\",\n  \"\
+        launch_date\": \"2026-11-12\",\n  \"budget_cap_inr\": 950000,\n  \"security_review_deadline\"\
+        : \"2026-11-02\",\n  \"marketing_review\": \"2026-11-02\"\n}"
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Only delta is 'Project Atlas' vs 'Atlas'; all dates/amounts exact.
+- task_id: Q011
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  auto_analysis:
+    failed_rows: 1
+    benchmark_verdicts:
+    - FAIL
+    row_modes:
+    - LEXICAL_CONSTRAINT
+    signatures:
+    - constraints:term_occurrence(
+    excerpts:
+    - trial: 1
+      excerpt: "- TCP ensures reliable data transfer with error checking and retransmission.\
+        \  \n- UDP sends data quickly with no guarantees of delivery or order.  \n\
+        - TCP adds overhead, increasing latency compared to UDP.  \n- Therefore, UDP\
+        \ is better for real-time applications needing low latency."
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Four-bullet explanation is good; fails only on latency x2 vs x1. t2/t3
+      passed with the 277-char form.
+- task_id: Q012
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - LEXICAL_CONSTRAINT
+    - LEXICAL_CONSTRAINT
+    - LEXICAL_CONSTRAINT
+    signatures:
+    - constraints:sentence_numeric_tokens
+    excerpts:
+    - trial: 1
+      excerpt: "Chlorophyll in green leaves absorbs light energy to convert carbon\
+        \ dioxide and water into glucose and oxygen.  \nThree molecules of carbon\
+        \ dioxide are involved in the process.  \nHow does this process contribute\
+        \ to the oxygen in Earth's atmosphere?"
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: "Chlorophyll in green leaves absorbs light energy to convert carbon\
+        \ dioxide and water into glucose and oxygen.  \nThree molecules of carbon\
+        \ dioxide are involved in the process.  \nHow does this process contribute\
+        \ to the oxygen in Earth's atmosphere?"
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: "Chlorophyll in green leaves absorbs light energy to convert carbon\
+        \ dioxide and water into glucose and oxygen.  \nThree molecules of carbon\
+        \ dioxide are involved in the process.  \nHow does this process contribute\
+        \ to the oxygen in Earth's atmosphere?"
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Three clean sentences, chlorophyll present, ends with question. Fails only
+      because "Three" is not a digit token. t1-t3 are byte-identical with the single
+      numeric-token violation; no plant/sunlight hit in any trial. (An earlier analyst
+      remark about 'plant' matching inside 'plants' referred to a synthetic probe
+      string, never to persisted rows.)
+- task_id: Q014
+  task_status: READY_JUDGE
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - LEXICAL_CONSTRAINT
+    - LEXICAL_CONSTRAINT
+    - LEXICAL_CONSTRAINT
+    signatures:
+    - constraints:word_range
+    excerpts:
+    - trial: 1
+      excerpt: Think of recursion like a set of nested Russian dolls—each doll contains
+        a smaller version of itself until reaching the smallest one. In code, `factorial(n)`
+        calls `factorial(n-1)` until reaching 0. Base cases stop the chain.
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: Think of recursion like a set of nested Russian dolls—each doll contains
+        a smaller version of itself until reaching the smallest one. In code, `factorial(n)`
+        calls `factorial(n-1)` until reaching 0. Base cases stop the chain.
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: Think of recursion like a set of nested Russian dolls—each doll contains
+        a smaller version of itself until reaching the smallest one. In code, `factorial(n)`
+        calls `factorial(n-1)` until reaching 0. Base cases stop the chain.
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: LIKELY_CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Good recursion analogy + factorial example, but 35 words vs required 50-60
+      and contains forbidden "itself". Length shortfall leaves completeness uncertain.
+- task_id: Q015
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - LEXICAL_CONSTRAINT
+    - LEXICAL_CONSTRAINT
+    - LEXICAL_CONSTRAINT
+    signatures:
+    - constraints:line_prefix_sequence
+    excerpts:
+    - trial: 1
+      excerpt: "A database index speeds up data retrieval.  \nB index organizes records\
+        \ for faster access.  \nC query performance improves with proper indexing.\
+        \  \nD index helps locate rows efficiently.  \nE query execution becomes quicker\
+        \ with indexing.  \nF indexing reduces full table scans."
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: "A database index speeds up data retrieval.  \nB index helps locate\
+        \ records efficiently.  \nC query performance improves with proper indexing.\
+        \  \nD index structure supports fast lookups.  \nE query execution becomes\
+        \ quicker with indexing.  \nF indexing reduces scan time significantly."
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: "A database index speeds up data retrieval.  \nB index helps locate\
+        \ records efficiently.  \nC query performance improves with proper indexing.\
+        \  \nD index structure supports fast lookups.  \nE query execution becomes\
+        \ quicker with indexing.  \nF indexing reduces scan time significantly."
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: INCORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Frozen matcher reports six `index` substring hits, including occurrences
+      inside `indexing`; independent A.-F. marker-format violations also remain. Multiple
+      substantive requirement misses, not envelope.
+- task_id: Q016
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - MIXED
+    - MIXED
+    - MIXED
+    signatures:
+    - constraints:term_occurrence(
+    - 'structured:$.benefit_1: expected ''<6-10 words>'', got ''Reduces server load
+      by storing freque'
+    excerpts:
+    - trial: 1
+      excerpt: '{"benefit_1": "Reduces server load by storing frequently accessed
+        data.", "benefit_2": "Lowers response time by serving data from memory.",
+        "risk": "Staleness can occur if cached data isn''t updated in time."}'
+      row_mode: MIXED
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: '{"benefit_1": "Reduces server load by storing frequently accessed
+        data.", "benefit_2": "Lowers response time by serving data from memory.",
+        "risk": "Staleness can occur if cached data isn''t updated in time."}'
+      row_mode: MIXED
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: '{"benefit_1": "Reduces server load by storing frequently accessed
+        data.", "benefit_2": "Lowers response time by serving data from memory.",
+        "risk": "Staleness can occur if cached data isn''t updated in time."}'
+      row_mode: MIXED
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: INCORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Values are reasonable summaries but no value contains "latency" (required
+      exactly once) and word-range flags trip. Explicit requirement missed.
+- task_id: Q017
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - LEXICAL_CONSTRAINT
+    - LEXICAL_CONSTRAINT
+    - LEXICAL_CONSTRAINT
+    signatures:
+    - 'constraints:item_excludes_chars: item 4 contains a forbidden character'
+    excerpts:
+    - trial: 1
+      excerpt: "1. Measure response time from the API call to idenify if delay is\
+        \ in send or recv.  \n2. Check logs for any error or warning that may show\
+        \ timeout cause.  \n3. Verify network speed; confirm if data is passin’ through\
+        \ correctly.  \n4. Use a tool to test call with low latencie."
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: "1. Measure response time from the API call to idenify if delay is\
+        \ in send or recv.  \n2. Check logs for any error or warnin that show timeout\
+        \ or fail.  \n3. Verify network speed; confirm if data is passin through proxy\
+        \ or firew.  \n4. Use short duratins and low load to test call stablity."
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: "1. Measure response time from the API call to idenify if delay is\
+        \ in send or recv.  \n2. Check logs for any error or warnin that show timeout\
+        \ or fail.  \n3. Verify network speed; confirm if data is passin through proxy\
+        \ or firew.  \n4. Use short duratins and low load to test call stablity."
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: INCORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Steps 1-3 satisfy their requirements; step 4 ("Use a tool to test call
+      with low latencie.") still contains e/E despite evasion attempt. The intentionally
+      hard constraint defeats it.
+- task_id: Q018
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - LEXICAL_CONSTRAINT
+    - LEXICAL_CONSTRAINT
+    - LEXICAL_CONSTRAINT
+    signatures:
+    - constraints:word_count
+    excerpts:
+    - trial: 1
+      excerpt: Quantization is the process of reducing data precision to compress
+        information, often used in signal processing and machine learning. It converts
+        continuous values into discrete levels, enabling efficient storage and transmission.
+        Q4 highlights the impact on signal fidelity, Q5 addresses accuracy lo
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: Quantization is the process of reducing data precision to compress
+        information, often used in signal processing and machine learning. It converts
+        continuous values into discrete levels, enabling efficient storage and transmission.
+        Q4 highlights the impact on signal fidelity, Q5 addresses accuracy lo
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: Quantization is the process of reducing data precision to compress
+        information, often used in signal processing and machine learning. It converts
+        continuous values into discrete levels, enabling efficient storage and transmission.
+        Q4 highlights the impact on signal fidelity, Q5 addresses accuracy lo
+      row_mode: LEXICAL_CONSTRAINT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: INCORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: 65 words vs 70, no parenthetical phrase, ends "usage." not "tradeoff".
+      Three independent requirement misses.
+- task_id: Q019
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    signatures:
+    - 'numeric:output is not a bare number (prompts require only the number): ''We
+      are given:\n\'
+    excerpts:
+    - trial: 1
+      excerpt: 'We are given:
+
+
+        - Total batteries in warehouse: **480**
+
+        - 15% fail inspection → so 85% pass
+
+        - One-third of the **passing** batteries go to **Store A**
+
+        - The rest are divided **equally** between **Stores B and C**
+
+        - A previous shipment of 600 batteries is mentioned, but **not used** in the
+        calculation'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 2
+      excerpt: 'We are given:
+
+
+        - Total batteries in warehouse: **480**
+
+        - 15% fail inspection → so 85% pass
+
+        - One-third of the **passing** batteries go to **Store A**
+
+        - The rest are divided **equally** between **Stores B and C**
+
+        - A previous shipment of 600 batteries is mentioned, but **not used** in the
+        calculation'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 3
+      excerpt: 'We are given:
+
+
+        - Total batteries in warehouse: **480**
+
+        - 15% fail inspection → so 85% pass
+
+        - One-third of the **passing** batteries go to **Store A**
+
+        - The rest are divided **equally** between **Stores B and C**
+
+        - A previous shipment of 600 batteries is mentioned, but **not used** in the
+        calculation'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Full derivation reaches 136 = expected. Failure is bare-number packaging
+      only (891 chars of LaTeX reasoning).
+- task_id: Q020
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    signatures:
+    - 'numeric:output is not a bare number (prompts require only the number): ''First,
+      calculate'
+    excerpts:
+    - trial: 1
+      excerpt: "First, calculate the discount amount:\n\n12.5% of ₹64,000 =  \n$ \\\
+        frac{12.5}{100} \\times 64000 = 0.125 \\times 64000 = 8000 $\n\nSo, the discounted\
+        \ price is:  \n₹64,000 - ₹8,000 = ₹56,000\n\nNow, apply 18% GST on the discounted\
+        \ price:\n\n18% of ₹56,000 =  \n$ \\frac{18}{100} \\times 56000 = 0.18 \\\
+        times 56000 = 10"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 2
+      excerpt: "First, calculate the discount amount:\n\n12.5% of ₹64,000 =  \n$ \\\
+        frac{12.5}{100} \\times 64000 = 0.125 \\times 64000 = 8000 $\n\nSo, the discounted\
+        \ price is:  \n₹64,000 - ₹8,000 = ₹56,000\n\nNow, apply 18% GST on the discounted\
+        \ price:\n\n18% of ₹56,000 =  \n$ \\frac{18}{100} \\times 56000 = 0.18 \\\
+        times 56000 = 10"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 3
+      excerpt: "First, calculate the discount amount:\n\n12.5% of ₹64,000 =  \n$ \\\
+        frac{12.5}{100} \\times 64000 = 0.125 \\times 64000 = 8000 $\n\nSo, the discounted\
+        \ price is:  \n₹64,000 - ₹8,000 = ₹56,000\n\nNow, apply 18% GST on the discounted\
+        \ price:\n\n18% of ₹56,000 =  \n$ \\frac{18}{100} \\times 56000 = 0.18 \\\
+        times 56000 = 10"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Computes 66080 = expected through correct discount+GST steps. Single asserted
+      value, no contradiction; packaging only.
+- task_id: Q021
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    signatures:
+    - 'numeric:output is not a bare number (prompts require only the number): ''We
+      are given:\n\'
+    excerpts:
+    - trial: 1
+      excerpt: 'We are given:
+
+
+        - Original request rate: **240 requests per second**
+
+        - Total time: **10 seconds**
+
+        - For the **first 4 seconds**, traffic **rises by 25%**
+
+        - For the **next 6 seconds**, traffic **falls to 80%** of original rate
+
+
+        We need to compute the **total number of requests** processed.
+
+
+        ---
+
+
+        ### S'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 2
+      excerpt: 'We are given:
+
+
+        - Original request rate: **240 requests per second**
+
+        - Total time: **10 seconds**
+
+        - For the **first 4 seconds**, traffic **rises by 25%**
+
+        - For the **next 6 seconds**, traffic **falls to 80%** of original rate
+
+
+        We need to compute the **total number of requests** processed.
+
+
+        ---
+
+
+        ### S'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 3
+      excerpt: 'We are given:
+
+
+        - Original request rate: **240 requests per second**
+
+        - Total time: **10 seconds**
+
+        - For the **first 4 seconds**, traffic **rises by 25%**
+
+        - For the **next 6 seconds**, traffic **falls to 80%** of original rate
+
+
+        We need to compute the **total number of requests** processed.
+
+
+        ---
+
+
+        ### S'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Derives 2352 = expected (300x4 + 192x6). Packaging only.
+- task_id: Q022
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    signatures:
+    - 'numeric:output is not a bare number (prompts require only the number): ''We
+      are given:\n\'
+    excerpts:
+    - trial: 1
+      excerpt: "We are given:\n\n- Total GPU-hours: 840  \n- Ratio shared among three\
+        \ teams: 2:3:5  \n- Team B uses 20% less than its allocation  \n- The unused\
+        \ hours from Team B are transferred entirely to Team A  \n- We need to find\
+        \ how many GPU-hours Team A **finally** has.\n\n---\n\n### Step 1: Find individual\
+        \ allocation"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 2
+      excerpt: "We are given:\n\n- Total GPU-hours: 840  \n- Ratio shared among three\
+        \ teams: 2:3:5  \n- Team B uses 20% less than its allocation  \n- The unused\
+        \ hours from Team B are transferred entirely to Team A  \n- We need to find\
+        \ how many GPU-hours Team A **finally** has.\n\n---\n\n### Step 1: Find individual\
+        \ allocation"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 3
+      excerpt: "We are given:\n\n- Total GPU-hours: 840  \n- Ratio shared among three\
+        \ teams: 2:3:5  \n- Team B uses 20% less than its allocation  \n- The unused\
+        \ hours from Team B are transferred entirely to Team A  \n- We need to find\
+        \ how many GPU-hours Team A **finally** has.\n\n---\n\n### Step 1: Find individual\
+        \ allocation"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Derives 218.4 = expected (168 + 50.4). Packaging only.
+- task_id: Q023
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - MIXED
+    - MIXED
+    - MIXED
+    signatures:
+    - time:asserted_value_mismatch
+    - time:could not parse time from 'We are given:\n\n- Train 1 leaves **City A at
+      09:20**
+    excerpts:
+    - trial: 1
+      excerpt: 'We are given:
+
+
+        - Train 1 leaves **City A at 09:20** traveling at **72 km/h** toward City
+        B.
+
+        - Train 2 leaves **City B at 10:00** traveling at **84 km/h** toward City
+        A.
+
+        - The distance between the cities is **300 km**.
+
+        - We need to find the **time they meet**, rounded to the nearest minute.
+
+
+        ---
+
+
+        ###'
+      row_mode: MIXED
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 2
+      excerpt: 'We are given:
+
+
+        - Train 1 leaves **City A at 09:20** traveling at **72 km/h** toward City
+        B.
+
+        - Train 2 leaves **City B at 10:00** traveling at **84 km/h** toward City
+        A.
+
+        - The distance between the cities is **300 km**.
+
+        - We need to find the **time they meet**, rounded to the nearest minute.
+
+
+        ---
+
+
+        ###'
+      row_mode: MIXED
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 3
+      excerpt: 'We are given:
+
+
+        - Train 1 leaves **City A at 09:20** traveling at **72 km/h** toward City
+        B.
+
+        - Train 2 leaves **City B at 10:00** traveling at **84 km/h** toward City
+        A.
+
+        - The distance between the cities is **300 km**.
+
+        - We need to find the **time they meet**, rounded to the nearest minute.
+
+
+        ---
+
+
+        ###'
+      row_mode: MIXED
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: INCORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: 'Genuine arithmetic slip: 252/156h = 96.92min but model writes 36.92min
+      (dropped the hour), concluding 10:37 vs 11:37. Contract violation AND wrong
+      value.'
+- task_id: Q024
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    signatures:
+    - 'numeric:output is not a bare number (prompts require only the number): ''We
+      are given:\n\'
+    excerpts:
+    - trial: 1
+      excerpt: "We are given:\n\n- Total examples: 1,200  \n- Class A: 35%  \n- Class\
+        \ B: 25%  \n- Class C: the rest → 100% - 35% - 25% = 40%  \n\nModel accuracy:\n\
+        - 90% correct for class A  \n- 80% correct for class B  \n- 75% correct for\
+        \ class C  \n\nWe need to compute the **total number of correctly classified\
+        \ examples**.\n\n-"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 2
+      excerpt: "We are given:\n\n- Total examples: 1,200  \n- Class A: 35%  \n- Class\
+        \ B: 25%  \n- Class C: the rest → 100% - 35% - 25% = 40%  \n\nModel accuracy:\n\
+        - 90% correct for class A  \n- 80% correct for class B  \n- 75% correct for\
+        \ class C  \n\nWe need to compute the **total number of correctly classified\
+        \ examples**.\n\n-"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 3
+      excerpt: "We are given:\n\n- Total examples: 1,200  \n- Class A: 35%  \n- Class\
+        \ B: 25%  \n- Class C: the rest → 100% - 35% - 25% = 40%  \n\nModel accuracy:\n\
+        - 90% correct for class A  \n- 80% correct for class B  \n- 75% correct for\
+        \ class C  \n\nWe need to compute the **total number of correctly classified\
+        \ examples**.\n\n-"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Derives 978 = expected (378+240+360). Packaging only.
+- task_id: Q025
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - MIXED
+    - MIXED
+    - MIXED
+    signatures:
+    - time:asserted_value_mismatch
+    - time:could not parse time from "We are given:\n\n- Job A runs every **18 minutes**.\n
+    - time:could not parse time from 'We are given:\n\n- Job A runs every **18 minutes**\n-
+    excerpts:
+    - trial: 1
+      excerpt: 'We are given:
+
+
+        - Job A runs every **18 minutes**
+
+        - Job B runs every **24 minutes**
+
+        - Both run together at **08:00**
+
+        - A **maintenance window** blocks all runs from **10:00 to 10:30 inclusive**
+
+        - We need to find the **first time after the maintenance window** when both
+        jobs run together.
+
+
+        ---
+
+
+        ### St'
+      row_mode: MIXED
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 2
+      excerpt: 'We are given:
+
+
+        - Job A runs every **18 minutes**.
+
+        - Job B runs every **24 minutes**.
+
+        - Both run together at **08:00**.
+
+        - A **maintenance window** blocks all runs from **10:00 to 10:30 inclusive**.
+
+        - We are to find the **first time after the maintenance window** when both
+        jobs run together.
+
+
+        ---
+
+
+        ###'
+      row_mode: MIXED
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags:
+      - TRUNCATED_AT_NUM_PREDICT
+    - trial: 3
+      excerpt: 'We are given:
+
+
+        - Job A runs every **18 minutes**.
+
+        - Job B runs every **24 minutes**.
+
+        - Both run together at **08:00**.
+
+        - A **maintenance window** blocks all runs from **10:00 to 10:30 inclusive**.
+
+        - We are to find the **first time after the maintenance window** when both
+        jobs run together.
+
+
+        ---
+
+
+        ###'
+      row_mode: MIXED
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags:
+      - TRUNCATED_AT_NUM_PREDICT
+    generation_flags:
+    - TRUNCATED_AT_NUM_PREDICT
+  review:
+    substantive_answer_assessment: INCORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: 'V2 divergence: t1 completed (1656 chars, stop) asserting explicit wrong
+      final 12:36 vs 11:36 (model skips 11:36 in its own 72-min enumeration AND
+      mis-adds 10:24+72) -> MIXED. t2/t3 assert "answer is 12:36" explicitly
+      mid-derivation (line 75) then ramble into truncation at 2048 -> MIXED +
+      TRUNCATED_AT_NUM_PREDICT. Substantive INCORRECT in all trials.'
+- task_id: Q026
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - MIXED
+    - MIXED
+    - MIXED
+    signatures:
+    - numeric:asserted_value_mismatch
+    - 'numeric:output is not a bare number (prompts require only the number): ''To
+      find the end-'
+    excerpts:
+    - trial: 1
+      excerpt: "To find the end-to-end success probability in a pipeline where **any\
+        \ stage failure causes the entire request to fail**, we multiply the success\
+        \ probabilities of each stage.\n\nGiven success probabilities:\n\n- Stage\
+        \ 1: 0.98  \n- Stage 2: 0.95  \n- Stage 3: 0.99  \n- Stage 4: 0.97  \n- Stage\
+        \ 5: 0.96  \n\nEnd-t"
+      row_mode: MIXED
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 2
+      excerpt: "To find the end-to-end success probability in a pipeline where **any\
+        \ stage failure causes the entire request to fail**, we multiply the success\
+        \ probabilities of each stage.\n\nGiven success probabilities:\n\n- Stage\
+        \ 1: 0.98  \n- Stage 2: 0.95  \n- Stage 3: 0.99  \n- Stage 4: 0.97  \n- Stage\
+        \ 5: 0.96  \n\nEnd-t"
+      row_mode: MIXED
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 3
+      excerpt: "To find the end-to-end success probability in a pipeline where **any\
+        \ stage failure causes the entire request to fail**, we multiply the success\
+        \ probabilities of each stage.\n\nGiven success probabilities:\n\n- Stage\
+        \ 1: 0.98  \n- Stage 2: 0.95  \n- Stage 3: 0.99  \n- Stage 4: 0.97  \n- Stage\
+        \ 5: 0.96  \n\nEnd-t"
+      row_mode: MIXED
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: INCORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: 'Genuine arithmetic slip at step 3: 0.92169x0.97 = 0.8940393, model writes
+      0.9000493, concluding 86.40 vs 85.83 (outside tolerance). Contract violation
+      AND wrong value.'
+- task_id: Q036
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    signatures:
+    - exact:expected 'UNKNOWN', got 'NO'
+    excerpts:
+    - trial: 1
+      excerpt: 'NO'
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: 'NO'
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: 'NO'
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: INCORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: 'Overconfident negation: answers NO where context supports only UNKNOWN
+      (USB-C charging does not imply wireless). Clean wrong answer.'
+- task_id: Q039
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    signatures:
+    - 'exact:expected ''CANNOT_DETERMINE'', got "CANNOT_DETERMINE\n\nExplanation:
+      The question '
+    excerpts:
+    - trial: 1
+      excerpt: 'CANNOT_DETERMINE
+
+
+        Explanation: The question asks whether Group B''s score is statistically significantly
+        higher than Group A''s. While Group B has a higher mean score (76 vs. 72),
+        statistical significance requires more information than just the means—such
+        as standard deviations, sample sizes, or confi'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: 'CANNOT_DETERMINE
+
+
+        Explanation: The question asks whether Group B''s score is statistically significantly
+        higher than Group A''s. While Group B has a higher mean (76 vs. 72), statistical
+        significance requires more than just the means. To determine significance,
+        we would need information such as standar'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: 'CANNOT_DETERMINE
+
+
+        Explanation: The question asks whether Group B''s score is statistically significantly
+        higher than Group A''s. While Group B has a higher mean (76 vs. 72), statistical
+        significance requires more than just the means. To determine significance,
+        we would need information such as standar'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Opens with CANNOT_DETERMINE = expected, with statistically sound reasoning.
+      Failure is the appended explanation paragraph.
+- task_id: Q040
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    signatures:
+    - 'exact:expected ''NOT_ESTABLISHED'', got ''NOT_ESTABLISHED\n\nExplanation: The
+      API documen'
+    excerpts:
+    - trial: 1
+      excerpt: 'NOT_ESTABLISHED
+
+
+        Explanation: The API documentation states that the endpoint returns HTTP 202
+        when an export job is accepted, but it provides no information about maximum
+        completion times or time bounds for job completion. Therefore, we cannot determine
+        whether every accepted export will complete wi'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: 'NOT_ESTABLISHED
+
+
+        Explanation: The API documentation states that the endpoint returns HTTP 202
+        when an export job is accepted, but it provides no information about maximum
+        completion times or time bounds for job completion. Therefore, we cannot determine
+        whether every accepted export will complete wi'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: 'NOT_ESTABLISHED
+
+
+        Explanation: The API documentation states that the endpoint returns HTTP 202
+        when an export job is accepted, but it provides no information about maximum
+        completion times or time bounds for job completion. Therefore, we cannot determine
+        whether every accepted export will complete wi'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Opens with NOT_ESTABLISHED = expected, reasoning sound. Failure is the
+      appended explanation.
+- task_id: Q044
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    signatures:
+    - exact:expected '25 s', got '25'
+    excerpts:
+    - trial: 1
+      excerpt: '25'
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: '25'
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: '25'
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Value 25 exact; only the unit form ("s") missing. Unambiguous, no contradiction;
+      presentational.
+- task_id: Q045
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    signatures:
+    - 'exact:expected ''CACHE'', got ''CACHE\n\nThe strongest evidence pointing to
+      the cache as '
+    excerpts:
+    - trial: 1
+      excerpt: 'CACHE
+
+
+        The strongest evidence pointing to the cache as the proximate cause is the
+        drop in cache hit rate from 91% to 28% at 09:12, followed by memory pressure
+        on cache nodes at 09:14, and the resolution of gateway errors after replacing
+        two cache nodes at 09:20. The hit rate quickly returns to norma'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: 'CACHE
+
+
+        The strongest evidence pointing to the cache as the proximate cause is the
+        drop in cache hit rate from 91% to 28% at 09:12, followed by memory pressure
+        on cache nodes at 09:14, and the resolution of gateway errors after replacing
+        two cache nodes at 09:20. The hit rate quickly returns to norma'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: 'CACHE
+
+
+        The strongest evidence pointing to the cache as the proximate cause is the
+        drop in cache hit rate from 91% to 28% at 09:12, followed by memory pressure
+        on cache nodes at 09:14, and the resolution of gateway errors after replacing
+        two cache nodes at 09:20. The hit rate quickly returns to norma'
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Opens with CACHE = expected plus accurate evidence chain. Failure is the
+      appended justification.
+- task_id: Q047
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    signatures:
+    - 'fact_check:missing fact: ''currently enrolled undergraduate'''
+    excerpts:
+    - trial: 1
+      excerpt: 'Undergraduate students may apply for the 2026 Student Innovation Grant.
+        Deadline: 5:00 PM, 30 Sept 2026. Max 4 members. ₹250 non-refundable fee. Submit
+        via institute portal only. Previous winners may mentor, not apply.'
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: 'Undergraduate students may apply for the 2026 Student Innovation Grant.
+        Deadline: 5:00 PM, 30 Sept 2026. Max 4 members. ₹250 non-refundable fee. Submit
+        via institute portal only. Previous winners may mentor, not apply.'
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: 'Undergraduate students may apply for the 2026 Student Innovation Grant.
+        Deadline: 5:00 PM, 30 Sept 2026. Max 4 members. ₹250 non-refundable fee. Submit
+        via institute portal only. Previous winners may mentor, not apply.'
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: LIKELY_CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: 'Meaning largely preserved but qualifiers dropped: "currently enrolled"
+      lost, "September" abbreviated to "Sept", email refusal only implied ("portal
+      only"). Precision loss keeps this below CORRECT.'
+- task_id: Q048
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    signatures:
+    - 'fact_check:missing fact: ''imports longer than two hours'''
+    excerpts:
+    - trial: 1
+      excerpt: "- Fixes memory leak in long-running imports and adds CSV delimiter\
+        \ auto-detection.  \n- No schema changes or data migration; restart workers\
+        \ required. Recommended for imports over two hours."
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: "- Fixes memory leak in long-running imports and adds CSV delimiter\
+        \ auto-detection.  \n- No schema changes or data migration; restart workers\
+        \ required. Recommended for imports over two hours."
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: "- Fixes memory leak in long-running imports and adds CSV delimiter\
+        \ auto-detection.  \n- No schema changes or data migration; restart workers\
+        \ required. Recommended for imports over two hours."
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Missing fact is "imports longer than two hours"; output says "imports over
+      two hours" — same meaning, strict substring miss. Paraphrase penalized, not
+      wrongness.
+- task_id: Q049
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    signatures:
+    - 'fact_check:forbidden fact present: ''database'''
+    excerpts:
+    - trial: 1
+      excerpt: "Cause: A configuration rollout reduced the connection pool limit from\
+        \ 200 to 20 on three API instances.  \nImpact: Queue depth increased rapidly,\
+        \ causing 18% of requests to exceed the 5-second timeout for 11 minutes, though\
+        \ the database remained healthy.  \nResolution: Engineers rolled back the\
+        \ config"
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: "Cause: A configuration rollout reduced the connection pool limit from\
+        \ 200 to 20 on three API instances.  \nImpact: Queue depth increased rapidly,\
+        \ causing 18% of requests to exceed the 5-second timeout for 11 minutes, though\
+        \ the database remained healthy.  \nResolution: Engineers rolled back the\
+        \ config"
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: "Cause: A configuration rollout reduced the connection pool limit from\
+        \ 200 to 20 on three API instances.  \nImpact: Queue depth increased rapidly,\
+        \ causing 18% of requests to exceed the 5-second timeout for 11 minutes, though\
+        \ the database remained healthy.  \nResolution: Engineers rolled back the\
+        \ config"
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Faithful cause/impact/resolution summary; the "violation" is mentioning
+      database health, which is source-faithful but spec-forbidden. Truthful output,
+      scope failure.
+- task_id: Q050
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    signatures:
+    - 'fact_check:missing fact: ''multi-step'''
+    - 'fact_check:missing fact: ''not selected'''
+    excerpts:
+    - trial: 1
+      excerpt: 'A pilot tested offline 3B and 4B language models on 50 support tasks.
+        The 3B model achieved 43 correct completions and valid JSON on 47 tasks, averaging
+        18.6 tokens/s. The 4B model scored 46 correct completions but averaged 12.1
+        tokens/s and used 1.3 GB more memory. Despite performance differences, '
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: A pilot tested offline 3B and 4B language models on 50 support tasks.
+        The 3B model achieved 43 correct completions and valid JSON on 47 tasks, averaging
+        18.6 tokens/s. The 4B model scored 46 correct completions but averaged 12.1
+        tokens/s and used 1.3 GB more memory. While both models performed well,
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: A pilot tested offline 3B and 4B language models on 50 support tasks.
+        The 3B model achieved 43 correct completions and valid JSON on 47 tasks, averaging
+        18.6 tokens/s. The 4B model scored 46 correct completions but averaged 12.1
+        tokens/s and used 1.3 GB more memory. While both models performed well,
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: LIKELY_CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Team-selection meaning present ("has not yet selected"), but "multi-step"
+      genuinely absent (replaced by "task complexity"). One real omission.
+- task_id: Q051
+  task_status: READY_JUDGE
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    signatures:
+    - 'fact_check:missing fact: ''carry'''
+    excerpts:
+    - trial: 1
+      excerpt: Employees may work remotely up to two days per week with manager approval.
+        New hires must work on-site for their first 30 days unless HR grants an exception.
+        Teams handling restricted customer data may have stricter on-site requirements.
+        Public holidays do not count toward remote days, and unused re
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: Employees may work remotely up to two days per week with manager approval.
+        New hires must work on-site for their first 30 days unless HR grants an exception.
+        Teams handling restricted customer data may have stricter on-site requirements.
+        Public holidays do not count toward remote days, and unused re
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: Employees may work remotely up to two days per week with manager approval.
+        New hires must work on-site for their first 30 days unless HR grants an exception.
+        Teams handling restricted customer data may have stricter on-site requirements.
+        Public holidays do not count toward remote days, and unused re
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: All policy facts present; missing fact "carry" is satisfied by "carried
+      forward" (morphology). Strict substring miss, same class as Q012-plants/Q048.
+- task_id: Q054
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    signatures:
+    - 'exact:expected ''NO'', got ''NO\n\nExplanation: The facts do not logically
+      contradict eac'
+    excerpts:
+    - trial: 1
+      excerpt: "NO\n\nExplanation: The facts do not logically contradict each other.\
+        \ \n\n- The statement \"If a build passes all tests, it may be deployed\"\
+        \ is a conditional statement — it does not say that a build *must* be deployed\
+        \ if it passes all tests, only that deployment is *possible* under that condition.\
+        \ \n- Buil"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: "NO\n\nExplanation: The facts do not logically contradict each other.\
+        \ \n\n- The statement \"If a build passes all tests, it may be deployed\"\
+        \ is a conditional statement — it does not say that a build *must* be deployed\
+        \ if it passes all tests, only that deployment is *possible* under that condition.\
+        \ \n- Buil"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: "NO\n\nExplanation: The facts do not logically contradict each other.\
+        \ \n\n- The statement \"If a build passes all tests, it may be deployed\"\
+        \ is a conditional statement — it does not say that a build *must* be deployed\
+        \ if it passes all tests, only that deployment is *possible* under that condition.\
+        \ \n- Buil"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Opens with NO = expected with valid modal-logic reasoning (possibility
+      vs necessity). Appendix only.
+- task_id: Q055
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    signatures:
+    - exact:expected 'YES', got 'We are given the following statements:\n\n1. **All
+      A are B.
+    excerpts:
+    - trial: 1
+      excerpt: "We are given the following statements:\n\n1. **All A are B.**  \n\
+        2. **Some B are C.**  \n3. **No C are D.**  \n4. **All A are D.**\n\nWe are\
+        \ asked: **Is it logically necessary that no A are C?**  \nAnswer: **YES or\
+        \ NO**\n\n---\n\nLet’s analyze step by step.\n\nFrom (1): All A are B → Every\
+        \ element of A is in B.  "
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: "We are given the following statements:\n\n1. **All A are B.**  \n\
+        2. **Some B are C.**  \n3. **No C are D.**  \n4. **All A are D.**\n\nWe are\
+        \ asked: **Is it logically necessary that no A are C?**  \nAnswer: **YES or\
+        \ NO**\n\n---\n\nLet’s analyze step by step.\n\nWe are told:\n\n- All A are\
+        \ B → A ⊆ B  \n- All A are D →"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: "We are given the following statements:\n\n1. **All A are B.**  \n\
+        2. **Some B are C.**  \n3. **No C are D.**  \n4. **All A are D.**\n\nWe are\
+        \ asked: **Is it logically necessary that no A are C?**  \nAnswer: **YES or\
+        \ NO**\n\n---\n\nLet’s analyze step by step.\n\nWe are told:\n\n- All A are\
+        \ B → A ⊆ B  \n- All A are D →"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Reaches YES = expected via a valid proof by contradiction. Appendix only.
+- task_id: Q066
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    signatures:
+    - 'structured:$.project: expected ''Nova'', got ''Project Nova'''
+    excerpts:
+    - trial: 1
+      excerpt: "{\n  \"project\": \"Project Nova\",\n  \"owners\": [\n    {\n    \
+        \  \"name\": \"Leena\",\n      \"share_pct\": 60\n    },\n    {\n      \"\
+        name\": \"Omar\",\n      \"share_pct\": 40\n    }\n  ],\n  \"milestones\"\
+        : [\n    {\n      \"name\": \"Prototype complete\",\n      \"done\": true\n\
+        \    },\n    {\n      \"name\": \"Security review not complete\""
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: "{\n  \"project\": \"Project Nova\",\n  \"owners\": [\n    {\n    \
+        \  \"name\": \"Leena\",\n      \"share_pct\": 60\n    },\n    {\n      \"\
+        name\": \"Omar\",\n      \"share_pct\": 40\n    }\n  ],\n  \"milestones\"\
+        : [\n    {\n      \"name\": \"Prototype complete\",\n      \"done\": true\n\
+        \    },\n    {\n      \"name\": \"Security review not complete\""
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: "{\n  \"project\": \"Project Nova\",\n  \"owners\": [\n    {\n    \
+        \  \"name\": \"Leena\",\n      \"share_pct\": 60\n    },\n    {\n      \"\
+        name\": \"Omar\",\n      \"share_pct\": 40\n    }\n  ],\n  \"milestones\"\
+        : [\n    {\n      \"name\": \"Prototype complete\",\n      \"done\": true\n\
+        \    },\n    {\n      \"name\": \"Security review not complete\""
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Owners/shares exact; project and milestone names carry source status words
+      ("Project Nova", "Prototype complete"). Naming format, not substance.
+- task_id: Q068
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    signatures:
+    - 'exact:expected ''4/15'', got ''We are given:\n\n- 12 red balls  \n- 8 blue
+      balls  \n- 10 '
+    excerpts:
+    - trial: 1
+      excerpt: "We are given:\n\n- 12 red balls  \n- 8 blue balls  \n- 10 green balls\
+        \  \n- 5 yellow balls are **shown in a picture** but **not inside the box**\n\
+        \nWe are to find the probability that a ball drawn **from the box** is **blue**.\n\
+        \n---\n\n### Step 1: Total number of balls in the box\n\nOnly the red, blue,\
+        \ and green"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: "We are given:\n\n- 12 red balls  \n- 8 blue balls  \n- 10 green balls\
+        \  \n- 5 yellow balls are **shown in a picture** but **not inside the box**\n\
+        \nWe are to find the probability that a ball drawn **from the box** is **blue**.\n\
+        \n---\n\n### Step 1: Total number of balls in the box\n\nOnly the red, blue,\
+        \ and green"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: "We are given:\n\n- 12 red balls  \n- 8 blue balls  \n- 10 green balls\
+        \  \n- 5 yellow balls are **shown in a picture** but **not inside the box**\n\
+        \nWe are to find the probability that a ball drawn **from the box** is **blue**.\n\
+        \n---\n\n### Step 1: Total number of balls in the box\n\nOnly the red, blue,\
+        \ and green"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Derives and simplifies to 4/15 = expected (even excludes the yellow-ball
+      distractor correctly). Boxed-prose packaging only.
+- task_id: Q070
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    signatures:
+    - 'numeric:output is not a bare number (prompts require only the number): ''We
+      are given:\n\'
+    excerpts:
+    - trial: 1
+      excerpt: "We are given:\n\n- Total requests = 2,500  \n- 1.2% fail initially\
+        \  \n- Of the failed requests, 40% succeed on retry  \n\nWe need to find:\
+        \ **How many requests still fail after retry?**\n\n---\n\n**Step 1: Find number\
+        \ of initial failures**\n\n1.2% of 2,500:\n\n$$\n0.012 \\times 2500 = 30\n\
+        $$\n\nSo, 30 requests fail ini"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 2
+      excerpt: "We are given:\n\n- Total requests = 2,500  \n- 1.2% fail initially\
+        \  \n- Of the failed requests, 40% succeed on retry  \n\nWe need to find:\
+        \ **How many requests still fail after retry?**\n\n---\n\n**Step 1: Find number\
+        \ of initial failures**\n\n1.2% of 2,500:\n\n$$\n0.012 \\times 2500 = 30\n\
+        $$\n\nSo, 30 requests fail ini"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 3
+      excerpt: "We are given:\n\n- Total requests = 2,500  \n- 1.2% fail initially\
+        \  \n- Of the failed requests, 40% succeed on retry  \n\nWe need to find:\
+        \ **How many requests still fail after retry?**\n\n---\n\n**Step 1: Find number\
+        \ of initial failures**\n\n1.2% of 2,500:\n\n$$\n0.012 \\times 2500 = 30\n\
+        $$\n\nSo, 30 requests fail ini"
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Derives 18 = expected (30 initial failures, 12 retried). Packaging only.
+- task_id: Q071
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    - OUTPUT_CONTRACT
+    signatures:
+    - time:could not parse time from "Let's break down the timeline step by step:\n\n1.
+      **B
+    excerpts:
+    - trial: 1
+      excerpt: "Let's break down the timeline step by step:\n\n1. **Backup starts\
+        \ at 23:50**  \n2. **Backup lasts 35 minutes**  \n   → Backup ends at:  \n\
+        \   23:50 + 35 minutes = **00:25** (next day)\n\n   (Because 50 + 35 = 85\
+        \ minutes → 1 hour 25 minutes → 23:50 + 1h25m = 00:25)\n\n3. **Verification\
+        \ begins 10 minutes after "
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 2
+      excerpt: "Let's break down the timeline step by step:\n\n1. **Backup starts\
+        \ at 23:50**  \n2. **Backup lasts 35 minutes**  \n   → Backup ends at:  \n\
+        \   23:50 + 35 minutes = **00:25** (next day)\n\n   (Because 50 + 35 = 85\
+        \ minutes → 1 hour 25 minutes → 23:50 + 1h25m = 00:25)\n\n3. **Verification\
+        \ begins 10 minutes after "
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    - trial: 3
+      excerpt: "Let's break down the timeline step by step:\n\n1. **Backup starts\
+        \ at 23:50**  \n2. **Backup lasts 35 minutes**  \n   → Backup ends at:  \n\
+        \   23:50 + 35 minutes = **00:25** (next day)\n\n   (Because 50 + 35 = 85\
+        \ minutes → 1 hour 25 minutes → 23:50 + 1h25m = 00:25)\n\n3. **Verification\
+        \ begins 10 minutes after "
+      row_mode: OUTPUT_CONTRACT
+      asserted_value_status: ASSERTED_SINGLE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: CORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: Timeline reaches 00:55 = expected with all intermediate steps right. Strict
+      HH:MM parse rejects the prose; packaging only.
+- task_id: Q080
+  task_status: READY_DETERMINISTIC
+  failed_trials:
+  - 1
+  - 2
+  - 3
+  auto_analysis:
+    failed_rows: 3
+    benchmark_verdicts:
+    - FAIL
+    - FAIL
+    - FAIL
+    row_modes:
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    - CONTENT_ERROR
+    signatures:
+    - 'structured:$.accuracy_rate: expected 0.8, got 1.0'
+    excerpts:
+    - trial: 1
+      excerpt: '{"accuracy_rate": 1.0, "all_runs_consistent": true}'
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 2
+      excerpt: '{"accuracy_rate": 1.0, "all_runs_consistent": true}'
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    - trial: 3
+      excerpt: '{"accuracy_rate": 1.0, "all_runs_consistent": true}'
+      row_mode: CONTENT_ERROR
+      asserted_value_status: NO_ASSERTED_VALUE
+      generation_flags: []
+    generation_flags: []
+  review:
+    substantive_answer_assessment: INCORRECT
+    assessment_author: draft_review
+    mode_override: null
+    override_reason: null
+    notes: 'Miscounts consistency: outputs accuracy 1.0/true vs true 0.8/false (4
+      of 5 = 0.8). Genuine reasoning error on a meta-consistency question.'

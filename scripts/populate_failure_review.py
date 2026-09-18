@@ -26,9 +26,18 @@ from analysis.reliability import load_spec_statuses
 from storage.db import connect
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Scaffold a failure review')
+    parser.add_argument('--execution-id', default='full-baseline-v1')
+    parser.add_argument('--db', default=None)
+    parser.add_argument('--out', default=None)
+    parser.add_argument('--label', default=None)
+    args = parser.parse_args(argv)
     root = Path(__file__).resolve().parent.parent
-    conn = connect(str(root / 'results/local/full-baseline-v1.db'))
+    db_path = args.db or str(root / f'results/local/{args.execution_id}.db')
+    conn = connect(db_path)
     statuses = load_spec_statuses(str(root / 'evals/specs/eval-v1-grading.yaml'))
     spec = yaml.safe_load(
         open(root / 'evals/specs/eval-v1-grading.yaml', encoding='utf-8')
@@ -37,7 +46,7 @@ def main() -> int:
         str(tid): [dict(g) for g in (entry.get('graders') or [])]
         for tid, entry in spec['tasks'].items()
     }
-    rows = extract_failed_rows(conn, 'full-baseline-v1', statuses, graders_map=graders_map)
+    rows = extract_failed_rows(conn, args.execution_id, statuses, graders_map=graders_map)
     conn.close()
     grouped: dict[str, list[FailedRowFeatures]] = defaultdict(list)
     for row in rows:
@@ -46,7 +55,11 @@ def main() -> int:
     judge = sum(1 for r in rows if r.task_status == 'READY_JUDGE')
     print(f'failed rows: {len(rows)} (deterministic={det}, judge={judge})')
     print(f'tasks: {len(grouped)}')
-    out = root / 'analysis/reviews/qwen-q4-failure-review.yaml'
+    out = (
+        Path(args.out)
+        if args.out
+        else root / 'analysis/reviews/qwen-q4-failure-review.yaml'
+    )
     out.parent.mkdir(parents=True, exist_ok=True)
     # Preserve human-authored review sections across re-scaffolds: only
     # auto_analysis regenerates. Authorship boundary holds by construction.
@@ -99,8 +112,8 @@ def main() -> int:
             }
         )
     review = {
-        'artifact': 'qwen3-4b-q4 failure review (post-hoc diagnostic)',
-        'execution_id': 'full-baseline-v1',
+        'artifact': (args.label or 'qwen3-4b-q4 failure review (post-hoc diagnostic)'),
+        'execution_id': args.execution_id,
         'taxonomy_version': TAXONOMY_VERSION,
         'review_status': prior_status,
         'populations': {
