@@ -24,6 +24,10 @@ module = "urllib3.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
+module = ["matplotlib.*", "pandas.*", "numpy.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
 module = "requests.*"
 ignore_missing_imports = true
 

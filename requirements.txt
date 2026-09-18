@@ -5,3 +5,8 @@ requests==2.32.5
 psutil==7.0.0
 nvidia-ml-py==13.595.45
 pyyaml==6.0.2
+# Report path only (locked versions recorded in report provenance).
+matplotlib==3.10.9
+pandas==2.2.3
+numpy==2.2.3
+pillow==11.1.0
