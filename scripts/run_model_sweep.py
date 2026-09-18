@@ -56,11 +56,22 @@ from inference.ollama_client import (
 )
 from scripts.check_registry_readiness import load_registry
 from scripts.preflight_context import main as preflight_main
-from scripts.run_benchmark import MEASUREMENT_FAILED_EXIT, run_experiment
+from scripts.run_benchmark import (
+    MEASUREMENT_FAILED_EXIT,
+    PAUSED_EXIT,
+    run_experiment,
+)
 from scripts.smoke_inference import main as smoke_main
 from scripts.summarize_baseline import main as summarize_main
 from storage.db import connect
 from storage.execution import derive_execution_id
+from storage.pause import (
+    PauseFlag,
+    PauseRecord,
+    consume_pause_request,
+    pause_record_to_json,
+    pause_requested,
+)
 from storage.sweep import (
     BENCHMARK_ERROR,
     COMPLETE,
@@ -219,6 +230,52 @@ def remove_and_verify(
     return None
 
 
+def graceful_pause(
+    *,
+    state: Any,
+    state_path: Path,
+    checkpoints_dir: Path,
+    experiment_spec: str,
+    model_config_id: str | None,
+    paused_from: str,
+    resume_stage: str,
+    ollama_bin: str,
+    base_url: str,
+    identifier: str | None,
+    reason: str = 'USER_REQUESTED',
+) -> str:
+    """Checkpoint, unload (weights kept), record PAUSED, banner, exit path."""
+    consume_pause_request(checkpoints_dir, experiment_spec)
+    ps_empty = True
+    if identifier is not None:
+        ollama_stop(ollama_bin, identifier)
+        ps_empty = wait_until_unloaded(
+            lambda: load_ps_digest(base_url, identifier)[0] is None,
+            timeout_s=180.0,
+        )
+    state.status = 'PAUSED'
+    state.pause = json.loads(pause_record_to_json(PauseRecord(
+        paused_from=paused_from, resume_stage=resume_stage,
+        model_config_id=model_config_id or '', pause_reason=reason,
+        weights_retained=True,
+    )))
+    save_sweep_state(str(state_path), state)
+    print('========================================', flush=True)
+    print('SWEEP PAUSED SAFELY', flush=True)
+    if model_config_id is not None:
+        print(f'model: {model_config_id}', flush=True)
+    print(f'resume_stage: {resume_stage}', flush=True)
+    print(f'/api/ps: {"empty" if ps_empty else "MODEL STILL LOADED"}', flush=True)
+    print('weights retained: yes', flush=True)
+    if ps_empty:
+        print('SAFE TO SHUT DOWN', flush=True)
+    else:
+        print('NOT SAFE TO SHUT DOWN: model still loaded, investigate',
+              flush=True)
+    print('========================================', flush=True)
+    return 'PAUSED'
+
+
 def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
     """Execute the lifecycle for one entry, honoring resume and --stop-after."""
     root = Path(__file__).resolve().parent.parent
@@ -248,9 +305,30 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
         return STAGES.index(stage) >= STAGES.index(start_stage)
 
     def halted(stage: str) -> str | None:
+        # Pause outranks step-mode: a shutdown request always wins.
+        paused = paused_after(
+            stage,
+            STAGES[STAGES.index(stage) + 1] if stage != 'complete' else 'complete',
+        )
+        if paused:
+            return paused
         if stop_after == stage:
             checkpoint(STOPPED_STATE[stage], 'stop-after requested')
             return STOPPED_STATE[stage]
+        return None
+
+    def paused_after(stage: str, resume_stage: str) -> str | None:
+        flag = getattr(args, 'pause_flag', None)
+        if (flag is not None and flag.requested) or pause_requested(
+            root / 'results/checkpoints', args.spec
+        ):
+            return graceful_pause(
+                state=state, state_path=state_path,
+                checkpoints_dir=root / 'results/checkpoints',
+                experiment_spec=args.spec, model_config_id=model_config_id,
+                paused_from=stage, resume_stage=resume_stage,
+                ollama_bin=ollama_bin, base_url=base_url, identifier=identifier,
+            )
         return None
 
     config = None
@@ -462,8 +540,27 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
             model=model_config_id, db=db_path, base_url=base_url,
             resume=True, execution_id=None, num_predict=None,
             timeout_s=600.0, max_tasks=None, ollama_bin=ollama_bin,
+            pause_flag=getattr(args, 'pause_flag', None),
         )
         bench_code = run_experiment(run_ns)
+        if bench_code == PAUSED_EXIT:
+            # Runner paused after a committed row (unloaded there, weights
+            # kept): record sweep-level PAUSED without touching anything.
+            state.status = 'PAUSED'
+            state.pause = json.loads(pause_record_to_json(PauseRecord(
+                paused_from='BENCHMARKING', resume_stage='benchmarked',
+                model_config_id=model_config_id, weights_retained=True,
+            )))
+            save_sweep_state(str(state_path), state)
+            consume_pause_request(root / 'results/checkpoints', args.spec)
+            print('========================================', flush=True)
+            print('SWEEP PAUSED SAFELY', flush=True)
+            print(f'model: {model_config_id}', flush=True)
+            print('resume_stage: benchmarked', flush=True)
+            print('weights retained: yes', flush=True)
+            print('SAFE TO SHUT DOWN', flush=True)
+            print('========================================', flush=True)
+            return 'PAUSED'
         if bench_code == MEASUREMENT_FAILED_EXIT:
             # Persistent measurement failure: no row written, weights kept,
             # sweep STOPS. The V2 contract is never weakened to absorb it.
@@ -698,28 +795,84 @@ def main(argv: list[str] | None = None) -> int:
             return 2
     # Overlay adapters participate before any run.
     load_overlays_from_dir(root / 'configs/adapters')
+    pause_flag = PauseFlag()
+    pause_flag.install_sigint_handler()
+    args.pause_flag = pause_flag
+    try:
+        return _sweep_loop(args, registry, root)
+    finally:
+        pause_flag.uninstall_sigint_handler()
+
+
+def _sweep_loop(
+    args: argparse.Namespace, registry: dict[str, Any], root: Path
+) -> int:
     state = load_sweep_state(args.state_file)
     if state is None:
+        order = [str(e['model_config_id']) for e in registry.get('models', [])]
         state = new_sweep_state(f'{args.experiment}-sweep', order)
         save_sweep_state(args.state_file, state)
     else:
         # Resume: adopt registry order, keep lifecycle memory.
+        order = [str(e['model_config_id']) for e in registry.get('models', [])]
         for mid in order:
             if mid not in state.models:
                 from storage.sweep import ModelLifecycle
 
                 state.models[mid] = ModelLifecycle(mid)
         state.order = order
+        if state.status == 'PAUSED':
+            paused = state.pause or {}
+            print(f"resuming from PAUSED (was: {paused.get('paused_from')}, "
+                  f'model {paused.get("model_config_id")})', flush=True)
+            state.status = 'RUNNING'
         save_sweep_state(args.state_file, state)
+    return _run_loop(args, registry, root, state)
+
+
+def _run_loop(
+    args: argparse.Namespace,
+    registry: dict[str, Any],
+    root: Path,
+    state: Any,
+) -> int:
     print(f'sweep: {state.sweep_id} resume_from={state.next_model}', flush=True)
     stopped_states = set(STOPPED_STATE.values())
     terminal_states = {'COMPLETE', 'COMPLETE_INELIGIBLE'}
+    checkpoints_dir = root / 'results/checkpoints'
     while True:
         # The state FILE is authoritative: reload every iteration so a
         # terminal outcome can never select the same model again.
         fresh = load_sweep_state(args.state_file)
         if fresh is not None:
             state = fresh
+        # A pending request pauses before starting new work (never mid-unit).
+        # The current model's identifier is passed so a lingering load is
+        # still evicted and verified (stop is a no-op when absent).
+        if pause_requested(checkpoints_dir, args.spec) or (
+            getattr(args, 'pause_flag', None) is not None
+            and args.pause_flag.requested
+        ):
+            current = state.next_model
+            loop_identifier: str | None = None
+            if current is not None:
+                loop_entry = next(
+                    (e for e in registry.get('models', [])
+                     if str(e.get('model_config_id')) == current),
+                    None,
+                )
+                if loop_entry is not None:
+                    loop_identifier = str(loop_entry.get('ollama_identifier'))
+            graceful_pause(
+                state=state, state_path=Path(args.state_file),
+                checkpoints_dir=checkpoints_dir,
+                experiment_spec=args.spec, model_config_id=current,
+                paused_from='SCHEDULER',
+                resume_stage='pulled' if current else 'complete',
+                ollama_bin=args.ollama_bin, base_url=args.base_url,
+                identifier=loop_identifier,
+            )
+            return 0
         current = state.next_model
         if current is None:
             summary_path = write_sweep_summary(args, registry)
@@ -737,6 +890,8 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         entry = next(e for e in registry['models'] if e['model_config_id'] == current)
         outcome = run_one_model(args, entry)
+        if outcome == 'PAUSED':
+            return 0  # banner already printed by the pausing layer
         if outcome in stopped_states:
             print(f'sweep paused: {current} -> {outcome}', flush=True)
             return 0

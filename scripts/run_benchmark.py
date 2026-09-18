@@ -72,6 +72,7 @@ from storage.manifest import (
     git_commit,
     hash_experiment_config,
 )
+from storage.pause import PauseFlag, consume_pause_request, pause_requested
 from storage.sweep import (
     append_retry_event,
     ollama_stop,
@@ -83,6 +84,8 @@ WARMUP_PROMPTS = ('Return only the word OK.', 'Return only the digit 7.')
 WARMUP_VERDICT = 'WARMUP'
 # Exit code: persistent measurement failure (no row written, STOP sweep).
 MEASUREMENT_FAILED_EXIT = 6
+# Exit code: graceful pause completed (row committed, model unloaded).
+PAUSED_EXIT = 7
 # Backoff between same-identity generation retries (seconds).
 GENERATION_RETRY_BACKOFFS = (5.0, 15.0)
 
@@ -393,8 +396,7 @@ def _ps_absent(base_url: str, model_identifier: str) -> bool:
     )
 
 
-def _generate_with_recovery(
-    *,
+def _generate_with_recovery(    *,
     make_request: Any,
     task_id: str,
     trial: int,
@@ -481,6 +483,36 @@ def _generate_with_recovery(
             })
             raise MeasurementFailed(identity, f'final attempt failed: {exc}') from exc
         raise
+
+
+def _pause_if_requested(
+    *,
+    pause_flag: PauseFlag | None,
+    checkpoints_dir: Path,
+    experiment_spec: str,
+    base_url: str,
+    ollama_bin: str,
+    model_identifier: str,
+) -> bool:
+    """Row-boundary pause check. The completed row is already committed.
+
+    On request: unload the model (weights retained), consume the request,
+    report honestly. Returns True when the caller must stop (PAUSED_EXIT).
+    """
+    requested = (pause_flag is not None and pause_flag.requested) or pause_requested(
+        checkpoints_dir, experiment_spec
+    )
+    if not requested:
+        return False
+    ollama_stop(ollama_bin, model_identifier)
+    ps_empty = wait_until_unloaded(
+        lambda: _ps_absent(base_url, model_identifier), timeout_s=180.0
+    )
+    consume_pause_request(checkpoints_dir, experiment_spec)
+    state = 'verified (ps empty)' if ps_empty else 'UNVERIFIED (ps non-empty)'
+    print(f'pause: row committed, model unload {state}, weights retained',
+          flush=True)
+    return True
 
 
 def run_experiment(args: argparse.Namespace) -> int:
@@ -679,6 +711,16 @@ def run_experiment(args: argparse.Namespace) -> int:
             )
             fresh_warmups += 1
 
+    def _row_pause() -> bool:
+        return _pause_if_requested(
+            pause_flag=getattr(args, 'pause_flag', None),
+            checkpoints_dir=root / 'results/checkpoints',
+            experiment_spec=experiment_spec_id,
+            base_url=args.base_url,
+            ollama_bin=ollama_bin,
+            model_identifier=config.ollama_identifier,
+        )
+
     for task_id in task_ids:
         if task_id not in tasks or task_id not in spec_entries:
             print(f'{task_id}: unknown task, skipping', flush=True)
@@ -731,6 +773,16 @@ def run_experiment(args: argparse.Namespace) -> int:
                 )
                 print(f'{task_id} t{trial}: REFUSED_NOT_EXECUTABLE', flush=True)
                 ran += 1
+                if _pause_if_requested(
+                    pause_flag=getattr(args, 'pause_flag', None),
+                    checkpoints_dir=root / 'results/checkpoints',
+                    experiment_spec=experiment_spec_id,
+                    base_url=args.base_url,
+                    ollama_bin=ollama_bin,
+                    model_identifier=config.ollama_identifier,
+                ):
+                    conn.close()
+                    return PAUSED_EXIT
                 continue
             base['started_at_utc'] = utcnow()
             try:
@@ -784,6 +836,9 @@ def run_experiment(args: argparse.Namespace) -> int:
                 )
                 print(f'{task_id} t{trial}: ERROR {type(exc).__name__}', flush=True)
                 ran += 1
+                if _row_pause():
+                    conn.close()
+                    return PAUSED_EXIT
                 continue
             base['ended_at_utc'] = utcnow()
             metrics = derive_metrics(result)
@@ -814,6 +869,9 @@ def run_experiment(args: argparse.Namespace) -> int:
                 print(f'{task_id} t{trial}: ERROR grading {type(exc).__name__}: {exc}',
                       flush=True)
                 ran += 1
+                if _row_pause():
+                    conn.close()
+                    return PAUSED_EXIT
                 continue
             insert_measured_row(
                 conn, base=base, text=result.text, thinking=result.thinking,
@@ -835,6 +893,9 @@ def run_experiment(args: argparse.Namespace) -> int:
                   f'({len(result.text)} chars, {decode}, '
                   f'cache={metrics.prefill_cache_state})', flush=True)
             ran += 1
+            if _row_pause():
+                conn.close()
+                return PAUSED_EXIT
             if needs_rewarm(metrics.server_load_duration_ms):
                 # Mid-run reload evidence (eviction): the loaded session is
                 # no longer the warmed one. Record 2 fresh warmups before
@@ -898,7 +959,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--ollama-bin', default=None,
                         help='ollama executable for recovery reload (default: auto-resolve)')
     args = parser.parse_args(argv)
-    return run_experiment(args)
+    from storage.pause import PauseFlag
+
+    pause_flag = PauseFlag()
+    pause_flag.install_sigint_handler()
+    args.pause_flag = pause_flag
+    try:
+        return run_experiment(args)
+    finally:
+        pause_flag.uninstall_sigint_handler()
 
 
 if __name__ == '__main__':

@@ -119,6 +119,9 @@ class SweepState:
     models: dict[str, ModelLifecycle] = field(default_factory=dict)
     ineligible: list[str] = field(default_factory=list)
     failed: list[str] = field(default_factory=list)
+    # Sweep-level pause: a parking bay, never terminal, never an advance.
+    status: str = 'RUNNING'
+    pause: dict[str, Any] | None = None
 
     @property
     def completed(self) -> list[str]:
@@ -149,6 +152,8 @@ def save_sweep_state(path: str | Path, state: SweepState) -> None:
         },
         'ineligible': state.ineligible,
         'failed': state.failed,
+        'status': state.status,
+        'pause': state.pause,
     }
     file = Path(path)
     file.parent.mkdir(parents=True, exist_ok=True)
@@ -167,6 +172,8 @@ def load_sweep_state(path: str | Path) -> SweepState | None:
         order=[str(m) for m in document['order']],
         ineligible=[str(m) for m in document.get('ineligible', [])],
         failed=[str(m) for m in document.get('failed', [])],
+        status=str(document.get('status', 'RUNNING')),
+        pause=dict(document['pause']) if isinstance(document.get('pause'), dict) else None,
     )
     for mid, raw in document.get('models', {}).items():
         if isinstance(raw, dict):
