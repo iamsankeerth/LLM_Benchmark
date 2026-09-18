@@ -1,0 +1,19 @@
+{
+  "model_config_id": "phi-3.5-mini-q5",
+  "execution_id": "full-baseline-v2__phi-3.5-mini-q5",
+  "residency_ratio": 1.0,
+  "vram_total_mib": 4096,
+  "vram_free_post_load_mib": 89,
+  "weight_fit": true,
+  "sustained_generation": false,
+  "eligibility_status": "COMPLETE_INELIGIBLE_RUNTIME_HEADROOM",
+  "effective_options": {
+    "mode": "chat",
+    "num_ctx": 4096,
+    "num_predict": 1,
+    "num_gpu": 99,
+    "temperature": 0.0
+  },
+  "evidence": "Q015 t1: 3 same-identity timeouts + canonical reload + rewarm + final truncation; manual single-generation repro TruncatedStreamError; nvidia-smi 3877/4096 MiB with ps reporting 4424550317 bytes resident. 42 valid rows Q001-Q014 retained, excluded from denominators. Canary passed short output; sustained outputs abort.",
+  "amendment": "eligibility = full residency AND operational canary"
+}
