@@ -1,0 +1,396 @@
+{
+  "all_pass_delta": 1,
+  "any_pass_delta": 2,
+  "base": {
+    "decode": {
+      "mean": 43.66085764678343,
+      "median": 37.96044342142716,
+      "n": 204,
+      "p25": 37.57307797498027,
+      "p75": 43.58591397017032,
+      "p95": 74.69375560203167
+    },
+    "decode_by_token_bucket": {
+      "1-4": {
+        "mean": 66.4126513082421,
+        "median": 69.68211127929774,
+        "n": 36,
+        "p25": 57.44002244225541,
+        "p75": 74.82720460177143,
+        "p95": 75.23605311665351
+      },
+      "129+": {
+        "mean": 37.26126276093786,
+        "median": 37.299859880847066,
+        "n": 45,
+        "p25": 37.16862098433546,
+        "p75": 37.517690581574286,
+        "p95": 37.69051014490078
+      },
+      "33-128": {
+        "mean": 37.79526061789332,
+        "median": 37.80962613937394,
+        "n": 75,
+        "p25": 37.6267403837222,
+        "p75": 37.95114005224717,
+        "p95": 38.27431549866214
+      },
+      "5-32": {
+        "mean": 41.761627963810426,
+        "median": 39.67121459756471,
+        "n": 48,
+        "p25": 38.93223700246779,
+        "p75": 46.0109425328878,
+        "p95": 46.93337338314529
+      }
+    },
+    "deterministic_tasks": 68,
+    "deterministic_trials": 204,
+    "display_id": "full-baseline-v2__qwen3-4b-q4",
+    "execution_id": "full-baseline-v2__qwen3-4b-q4",
+    "flips": [
+      "Q011"
+    ],
+    "model_artifact_digest": "5cfd6a526dc35c24a21a8a457db3e8810165e93bbb134dd6a7ac20b34e97b25a",
+    "model_size_bytes": 3178149969,
+    "passes": 107,
+    "peak_vram_mib": 3251.50390625,
+    "tasks_all_pass": 35,
+    "tasks_any_pass": 36,
+    "trial_accuracy": 0.5245098039215687,
+    "ttft": {
+      "mean": 66.88082450980393,
+      "median": 53.59015,
+      "n": 204,
+      "p25": 42.497775000000004,
+      "p75": 85.6697,
+      "p95": 125.2691
+    }
+  },
+  "base_execution_id": "full-baseline-v2__qwen3-4b-q4",
+  "candidate": {
+    "decode": {
+      "mean": 38.31460032128594,
+      "median": 33.490469148646696,
+      "n": 204,
+      "p25": 33.227727276838465,
+      "p75": 38.71416075627486,
+      "p95": 65.47930853850183
+    },
+    "decode_by_token_bucket": {
+      "1-4": {
+        "mean": 58.041487407260504,
+        "median": 57.91393988533039,
+        "n": 35,
+        "p25": 49.4323518265254,
+        "p75": 65.49217368524461,
+        "p95": 66.04365485585973
+      },
+      "129+": {
+        "mean": 32.87363891775987,
+        "median": 32.89291249875555,
+        "n": 46,
+        "p25": 32.786699104850264,
+        "p75": 33.00966744337692,
+        "p95": 33.19092047665523
+      },
+      "33-128": {
+        "mean": 33.38860478825313,
+        "median": 33.39111137177107,
+        "n": 73,
+        "p25": 33.29389976820691,
+        "p75": 33.48993261682256,
+        "p95": 33.61250042779546
+      },
+      "5-32": {
+        "mean": 36.70341733057564,
+        "median": 34.57169607269203,
+        "n": 50,
+        "p25": 34.262504340164654,
+        "p75": 39.90092888056899,
+        "p95": 41.18446521971912
+      }
+    },
+    "deterministic_tasks": 68,
+    "deterministic_trials": 204,
+    "display_id": "full-baseline-v2__qwen3-4b-q5",
+    "execution_id": "full-baseline-v2__qwen3-4b-q5",
+    "flips": [
+      "Q036",
+      "Q075"
+    ],
+    "model_artifact_digest": "7b56805a15439abd489ff24764b46b349c2f5fa0d52cf41c66c6ba2492093138",
+    "model_size_bytes": 3570380307,
+    "passes": 111,
+    "peak_vram_mib": 3625.50390625,
+    "tasks_all_pass": 36,
+    "tasks_any_pass": 38,
+    "trial_accuracy": 0.5441176470588235,
+    "ttft": {
+      "mean": 72.92523431372548,
+      "median": 57.029799999999994,
+      "n": 204,
+      "p25": 46.932900000000004,
+      "p75": 91.01317500000002,
+      "p95": 130.5602
+    }
+  },
+  "candidate_execution_id": "full-baseline-v2__qwen3-4b-q5",
+  "difficulty_deltas": {
+    "easy": {
+      "base_rate": 0.6666666666666666,
+      "candidate_rate": 0.7333333333333333,
+      "delta": 0.06666666666666665
+    },
+    "hard": {
+      "base_rate": 0.4864864864864865,
+      "candidate_rate": 0.5045045045045045,
+      "delta": 0.018018018018017945
+    },
+    "medium": {
+      "base_rate": 0.5238095238095238,
+      "candidate_rate": 0.5238095238095238,
+      "delta": 0.0
+    }
+  },
+  "experiment_spec_id": "full-baseline-v2",
+  "grader_family": {
+    "DETERMINISTIC_CONSTRAINT": {
+      "base_rate": 0.24242424242424243,
+      "base_trials": 33,
+      "candidate_rate": 0.18181818181818182,
+      "candidate_trials": 33,
+      "delta": -0.06060606060606061,
+      "note": "overlapping denominators by design; not a class split"
+    },
+    "DETERMINISTIC_EXACT": {
+      "base_rate": 0.6538461538461539,
+      "base_trials": 78,
+      "candidate_rate": 0.6538461538461539,
+      "candidate_trials": 78,
+      "delta": 0.0,
+      "note": "overlapping denominators by design; not a class split"
+    },
+    "DETERMINISTIC_NUMERIC": {
+      "base_rate": 0.1,
+      "base_trials": 30,
+      "candidate_rate": 0.0,
+      "candidate_trials": 30,
+      "delta": -0.1,
+      "note": "overlapping denominators by design; not a class split"
+    },
+    "DETERMINISTIC_STRUCTURED": {
+      "base_rate": 0.7142857142857143,
+      "base_trials": 63,
+      "candidate_rate": 0.8571428571428571,
+      "candidate_trials": 63,
+      "delta": 0.1428571428571428,
+      "note": "overlapping denominators by design; not a class split"
+    }
+  },
+  "mcnemar_b": 4,
+  "mcnemar_c": 3,
+  "mcnemar_exact_p": 1.0,
+  "mcnemar_n": 7,
+  "mean_unique_normalized_outputs_base": 1.2058823529411764,
+  "mean_unique_normalized_outputs_candidate": 1.2058823529411764,
+  "suite_deltas": {
+    "core-v1": {
+      "base_rate": 0.4305555555555556,
+      "candidate_rate": 0.4444444444444444,
+      "delta": 0.01388888888888884
+    },
+    "stress-v1": {
+      "base_rate": 0.75,
+      "candidate_rate": 0.7833333333333333,
+      "delta": 0.033333333333333326
+    }
+  },
+  "systematic_fail_both": [
+    "Q005",
+    "Q012",
+    "Q015",
+    "Q016",
+    "Q017",
+    "Q018",
+    "Q019",
+    "Q020",
+    "Q021",
+    "Q022",
+    "Q023",
+    "Q024",
+    "Q025",
+    "Q026",
+    "Q039",
+    "Q040",
+    "Q044",
+    "Q045",
+    "Q047",
+    "Q048",
+    "Q049",
+    "Q050",
+    "Q054",
+    "Q055",
+    "Q066",
+    "Q068",
+    "Q070",
+    "Q071"
+  ],
+  "transitions_any_pass": {
+    "fail_to_fail": [
+      "Q005",
+      "Q012",
+      "Q015",
+      "Q016",
+      "Q017",
+      "Q018",
+      "Q019",
+      "Q020",
+      "Q021",
+      "Q022",
+      "Q023",
+      "Q024",
+      "Q025",
+      "Q026",
+      "Q039",
+      "Q040",
+      "Q044",
+      "Q045",
+      "Q047",
+      "Q048",
+      "Q049",
+      "Q050",
+      "Q054",
+      "Q055",
+      "Q066",
+      "Q068",
+      "Q070",
+      "Q071"
+    ],
+    "fail_to_pass": [
+      "Q003",
+      "Q006",
+      "Q036",
+      "Q080"
+    ],
+    "pass_to_fail": [
+      "Q013",
+      "Q046"
+    ],
+    "pass_to_pass": [
+      "Q001",
+      "Q002",
+      "Q004",
+      "Q007",
+      "Q008",
+      "Q009",
+      "Q010",
+      "Q011",
+      "Q035",
+      "Q037",
+      "Q038",
+      "Q041",
+      "Q042",
+      "Q043",
+      "Q052",
+      "Q053",
+      "Q056",
+      "Q057",
+      "Q058",
+      "Q061",
+      "Q062",
+      "Q063",
+      "Q064",
+      "Q065",
+      "Q067",
+      "Q069",
+      "Q072",
+      "Q073",
+      "Q074",
+      "Q075",
+      "Q076",
+      "Q077",
+      "Q078",
+      "Q079"
+    ]
+  },
+  "transitions_strict": {
+    "fail_to_fail": [
+      "Q005",
+      "Q012",
+      "Q015",
+      "Q016",
+      "Q017",
+      "Q018",
+      "Q019",
+      "Q020",
+      "Q021",
+      "Q022",
+      "Q023",
+      "Q024",
+      "Q025",
+      "Q026",
+      "Q036",
+      "Q039",
+      "Q040",
+      "Q044",
+      "Q045",
+      "Q047",
+      "Q048",
+      "Q049",
+      "Q050",
+      "Q054",
+      "Q055",
+      "Q066",
+      "Q068",
+      "Q070",
+      "Q071"
+    ],
+    "fail_to_pass": [
+      "Q003",
+      "Q006",
+      "Q011",
+      "Q080"
+    ],
+    "pass_to_fail": [
+      "Q013",
+      "Q046",
+      "Q075"
+    ],
+    "pass_to_pass": [
+      "Q001",
+      "Q002",
+      "Q004",
+      "Q007",
+      "Q008",
+      "Q009",
+      "Q010",
+      "Q035",
+      "Q037",
+      "Q038",
+      "Q041",
+      "Q042",
+      "Q043",
+      "Q052",
+      "Q053",
+      "Q056",
+      "Q057",
+      "Q058",
+      "Q061",
+      "Q062",
+      "Q063",
+      "Q064",
+      "Q065",
+      "Q067",
+      "Q069",
+      "Q072",
+      "Q073",
+      "Q074",
+      "Q076",
+      "Q077",
+      "Q078",
+      "Q079"
+    ]
+  },
+  "trial_accuracy_delta": 0.019607843137254832
+}

@@ -62,6 +62,10 @@ def _fail_process() -> subprocess.CompletedProcess[str]:
 class SweepStateTests(unittest.TestCase):
     def test_stopped_states_cover_every_stage(self) -> None:
         for stage in STAGES:
+            if stage == 'complete':
+                # Natural COMPLETE advances; stepped stop is explicit.
+                self.assertNotIn(stage, STOPPED_STATE, stage)
+                continue
             self.assertIn(stage, STOPPED_STATE, stage)
 
     def test_no_terminal_state_restarts(self) -> None:
@@ -288,6 +292,58 @@ class OllamaHelperTests(unittest.TestCase):
         self.assertIsNone(outcome)
         self.assertEqual(calls['n'], 3)
         self.assertEqual(len(events), 2)
+
+    def test_natural_complete_advances_not_pauses(self) -> None:
+        # Regression: natural COMPLETE must advance the sweep, not pause it.
+        # Only an explicit --stop-after complete pauses on completion.
+        import yaml
+
+        from scripts import run_model_sweep
+        from unittest.mock import patch
+
+        def _run(order: list[str], stop_after: object) -> tuple[list[str], int]:
+            with TemporaryDirectory() as tmp:
+                state_file = str(Path(tmp) / 'sweep.json')
+                registry_file = str(Path(tmp) / 'registry.yaml')
+                Path(registry_file).write_text(
+                    yaml.safe_dump({
+                        'experiment_spec': 'full-baseline-v2',
+                        'models': [{'model_config_id': m} for m in order],
+                    }),
+                    encoding='utf-8',
+                )
+                state = new_sweep_state('s', order)
+                save_sweep_state(state_file, state)
+                calls: list[str] = []
+
+                def fake_run(args: object, entry: dict[str, object]) -> str:
+                    mid = str(entry['model_config_id'])
+                    calls.append(mid)
+                    live = load_sweep_state(state_file)
+                    assert live is not None
+                    set_lifecycle(live, mid, COMPLETE)
+                    save_sweep_state(state_file, live)
+                    return COMPLETE
+
+                with patch.object(
+                    run_model_sweep, 'run_one_model', side_effect=fake_run
+                ):
+                    with patch.object(
+                        run_model_sweep, 'load_overlays_from_dir', return_value=0
+                    ):
+                        argv = ['--state-file', state_file,
+                                '--registry', registry_file, '--db-dir', tmp]
+                        if stop_after is not None:
+                            argv += ['--stop-after', str(stop_after)]
+                        code = run_model_sweep.main(argv)
+                return calls, code
+
+        calls, code = _run(['m1', 'm2'], None)
+        self.assertEqual(calls, ['m1', 'm2'])
+        self.assertEqual(code, 0)
+        calls, code = _run(['m1', 'm2'], 'complete')
+        self.assertEqual(calls, ['m1'])
+        self.assertEqual(code, 0)
 
     def test_deletion_failed_stops_sweep(self) -> None:
         import yaml

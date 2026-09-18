@@ -53,6 +53,9 @@ STAGES = (
 )
 
 # Lifecycle value recorded when --stop-after halts after a stage.
+# NOTE: 'complete' is deliberately absent: natural COMPLETE must advance
+# the sweep; stepped mode stops via an explicit stop_after == 'complete'
+# check in the main loop, never by matching the outcome set.
 STOPPED_STATE = {
     'pulled': PULLED,
     'derived': DERIVED,
@@ -65,7 +68,6 @@ STOPPED_STATE = {
     'verified': 'VERIFIED',
     'unloaded': 'UNLOADED',
     'deleted': 'DELETED',
-    'complete': COMPLETE,
 }
 
 # Resume: lifecycle -> first stage to (re)run. Pull/show are cheap and

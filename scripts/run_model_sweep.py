@@ -896,6 +896,11 @@ def _run_loop(
             print(f'sweep paused: {current} -> {outcome}', flush=True)
             return 0
         if outcome in (COMPLETE, COMPLETE_INELIGIBLE):
+            # Stepped mode: an explicit --stop-after complete pauses even on
+            # natural completion. Otherwise COMPLETE always advances.
+            if getattr(args, 'stop_after', None) == 'complete' and outcome == COMPLETE:
+                print(f'sweep paused: {current} -> COMPLETE (stepped)', flush=True)
+                return 0
             if outcome == COMPLETE_INELIGIBLE and args.stop_on_ineligible:
                 print('stopping on ineligible (flag)', flush=True)
                 return 0
