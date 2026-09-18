@@ -42,7 +42,6 @@ from inference.derive_adapter import (
 )
 from inference.eligibility import (
     ELIGIBILITY_MEASUREMENT_ERROR,
-    check_eligibility,
     effective_options_for,
     run_canonical_eligibility,
 )
@@ -531,12 +530,14 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
             checkpoint(COMPLETE_INELIGIBLE, eligibility.status)
             return COMPLETE_INELIGIBLE
     else:
-        eligibility = check_eligibility(
-            base_url, identifier, expected_digest=config.ollama_model_digest
-        )
-        if not eligibility.eligible:
-            checkpoint(BENCHMARK_ERROR, f'eligibility lost: {eligibility.status}')
-            return BENCHMARK_ERROR
+        # Resume path: no pre-check here by design. A cold process cannot
+        # judge residency without loading, and any load it performs would
+        # be the wrong configuration to measure. run_experiment always runs
+        # 2 fresh warmups (canonical load) followed by its own eligibility
+        # gate, which refuses with exit 3 when not fully resident. That
+        # gate is the single authority; duplicating it here caused a false
+        # INELIGIBLE verdict on a stale 512-ctx default load (Phi incident).
+        pass
     halt = halted('eligible')
     if halt:
         return halt
