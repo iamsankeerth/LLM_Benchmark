@@ -88,23 +88,30 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--base-url', default='http://127.0.0.1:11434')
     parser.add_argument('--model', default='qwen3-4b-q4')
     parser.add_argument('--resume', action='store_true')
+    parser.add_argument('--num-predict', type=int, default=None,
+                        help='explicit override; default comes from the smoke contract yaml')
+    parser.add_argument('--config', default='smoke-3.yaml',
+                        help='smoke contract file under configs/')
     args = parser.parse_args(argv)
     root = Path(__file__).resolve().parent.parent
     run_args = argparse.Namespace(
-        config=str(root / 'configs/smoke-3.yaml'),
+        config=str(root / 'configs' / args.config),
         model=args.model,
         db=args.db,
         base_url=args.base_url,
         resume=args.resume,
         execution_id=None,
-        num_predict=512,
+        num_predict=args.num_predict,
         timeout_s=300.0,
         max_tasks=None,
     )
     code = run_experiment(run_args)
     if code != 0:
         return code
-    verify(args.db, derive_execution_id('smoke-3', args.model))
+    import yaml
+
+    smoke_spec = yaml.safe_load(open(root / 'configs' / args.config, encoding='utf-8'))
+    verify(args.db, derive_execution_id(str(smoke_spec['experiment']), args.model))
     return 0
 
 

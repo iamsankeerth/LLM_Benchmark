@@ -1,0 +1,11 @@
+# V2 operational smoke: same 3 probe tasks, canonical 2048 ceiling.
+# Not a benchmark contract; validates transport + route + harness per model.
+experiment: smoke-v2
+run_kind: BASELINE
+temperature: 0.0
+trials: 1
+num_predict: 2048
+task_ids:
+  - Q071
+  - Q001
+  - Q011

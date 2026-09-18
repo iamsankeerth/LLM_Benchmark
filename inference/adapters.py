@@ -21,7 +21,10 @@ Template provenance for qwen3-4b-q4 (established 2026-09-17, live probes):
 from __future__ import annotations
 
 import hashlib
+import json
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -42,6 +45,7 @@ class ModelConfig:
     stop_tokens: tuple[str, ...]
     think: bool | None  # None -> model default (recorded as such)
     thinking_support: str  # 'supported' | 'unsupported'
+    template_application: str  # 'server_managed' (chat) | 'client_rendered' (raw)
     gpu_only: bool = True
 
 
@@ -75,6 +79,7 @@ _QWEN3_4B_Q4 = ModelConfig(
     stop_tokens=('<|im_start|>', '<|im_end|>'),
     think=False,
     thinking_support='supported',
+    template_application='client_rendered',
     gpu_only=True,
 )
 
@@ -102,6 +107,7 @@ _QWEN3_4B_Q5 = ModelConfig(
     stop_tokens=('<|im_start|>', '<|im_end|>'),
     think=False,
     thinking_support='supported',
+    template_application='client_rendered',
     gpu_only=True,
 )
 
@@ -111,15 +117,118 @@ MODEL_CONFIGS: dict[str, ModelConfig] = {
     _QWEN3_4B_Q5.config_id: _QWEN3_4B_Q5,
 }
 
+_OVERLAYS: dict[str, ModelConfig] = {}
+
+
+def validate_overlay_config(config: ModelConfig) -> None:
+    """Enforce the same invariants as coded entries, plus overlay rules."""
+    if not config.config_id or not config.ollama_identifier:
+        raise ValueError('overlay config requires config_id and ollama_identifier')
+    if config.mode not in ('raw', 'chat'):
+        raise ValueError(f"overlay mode must be raw|chat, got {config.mode!r}")
+    if config.template_application not in ('server_managed', 'client_rendered'):
+        raise ValueError(
+            f'unknown template_application {config.template_application!r}'
+        )
+    if config.mode == 'chat' and config.template_application != 'server_managed':
+        raise ValueError('chat mode requires server_managed template_application')
+    if config.mode == 'raw' and config.template_application != 'client_rendered':
+        raise ValueError('raw mode requires client_rendered template_application')
+    if config.template_text.count('{prompt}') != 1 and config.mode == 'raw':
+        raise ValueError('raw overlay template must contain one {prompt} slot')
+    verify_template_integrity(config)
+    if len(config.ollama_model_digest) != 64:
+        raise ValueError('overlay digest must be 64 hex chars')
+    if not config.stop_tokens:
+        raise ValueError('overlay requires stop tokens')
+    if config.config_id in MODEL_CONFIGS:
+        raise ValueError(
+            f'overlay {config.config_id!r} collides with a coded config'
+        )
+
+
+def config_to_overlay_json(config: ModelConfig) -> str:
+    document: dict[str, Any] = {
+        'config_id': config.config_id,
+        'ollama_identifier': config.ollama_identifier,
+        'quantization': config.quantization,
+        'mode': config.mode,
+        'template_id': config.template_id,
+        'template_source': config.template_source,
+        'template_text': config.template_text,
+        'template_sha256': config.template_sha256,
+        'ollama_model_digest': config.ollama_model_digest,
+        'num_ctx': config.num_ctx,
+        'num_predict_default': config.num_predict_default,
+        'num_gpu': config.num_gpu,
+        'temperature_default': config.temperature_default,
+        'stop_tokens': list(config.stop_tokens),
+        'think': config.think,
+        'thinking_support': config.thinking_support,
+        'template_application': config.template_application,
+        'gpu_only': config.gpu_only,
+    }
+    return json.dumps(document, indent=2, sort_keys=True)
+
+
+def config_from_overlay_json(document: dict[str, Any]) -> ModelConfig:
+    return ModelConfig(
+        config_id=str(document['config_id']),
+        ollama_identifier=str(document['ollama_identifier']),
+        quantization=str(document['quantization']),
+        mode=str(document['mode']),
+        template_id=str(document['template_id']),
+        template_source=str(document['template_source']),
+        template_text=str(document['template_text']),
+        template_sha256=str(document['template_sha256']),
+        ollama_model_digest=str(document['ollama_model_digest']),
+        num_ctx=int(document['num_ctx']),
+        num_predict_default=int(document['num_predict_default']),
+        num_gpu=int(document['num_gpu']),
+        temperature_default=float(document['temperature_default']),
+        stop_tokens=tuple(str(s) for s in document['stop_tokens']),
+        think=document['think'],
+        thinking_support=str(document['thinking_support']),
+        template_application=str(document['template_application']),
+        gpu_only=bool(document.get('gpu_only', True)),
+    )
+
+
+def register_overlay(config: ModelConfig) -> None:
+    validate_overlay_config(config)
+    _OVERLAYS[config.config_id] = config
+
+
+def load_overlays_from_dir(directory: str | Path) -> int:
+    """Load and validate every overlay JSON; returns count loaded."""
+    path = Path(directory)
+    if not path.is_dir():
+        return 0
+    count = 0
+    for file in sorted(path.glob('*.json')):
+        document = json.loads(file.read_text(encoding='utf-8'))
+        if not isinstance(document, dict):
+            raise ValueError(f'overlay {file.name} is not an object')
+        register_overlay(config_from_overlay_json(document))
+        count += 1
+    return count
+
+
+def clear_overlays() -> None:
+    """Test hook: drop all registered overlays."""
+    _OVERLAYS.clear()
+
 
 def get_model_config(config_id: str) -> ModelConfig:
     """Fetch a registered model config; KeyError lists what is available."""
-    try:
+    if config_id in MODEL_CONFIGS:
         return MODEL_CONFIGS[config_id]
-    except KeyError as exc:
-        raise KeyError(
-            f'unknown model config {config_id!r}; registered: {sorted(MODEL_CONFIGS)}'
-        ) from exc
+    if config_id in _OVERLAYS:
+        return _OVERLAYS[config_id]
+    raise KeyError(
+        f'unknown model config {config_id!r}; registered: '
+        f'{sorted([*MODEL_CONFIGS, *_OVERLAYS])}'
+    )
 
 
 def render_prompt(config: ModelConfig, task_prompt: str) -> str:

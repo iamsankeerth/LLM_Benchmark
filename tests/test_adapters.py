@@ -111,6 +111,7 @@ class TemplateRenderingTests(unittest.TestCase):
             stop_tokens=config.stop_tokens,
             think=config.think,
             thinking_support=config.thinking_support,
+            template_application=config.template_application,
             gpu_only=config.gpu_only,
         )
         with self.assertRaises(ValueError):

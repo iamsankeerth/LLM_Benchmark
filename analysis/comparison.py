@@ -149,6 +149,42 @@ def summarize_performance(values: list[float | None]) -> PerformanceSummary:
 TOKEN_BUCKETS = ('1-4', '5-32', '33-128', '129+')
 
 
+def token_bucket(eval_count: int | None) -> str | None:
+    """Public bucket assignment for output-token counts."""
+    return _bucket(eval_count)
+
+
+def performance_snapshot(
+    decode_values: list[float | None],
+    ttft_values: list[float | None],
+    eval_counts: list[int | None],
+    vram_peaks: list[float | None],
+) -> dict[str, Any]:
+    """JSON-safe per-execution performance snapshot (median/P95/buckets)."""
+    by_bucket: dict[str, list[float | None]] = {b: [] for b in TOKEN_BUCKETS}
+    for decode, count in zip(decode_values, eval_counts):
+        bucket = _bucket(count)
+        if bucket is not None:
+            by_bucket[bucket].append(decode)
+
+    def encode(summary: PerformanceSummary) -> dict[str, Any]:
+        return {
+            'n': summary.n, 'median': summary.median, 'p25': summary.p25,
+            'p75': summary.p75, 'p95': summary.p95, 'mean': summary.mean,
+        }
+
+    peaks = [v for v in vram_peaks if v is not None]
+    return {
+        'decode_tok_s': encode(summarize_performance(decode_values)),
+        'ttft_ms': encode(summarize_performance(ttft_values)),
+        'decode_by_token_bucket': {
+            bucket: encode(summarize_performance(vals))
+            for bucket, vals in by_bucket.items()
+        },
+        'peak_vram_mib': max(peaks) if peaks else None,
+    }
+
+
 def _bucket(eval_count: int | None) -> str | None:
     if eval_count is None:
         return None

@@ -246,6 +246,12 @@ def run_experiment(args: argparse.Namespace) -> int:
     run_kind: str = str(run_config.get('run_kind', 'BASELINE'))
     temperature: float = float(run_config.get('temperature', 0.0))
     trials: int = int(run_config.get('trials', 1))
+    # Canonical ceiling lives in the frozen contract; CLI overrides explicitly.
+    cli_predict = getattr(args, 'num_predict', None)
+    num_predict: int = (
+        int(cli_predict) if cli_predict is not None
+        else int(run_config.get('num_predict', 512))
+    )
     task_ids: list[str] = [str(t) for t in run_config['task_ids']]
     if args.max_tasks is not None:
         task_ids = task_ids[: args.max_tasks]
@@ -260,7 +266,7 @@ def run_experiment(args: argparse.Namespace) -> int:
         mode=config.mode,
         temperature=temperature,
         num_ctx=config.num_ctx,
-        num_predict=args.num_predict,
+        num_predict=num_predict,
         num_gpu=config.num_gpu,
         stop_tokens=list(config.stop_tokens),
         think=config.think,
@@ -348,7 +354,7 @@ def run_experiment(args: argparse.Namespace) -> int:
         with SystemSampler() as sampler:
             result = generate(
                 args.base_url,
-                build_request(args.model, rendered, temperature, args.num_predict),
+                build_request(args.model, rendered, temperature, num_predict),
                 timeout_s=args.timeout_s,
             )
         metrics = derive_metrics(result)
@@ -363,7 +369,7 @@ def run_experiment(args: argparse.Namespace) -> int:
                 'is_warmup': True, 'prompt': warmup_prompt,
                 'rendered_prompt_sha256': rendered_prompt_sha256(rendered),
                 'temperature': temperature, 'num_ctx': config.num_ctx,
-                'num_predict': args.num_predict,
+                'num_predict': num_predict,
                 'template_sha256': config.template_sha256,
                 'num_gpu': config.num_gpu,
                 'stop_tokens': list(config.stop_tokens),
@@ -413,7 +419,7 @@ def run_experiment(args: argparse.Namespace) -> int:
         quantization=config.quantization,
         template_sha256=config.template_sha256,
         temperature=temperature, num_ctx=config.num_ctx,
-        num_predict=args.num_predict, num_gpu=config.num_gpu,
+        num_predict=num_predict, num_gpu=config.num_gpu,
         stop_tokens=config.stop_tokens, think=config.think,
         thinking_source='explicit_config' if config.think is not None else 'model_default',
         live=collect_live_environment(
@@ -443,7 +449,7 @@ def run_experiment(args: argparse.Namespace) -> int:
                 'run_config_hash': config_hash, 'is_warmup': False,
                 'prompt': tasks[task_id], 'rendered_prompt_sha256': rendered_hash,
                 'temperature': temperature, 'num_ctx': config.num_ctx,
-                'num_predict': args.num_predict,
+                'num_predict': num_predict,
                 'template_sha256': config.template_sha256,
                 'num_gpu': config.num_gpu,
                 'stop_tokens': list(config.stop_tokens),
@@ -485,7 +491,7 @@ def run_experiment(args: argparse.Namespace) -> int:
                     result = generate(
                         args.base_url,
                         build_request(args.model, rendered, temperature,
-                                      args.num_predict),
+                                      num_predict),
                         timeout_s=args.timeout_s,
                     )
             except OllamaClientError as exc:
@@ -598,7 +604,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--execution-id', default=None,
                         help='explicit execution id (default: <spec>__<model>);'
                              ' required with __rerun-NN suffix for fresh reruns')
-    parser.add_argument('--num-predict', type=int, default=512)
+    parser.add_argument('--num-predict', type=int, default=None,
+                        help='explicit override; default comes from the frozen contract yaml')
     parser.add_argument('--timeout-s', type=float, default=300.0)
     parser.add_argument('--max-tasks', type=int, default=None)
     args = parser.parse_args(argv)
