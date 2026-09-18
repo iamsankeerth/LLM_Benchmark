@@ -390,7 +390,14 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
             if not repulled:
                 checkpoint(DOWNLOAD_FAILED, 're-pull failed on resume')
                 return DOWNLOAD_FAILED
-        show_doc = fetch_show(base_url, identifier)
+        try:
+            show_doc = fetch_show(base_url, identifier)
+        except Exception as exc:
+            # Interrogation impossible (e.g. server returns no metadata):
+            # no adapter can be pinned or verified -> human decision.
+            checkpoint(STATE_MANUAL_PIN,
+                       f'model interrogation failed: {type(exc).__name__}: {exc}')
+            return STATE_MANUAL_PIN
         try:
             generate(
                 base_url,
