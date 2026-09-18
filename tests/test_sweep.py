@@ -14,6 +14,7 @@ from storage.sweep import (
     BENCHMARKING,
     COMPLETE,
     COMPLETE_INELIGIBLE,
+    DELETION_FAILED,
     DOWNLOAD_FAILED,
     PENDING,
     RESTART_STAGE,
@@ -238,6 +239,96 @@ class OllamaHelperTests(unittest.TestCase):
         self.assertTrue(disk_reclaimed_ok(free_before, free_before))
         self.assertTrue(disk_reclaimed_ok(free_before, free_before - 500_000_000))
         self.assertFalse(disk_reclaimed_ok(free_before, free_before - 2_000_000_000))
+
+    def test_remove_and_verify_ghost_state(self) -> None:
+        from scripts.run_model_sweep import remove_and_verify
+
+        events: list[dict[str, object]] = []
+
+        # rm reports success but the model still appears: haunted.
+        outcome = remove_and_verify(
+            ollama_bin='o', identifier='m', free_before=30_000_000_000,
+            db_dir='.', log_event=events.append,
+            rm_fn=lambda b, i: (True, 'removed'),
+            present_fn=lambda b, i: True,
+            disk_fn=lambda p: 30_000_000_000,
+        )
+        assert outcome is not None
+        self.assertEqual(outcome[0], DELETION_FAILED)
+
+    def test_remove_and_verify_clean(self) -> None:
+        from scripts.run_model_sweep import remove_and_verify
+
+        outcome = remove_and_verify(
+            ollama_bin='o', identifier='m', free_before=30_000_000_000,
+            db_dir='.', log_event=lambda e: None,
+            rm_fn=lambda b, i: (True, 'removed'),
+            present_fn=lambda b, i: False,
+            disk_fn=lambda p: 30_000_000_000,
+        )
+        self.assertIsNone(outcome)
+
+    def test_remove_retry_then_clean(self) -> None:
+        from scripts.run_model_sweep import remove_and_verify
+
+        calls = {'n': 0}
+        events: list[dict[str, object]] = []
+
+        def flaky_rm(b: str, i: str) -> tuple[bool, str]:
+            calls['n'] += 1
+            return (False, 'blip') if calls['n'] < 3 else (True, 'removed')
+
+        outcome = remove_and_verify(
+            ollama_bin='o', identifier='m', free_before=30_000_000_000,
+            db_dir='.', log_event=events.append,
+            rm_fn=flaky_rm,
+            present_fn=lambda b, i: False,
+            disk_fn=lambda p: 30_000_000_000,
+        )
+        self.assertIsNone(outcome)
+        self.assertEqual(calls['n'], 3)
+        self.assertEqual(len(events), 2)
+
+    def test_deletion_failed_stops_sweep(self) -> None:
+        import yaml
+
+        from scripts import run_model_sweep
+        from unittest.mock import patch
+
+        with TemporaryDirectory() as tmp:
+            state_file = str(Path(tmp) / 'sweep.json')
+            registry_file = str(Path(tmp) / 'registry.yaml')
+            Path(registry_file).write_text(
+                yaml.safe_dump({
+                    'experiment_spec': 'full-baseline-v2',
+                    'models': [{'model_config_id': 'm1'}, {'model_config_id': 'm2'}],
+                }),
+                encoding='utf-8',
+            )
+            state = new_sweep_state('s', ['m1', 'm2'])
+            save_sweep_state(state_file, state)
+            calls: list[str] = []
+
+            def fake_run(args: object, entry: dict[str, object]) -> str:
+                mid = str(entry['model_config_id'])
+                calls.append(mid)
+                live = load_sweep_state(state_file)
+                assert live is not None
+                set_lifecycle(live, mid, DELETION_FAILED)
+                save_sweep_state(state_file, live)
+                return DELETION_FAILED
+
+            with patch.object(run_model_sweep, 'run_one_model', side_effect=fake_run):
+                with patch.object(
+                    run_model_sweep, 'load_overlays_from_dir', return_value=0
+                ):
+                    code = run_model_sweep.main([
+                        '--state-file', state_file,
+                        '--registry', registry_file, '--db-dir', tmp,
+                    ])
+            # Stopped loudly; m2 never pulled.
+            self.assertEqual(code, 1)
+            self.assertEqual(calls, ['m1'])
 
     def test_wait_until_unloaded(self) -> None:
         calls = {'n': 0}

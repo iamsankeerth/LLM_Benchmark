@@ -33,6 +33,7 @@ from inference.adapters import (
 from inference.eligibility import check_eligibility
 from inference.ollama_client import (
     GenerationRequest,
+    GenerationResult,
     OllamaClientError,
     generate,
 )
@@ -42,7 +43,8 @@ from inference.profiler import (
     derive_metrics,
     needs_rewarm,
 )
-from inference.sysmon import SystemSampler, sample_vram_once
+from inference.retry import GENERATION_RETRIES, error_kind, is_retryable
+from inference.sysmon import SystemSample, SystemSampler, sample_vram_once
 from storage.db import (
     RunRecord,
     completed_identities,
@@ -70,9 +72,19 @@ from storage.manifest import (
     git_commit,
     hash_experiment_config,
 )
+from storage.sweep import (
+    append_retry_event,
+    ollama_stop,
+    resolve_ollama_bin,
+    wait_until_unloaded,
+)
 
 WARMUP_PROMPTS = ('Return only the word OK.', 'Return only the digit 7.')
 WARMUP_VERDICT = 'WARMUP'
+# Exit code: persistent measurement failure (no row written, STOP sweep).
+MEASUREMENT_FAILED_EXIT = 6
+# Backoff between same-identity generation retries (seconds).
+GENERATION_RETRY_BACKOFFS = (5.0, 15.0)
 
 
 def utcnow() -> str:
@@ -312,6 +324,165 @@ def _run_warmup_trial(
     return metrics
 
 
+class MeasurementFailed(Exception):
+    """Persistent measurement failure: no row written, sweep must STOP."""
+
+    def __init__(self, identity: str, reason: str) -> None:
+        super().__init__(f'{identity}: {reason}')
+        self.identity = identity
+        self.reason = reason
+
+
+def _reload_canonical(
+    *,
+    ollama_bin: str,
+    base_url: str,
+    model_identifier: str,
+    expected_digest: str,
+    timeout_s: float,
+) -> None:
+    """Unload, reload with a tiny probe, and re-verify exact config identity.
+
+    Raises MeasurementFailed on any fault: the session cannot be trusted.
+    """
+    ollama_stop(ollama_bin, model_identifier)
+    if not wait_until_unloaded(
+        lambda: _ps_absent(base_url, model_identifier), timeout_s=120.0
+    ):
+        raise MeasurementFailed(
+            model_identifier, 'model did not unload for recovery reload'
+        )
+    try:
+        generate(
+            base_url,
+            GenerationRequest(
+                model=model_identifier, prompt='OK', temperature=0.0,
+                num_ctx=512, num_predict=4, raw=False,
+            ),
+            timeout_s=timeout_s,
+        )
+    except OllamaClientError as exc:
+        raise MeasurementFailed(
+            model_identifier, f'reload probe failed: {exc}'
+        ) from exc
+    reverified = check_eligibility(
+        base_url, model_identifier, expected_digest=expected_digest
+    )
+    if not reverified.eligible:
+        raise MeasurementFailed(
+            model_identifier,
+            f'post-reload identity not eligible: {reverified.status}',
+        )
+
+
+def _ps_absent(base_url: str, model_identifier: str) -> bool:
+    from inference.ollama_client import fetch_ps
+
+    try:
+        doc = fetch_ps(base_url)
+    except OllamaClientError:
+        return False
+    entries = doc.get('models', [])
+    if not isinstance(entries, list):
+        return False
+    return not any(
+        isinstance(entry, dict)
+        and (entry.get('model') == model_identifier
+             or entry.get('name') == model_identifier)
+        for entry in entries
+    )
+
+
+def _generate_with_recovery(
+    *,
+    make_request: Any,
+    task_id: str,
+    trial: int,
+    base_url: str,
+    timeout_s: float,
+    ollama_bin: str,
+    model_identifier: str,
+    expected_digest: str,
+    rewarm: Any,
+    log_event: Any,
+    sleep_fn: Any = None,
+) -> tuple[GenerationResult, SystemSample, float | None]:
+    """Generate one measured row with bounded transport recovery.
+
+    Same-identity retries (GENERATION_RETRIES), then unload/reload with
+    exact-identity re-verification, 2 fresh warmups, one final attempt.
+    Persistent failure raises MeasurementFailed WITHOUT writing any row.
+    Non-retryable faults raise through for the ERROR-row path.
+    Partial output from timed-out attempts is discarded (generate() raises
+    before returning anything; nothing reaches the grader or the DB).
+    """
+    import time as _time
+
+    sleeper = sleep_fn or _time.sleep
+    identity = f'{task_id} t{trial}'
+    last_error: OllamaClientError | None = None
+    attempts = 1 + GENERATION_RETRIES
+    for attempt in range(1, attempts + 1):
+        try:
+            with SystemSampler() as sampler:
+                result = generate(base_url, make_request(), timeout_s=timeout_s)
+            sample = sampler.sample()
+            post, _ = sample_vram_once()
+            return result, sample, post
+        except OllamaClientError as exc:
+            if not is_retryable(exc):
+                raise
+            last_error = exc
+            backoff = GENERATION_RETRY_BACKOFFS[attempt - 1] \
+                if attempt - 1 < len(GENERATION_RETRY_BACKOFFS) else 0.0
+            log_event({
+                'task_id': task_id, 'trial': trial, 'attempt': attempt,
+                'error_type': error_kind(exc),
+                'action': 'retry_same_identity', 'backoff_seconds': backoff,
+            })
+            if backoff > 0:
+                sleeper(backoff)
+    assert last_error is not None
+    log_event({
+        'task_id': task_id, 'trial': trial, 'attempt': attempts + 1,
+        'error_type': error_kind(last_error),
+        'action': 'unload_reload_reverify', 'backoff_seconds': 0.0,
+    })
+    try:
+        _reload_canonical(
+            ollama_bin=ollama_bin, base_url=base_url,
+            model_identifier=model_identifier, expected_digest=expected_digest,
+            timeout_s=timeout_s,
+        )
+    except MeasurementFailed as exc:
+        raise MeasurementFailed(identity, exc.reason) from exc
+    except Exception as exc:
+        # Recovery machinery itself broken: the session cannot be trusted.
+        raise MeasurementFailed(
+            identity, f'recovery reload failed: {type(exc).__name__}: {exc}'
+        ) from exc
+    rewarm()
+    try:
+        with SystemSampler() as sampler:
+            result = generate(base_url, make_request(), timeout_s=timeout_s)
+        sample = sampler.sample()
+        post, _ = sample_vram_once()
+        log_event({
+            'task_id': task_id, 'trial': trial, 'attempt': attempts + 2,
+            'error_type': '', 'action': 'final_attempt_ok', 'backoff_seconds': 0.0,
+        })
+        return result, sample, post
+    except OllamaClientError as exc:
+        if is_retryable(exc):
+            log_event({
+                'task_id': task_id, 'trial': trial, 'attempt': attempts + 2,
+                'error_type': error_kind(exc),
+                'action': 'final_attempt_failed', 'backoff_seconds': 0.0,
+            })
+            raise MeasurementFailed(identity, f'final attempt failed: {exc}') from exc
+        raise
+
+
 def run_experiment(args: argparse.Namespace) -> int:
     root = Path(__file__).resolve().parent.parent
     run_config = yaml.safe_load(open(args.config, encoding='utf-8'))
@@ -484,6 +655,30 @@ def run_experiment(args: argparse.Namespace) -> int:
     done = completed_identities(conn, experiment_id, run_kind)
     ran = 0
     skipped = 0
+    retry_log_path = root / 'results/logs' / f'transient-retries-{experiment_spec_id}.jsonl'
+    retry_events: list[dict[str, Any]] = []
+    ollama_bin = resolve_ollama_bin(getattr(args, 'ollama_bin', None))
+
+    def _log_retry(event: dict[str, Any]) -> None:
+        record = {
+            'timestamp': utcnow(), 'execution_id': experiment_id,
+            'model_config_id': args.model, 'stage': 'baseline', **event,
+        }
+        retry_events.append(record)
+        append_retry_event(str(retry_log_path), record)
+
+    def _rewarm_now() -> None:
+        nonlocal fresh_warmups
+        for warmup_prompt in WARMUP_PROMPTS:
+            _run_warmup_trial(
+                conn, experiment_id=experiment_id, config=config,
+                config_hash=config_hash, temperature=temperature,
+                num_predict=num_predict, warmup_prompt=warmup_prompt,
+                base_url=args.base_url, timeout_s=args.timeout_s,
+                ollama_ver=ollama_ver,
+            )
+            fresh_warmups += 1
+
     for task_id in task_ids:
         if task_id not in tasks or task_id not in spec_entries:
             print(f'{task_id}: unknown task, skipping', flush=True)
@@ -539,13 +734,29 @@ def run_experiment(args: argparse.Namespace) -> int:
                 continue
             base['started_at_utc'] = utcnow()
             try:
-                with SystemSampler() as sampler:
-                    result = generate(
-                        args.base_url,
-                        build_request(args.model, rendered, temperature,
-                                      num_predict),
-                        timeout_s=args.timeout_s,
-                    )
+                result, sampler, post = _generate_with_recovery(
+                    make_request=lambda: build_request(
+                        args.model, rendered, temperature, num_predict
+                    ),
+                    task_id=task_id,
+                    trial=trial,
+                    base_url=args.base_url,
+                    timeout_s=args.timeout_s,
+                    ollama_bin=ollama_bin,
+                    model_identifier=config.ollama_identifier,
+                    expected_digest=config.ollama_model_digest,
+                    rewarm=_rewarm_now,
+                    log_event=_log_retry,
+                )
+                sample = sampler
+            except MeasurementFailed as exc:
+                # Persistent measurement failure: NO row is written (the
+                # contract forbids synthetic ERROR rows), weights are kept,
+                # and the sweep must STOP. Exit code 6 signals this path.
+                print(f'{task_id} t{trial}: MEASUREMENT_FAILED {exc.reason}',
+                      flush=True)
+                conn.close()
+                return MEASUREMENT_FAILED_EXIT
             except OllamaClientError as exc:
                 base['ended_at_utc'] = utcnow()
                 empty = ProfiledMetrics(
@@ -576,8 +787,6 @@ def run_experiment(args: argparse.Namespace) -> int:
                 continue
             base['ended_at_utc'] = utcnow()
             metrics = derive_metrics(result)
-            sample = sampler.sample()
-            post, _ = sample_vram_once()
             try:
                 details = grade_output(result.text, entry['graders'])
                 verdict = reduce_verdict(status, details)
@@ -648,6 +857,10 @@ def run_experiment(args: argparse.Namespace) -> int:
     verdicts: dict[str, int] = {}
     for row in measured:
         verdicts[row['grader_verdict']] = verdicts.get(row['grader_verdict'], 0) + 1
+    retry_by_error: dict[str, int] = {}
+    for event in retry_events:
+        key = str(event.get('error_type') or 'unknown')
+        retry_by_error[key] = retry_by_error.get(key, 0) + 1
     summary = {
         'experiment_spec_id': experiment_spec_id,
         'execution_id': execution_id,
@@ -655,6 +868,11 @@ def run_experiment(args: argparse.Namespace) -> int:
         'run_kind': run_kind, 'ran_this_invocation': ran,
         'skipped_resume': skipped, 'measured_rows': len(measured),
         'verdicts': verdicts,
+        'transient_retries': {
+            'events': len(retry_events),
+            'by_error': retry_by_error,
+            'log': str(retry_log_path),
+        },
     }
     summary_path = root / 'results/summaries' / f'{experiment_id}.json'
     summary_path.write_text(json.dumps(summary, indent=2) + '\n', encoding='utf-8')
@@ -677,6 +895,8 @@ def main(argv: list[str] | None = None) -> int:
                         help='explicit override; default comes from the frozen contract yaml')
     parser.add_argument('--timeout-s', type=float, default=300.0)
     parser.add_argument('--max-tasks', type=int, default=None)
+    parser.add_argument('--ollama-bin', default=None,
+                        help='ollama executable for recovery reload (default: auto-resolve)')
     args = parser.parse_args(argv)
     return run_experiment(args)
 

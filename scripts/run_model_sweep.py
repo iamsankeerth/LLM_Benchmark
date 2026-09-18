@@ -16,8 +16,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
-import shutil
 import sqlite3
 import sys
 from pathlib import Path
@@ -47,6 +45,7 @@ from inference.eligibility import (
     effective_options_for,
     run_canonical_eligibility,
 )
+from inference.retry import PULL_BACKOFFS, RM_ATTEMPTS
 from inference.ollama_client import (
     GenerationRequest,
     GenerationResult,
@@ -57,7 +56,7 @@ from inference.ollama_client import (
 )
 from scripts.check_registry_readiness import load_registry
 from scripts.preflight_context import main as preflight_main
-from scripts.run_benchmark import run_experiment
+from scripts.run_benchmark import MEASUREMENT_FAILED_EXIT, run_experiment
 from scripts.smoke_inference import main as smoke_main
 from scripts.summarize_baseline import main as summarize_main
 from storage.db import connect
@@ -66,10 +65,13 @@ from storage.sweep import (
     BENCHMARK_ERROR,
     COMPLETE,
     COMPLETE_INELIGIBLE,
+    DELETION_FAILED,
     DERIVING,
     DOWNLOAD_FAILED,
     DOWNLOADING,
     MANUAL_PIN_REQUIRED as STATE_MANUAL_PIN,
+    MEASUREMENT_FAILED,
+    PENDING,
     PREFLIGHT_FAILED,
     PREFLIGHTING,
     RESTART_STAGE,
@@ -79,6 +81,8 @@ from storage.sweep import (
     VERIFY_FAILED,
     VERIFYING,
     WARMING_UP,
+    append_retry_event,
+    deletion_verdict,
     disk_free_bytes,
     disk_reclaimed_ok,
     guard_deletion,
@@ -88,27 +92,18 @@ from storage.sweep import (
     ollama_pull,
     ollama_remove,
     ollama_stop,
+    resolve_ollama_bin,
     save_sweep_state,
     set_lifecycle,
     verify_execution_persisted,
     wait_until_unloaded,
 )
 
-_KNOWN_WINDOWS_BIN = (
-    'C:/Users/lenovo/AppData/Local/Programs/Ollama/ollama.exe'
-)
 
+def _utcnow() -> str:
+    from datetime import datetime, timezone
 
-def resolve_ollama_bin(explicit: str | None) -> str:
-    if explicit:
-        return explicit
-    env = os.environ.get('OLLAMA_BIN')
-    if env:
-        return env
-    found = shutil.which('ollama')
-    if found:
-        return found
-    return _KNOWN_WINDOWS_BIN
+    return datetime.now(timezone.utc).isoformat(timespec='seconds')
 
 
 def load_ps_digest(base_url: str, identifier: str) -> tuple[str | None, int | None]:
@@ -179,6 +174,51 @@ def write_performance_artifact(
     out_path.write_text(json.dumps(snapshot, indent=2) + '\n', encoding='utf-8')
 
 
+def remove_and_verify(
+    *,
+    ollama_bin: str,
+    identifier: str,
+    free_before: int,
+    db_dir: str,
+    log_event: Any,
+    rm_fn: Any = None,
+    present_fn: Any = None,
+    disk_fn: Any = None,
+) -> tuple[str, str] | None:
+    """Remove weights with retries and verify absence + disk reclaim.
+
+    Returns None when fully clean, else (DELETION_FAILED, detail).
+    Ghost-state rule: rm success means nothing if list/ps still shows the
+    model -> DELETION_FAILED, weights may remain, never advance.
+    """
+    remove = rm_fn or ollama_remove
+    present = present_fn or ollama_model_present
+    disk_free = disk_fn or disk_free_bytes
+    rm_ok = False
+    for rm_attempt in range(1, RM_ATTEMPTS + 1):
+        ok, _ = remove(ollama_bin, identifier)
+        if ok:
+            rm_ok = True
+            break
+        log_event({
+            'stage': 'teardown', 'task_id': None, 'trial': None,
+            'attempt': rm_attempt, 'error_type': 'rm_transport',
+            'action': 'retry_rm', 'backoff_seconds': 0.0,
+        })
+    verdict = deletion_verdict(rm_ok, present(ollama_bin, identifier))
+    if verdict == DELETION_FAILED:
+        return DELETION_FAILED, (
+            'rm reported success but model still present (ghost state); '
+            'weights may remain; not advancing'
+        )
+    if verdict != 'DELETED_OK':
+        return DELETION_FAILED, f'model removal failed: {verdict}'
+    free_after = disk_free(db_dir)
+    if not disk_reclaimed_ok(free_before, free_after):
+        return DELETION_FAILED, f'disk not reclaimed: {free_before} -> {free_after}'
+    return None
+
+
 def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
     """Execute the lifecycle for one entry, honoring resume and --stop-after."""
     root = Path(__file__).resolve().parent.parent
@@ -191,6 +231,7 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
     ollama_bin: str = args.ollama_bin
     db_path = str(Path(args.db_dir) / f'{derive_execution_id(args.spec, model_config_id)}.db')
     execution_id = derive_execution_id(args.spec, model_config_id)
+    retry_log_path = root / 'results/logs' / f'transient-retries-{args.spec}.jsonl'
     stop_after: str | None = getattr(args, 'stop_after', None)
     if stop_after is not None and stop_after not in STAGES:
         raise ValueError(f'unknown stage {stop_after!r}; valid: {list(STAGES)}')
@@ -215,11 +256,37 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
     config = None
     free_before = disk_free_bytes(args.db_dir)
 
+    def log_sweep_event(event: dict[str, Any]) -> None:
+        record = {
+            'timestamp': _utcnow(), 'execution_id': execution_id,
+            'model_config_id': model_config_id, **event,
+        }
+        append_retry_event(str(retry_log_path), record)
+
     if run_stage('pulled'):
         checkpoint(DOWNLOADING, f'free={free_before / 1024**3:.1f}GiB')
-        ok, detail = ollama_pull(ollama_bin, identifier)
-        if not ok:
-            checkpoint(DOWNLOAD_FAILED, detail)
+        # Pull transport interruptions retry with backoff (30s/2m/5m);
+        # persistent failure stops the sweep (no guessing at identifiers).
+        import time as _time
+
+        pulled = False
+        pull_detail = ''
+        for attempt in range(1 + len(PULL_BACKOFFS)):
+            ok, pull_detail = ollama_pull(ollama_bin, identifier)
+            if ok:
+                pulled = True
+                break
+            backoff = PULL_BACKOFFS[attempt] if attempt < len(PULL_BACKOFFS) else 0.0
+            log_sweep_event({
+                'stage': 'download', 'task_id': None, 'trial': None,
+                'attempt': attempt + 1, 'error_type': 'pull_transport',
+                'action': 'retry_download' if backoff else 'download_failed_stop',
+                'backoff_seconds': backoff,
+            })
+            if backoff > 0:
+                _time.sleep(backoff)
+        if not pulled:
+            checkpoint(DOWNLOAD_FAILED, pull_detail[-300:])
             return DOWNLOAD_FAILED
     halt = halted('pulled')
     if halt:
@@ -394,9 +461,14 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
             config=str(root / 'configs' / f'{args.spec}.yaml'),
             model=model_config_id, db=db_path, base_url=base_url,
             resume=True, execution_id=None, num_predict=None,
-            timeout_s=600.0, max_tasks=None,
+            timeout_s=600.0, max_tasks=None, ollama_bin=ollama_bin,
         )
         bench_code = run_experiment(run_ns)
+        if bench_code == MEASUREMENT_FAILED_EXIT:
+            # Persistent measurement failure: no row written, weights kept,
+            # sweep STOPS. The V2 contract is never weakened to absorb it.
+            checkpoint(MEASUREMENT_FAILED, 'persistent generation failure')
+            return MEASUREMENT_FAILED
         if bench_code != 0:
             checkpoint(BENCHMARK_ERROR, f'baseline exit={bench_code}')
             return BENCHMARK_ERROR
@@ -485,21 +557,114 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
 
     if run_stage('deleted'):
         guard_deletion(state.models[model_config_id].verified)
-        ollama_remove(ollama_bin, identifier)
-        if ollama_model_present(ollama_bin, identifier):
-            checkpoint(BENCHMARK_ERROR, 'model still present after rm')
-            return BENCHMARK_ERROR
-        free_after = disk_free_bytes(args.db_dir)
-        if not disk_reclaimed_ok(free_before, free_after):
-            checkpoint(BENCHMARK_ERROR,
-                       f'disk not reclaimed: {free_before} -> {free_after}')
-            return BENCHMARK_ERROR
+        failure = remove_and_verify(
+            ollama_bin=ollama_bin, identifier=identifier,
+            free_before=free_before, db_dir=args.db_dir,
+            log_event=log_sweep_event,
+        )
+        if failure is not None:
+            outcome, detail = failure
+            checkpoint(outcome, detail)
+            return outcome
     halt = halted('deleted')
     if halt:
         return halt
 
     checkpoint(COMPLETE, 'lifecycle complete')
     return COMPLETE
+
+
+def maybe_write_family_report(
+    args: argparse.Namespace,
+    registry: dict[str, Any],
+    just_completed_id: str,
+) -> None:
+    """After a terminal model, emit missing anchor-paired family reports.
+
+    Non-blocking and idempotent (existing reports are never regenerated).
+    Ineligible anchors/members yield NOT_AVAILABLE records, never a pairing.
+    """
+    from scripts.compare_models import main as compare_main
+
+    root = Path(__file__).resolve().parent.parent
+    members = [
+        e for e in registry.get('models', [])
+        if str(e.get('family', '')) == next(
+            m.get('family', '') for m in registry.get('models', [])
+            if str(m.get('model_config_id')) == just_completed_id
+        )
+    ]
+    anchors = [m for m in members if str(m.get('quantization')) == 'Q4_K_M']
+    if not anchors:
+        return
+    anchor_id = str(anchors[0]['model_config_id'])
+    state = load_sweep_state(args.state_file)
+    if state is None:
+        return
+    summary_dir = root / 'results/summaries'
+    for member in members:
+        member_id = str(member['model_config_id'])
+        if member_id == anchor_id:
+            continue
+        report_path = summary_dir / f'{anchor_id}-vs-{member_id}.json'
+        if report_path.exists():
+            continue
+        anchor_lc = state.models.get(anchor_id)
+        member_lc = state.models.get(member_id)
+        anchor_done = anchor_lc is not None and anchor_lc.lifecycle == COMPLETE
+        member_done = member_lc is not None and member_lc.lifecycle == COMPLETE
+        if anchor_done and member_done:
+            base_exe = derive_execution_id(args.spec, anchor_id)
+            cand_exe = derive_execution_id(args.spec, member_id)
+            compare_main([
+                '--db-base', str(Path(args.db_dir) / f'{base_exe}.db'),
+                '--db-candidate', str(Path(args.db_dir) / f'{cand_exe}.db'),
+                '--base', base_exe, '--candidate', cand_exe,
+                '--spec', args.spec,
+                '--out', str(report_path),
+            ])
+            print(f'family report: {report_path.name}', flush=True)
+        elif member_done and not anchor_done:
+            report_path.write_text(json.dumps({
+                'experiment_spec_id': args.spec,
+                'base_execution_id': derive_execution_id(args.spec, anchor_id),
+                'candidate_execution_id': derive_execution_id(args.spec, member_id),
+                'comparison_status': 'NOT_AVAILABLE',
+                'reason': 'CONFIG_INELIGIBLE_GPU_ONLY',
+            }, indent=2) + '\n', encoding='utf-8')
+            print(f'family report (not available): {report_path.name}', flush=True)
+
+
+def write_sweep_summary(
+    args: argparse.Namespace, registry: dict[str, Any]
+) -> Path:
+    """Final sweep artifact with terminal counts."""
+    root = Path(__file__).resolve().parent.parent
+    state = load_sweep_state(args.state_file)
+    order = [str(e['model_config_id']) for e in registry.get('models', [])]
+    attempted = [
+        mid for mid in order
+        if state is not None and mid in state.models
+        and state.models[mid].lifecycle != PENDING
+    ]
+    complete = list(state.completed) if state else []
+    ineligible = list(state.ineligible) if state else []
+    failed = list(state.failed) if state else []
+    document = {
+        'experiment_spec_id': args.spec,
+        'registry_count': len(order),
+        'attempted': len(attempted),
+        'complete': len(complete),
+        'complete_ineligible': len(ineligible),
+        'failed_integrity': len(failed),
+        'completed_ids': sorted(complete),
+        'ineligible_ids': sorted(ineligible),
+        'failed_ids': sorted(failed),
+        'sweep_status': 'COMPLETE',
+    }
+    out = root / 'results/summaries' / f'sweep-{args.spec}-complete.json'
+    out.write_text(json.dumps(document, indent=2) + '\n', encoding='utf-8')
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -557,7 +722,14 @@ def main(argv: list[str] | None = None) -> int:
             state = fresh
         current = state.next_model
         if current is None:
-            print('SWEEP COMPLETE', flush=True)
+            summary_path = write_sweep_summary(args, registry)
+            print(f'SWEEP COMPLETE: {summary_path.name}', flush=True)
+            print('========================================', flush=True)
+            print('FULL BASELINE V2 SWEEP COMPLETE', flush=True)
+            print(f"{len(registry.get('models', []))} / "
+                  f"{len(registry.get('models', []))} configurations attempted",
+                  flush=True)
+            print('========================================', flush=True)
             return 0
         if args.only and state.models[current].lifecycle in terminal_states:
             print(f'sweep paused: {current} already terminal '
@@ -572,11 +744,15 @@ def main(argv: list[str] | None = None) -> int:
             if outcome == COMPLETE_INELIGIBLE and args.stop_on_ineligible:
                 print('stopping on ineligible (flag)', flush=True)
                 return 0
+            # Non-blocking family reports: generated, recorded, never gated.
+            maybe_write_family_report(args, registry, current)
             continue
         if outcome == BENCHMARK_ERROR and args.continue_on_benchmark_error:
             continue
         if outcome == VERIFY_FAILED and args.continue_on_persistence_error:
             continue
+        # MEASUREMENT_FAILED, DELETION_FAILED and all other integrity
+        # outcomes always stop: the contract outranks continuity.
         print(f'sweep stopped: {current} -> {outcome}', flush=True)
         return 1
 

@@ -7,13 +7,14 @@ Live Ollama is never touched by the unit suite.
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sqlite3
 import subprocess
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Callable, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 # Lifecycle states (per model). -ING = in progress (crash: restart stage);
 # bare names = stage complete (resume continues from the next stage).
@@ -39,6 +40,8 @@ VALIDATED = 'VALIDATED'
 SUMMARIZED = 'SUMMARIZED'
 VERIFYING = 'VERIFYING'
 VERIFY_FAILED = 'VERIFY_FAILED'
+MEASUREMENT_FAILED = 'MEASUREMENT_FAILED'
+DELETION_FAILED = 'DELETION_FAILED'
 COMPLETE = 'COMPLETE'
 COMPLETE_INELIGIBLE = 'COMPLETE_INELIGIBLE'
 
@@ -91,6 +94,8 @@ RESTART_STAGE = {
     SUMMARIZED: 'verified',
     VERIFYING: 'verified',
     VERIFY_FAILED: 'verified',
+    MEASUREMENT_FAILED: 'benchmarked',
+    DELETION_FAILED: 'deleted',
     'UNLOADED': 'deleted',
     'DELETED': 'complete',
 }
@@ -178,6 +183,17 @@ def load_sweep_state(path: str | Path) -> SweepState | None:
 RunFn = Callable[..., subprocess.CompletedProcess[str]]
 
 
+def resolve_ollama_bin(explicit: str | None) -> str:
+    fallback = 'C:/Users/lenovo/AppData/Local/Programs/Ollama/ollama.exe'
+    if explicit:
+        return explicit
+    env = os.environ.get('OLLAMA_BIN')
+    if env:
+        return env
+    found = shutil.which('ollama')
+    return found or fallback
+
+
 def default_run(
     argv: Sequence[str], *, timeout_s: float = 3600.0
 ) -> subprocess.CompletedProcess[str]:
@@ -251,7 +267,8 @@ def set_lifecycle(
     if lifecycle == COMPLETE_INELIGIBLE and model_config_id not in state.ineligible:
         state.ineligible.append(model_config_id)
     if lifecycle in (DOWNLOAD_FAILED, BENCHMARK_ERROR, VERIFY_FAILED,
-                     MANUAL_PIN_REQUIRED, ADAPTER_MISMATCH, PREFLIGHT_FAILED):
+                     MANUAL_PIN_REQUIRED, ADAPTER_MISMATCH, PREFLIGHT_FAILED,
+                     MEASUREMENT_FAILED, DELETION_FAILED):
         if model_config_id not in state.failed:
             state.failed.append(model_config_id)
     if lifecycle in TERMINAL_OK and model_config_id in state.failed:
@@ -332,6 +349,28 @@ def guard_deletion(verified: bool) -> None:
         raise RuntimeError(
             'Refusing model deletion: benchmark persistence is not verified.'
         )
+
+
+def deletion_verdict(rm_ok: bool, still_present: bool) -> str:
+    """Pure ghost-state decision: rm outcome x list/ps evidence.
+
+    rm succeeds but the model still appears -> DELETION_FAILED (haunted).
+    Only rm-ok + confirmed-absent advances to disk verification.
+    """
+    if not rm_ok:
+        return 'RM_FAILED'
+    if still_present:
+        return DELETION_FAILED
+    return 'DELETED_OK'
+
+
+def append_retry_event(log_path: str | Path, event: Mapping[str, Any]) -> None:
+    """Append one retry-telemetry event (JSONL, flushed incrementally)."""
+    file = Path(str(log_path))
+    file.parent.mkdir(parents=True, exist_ok=True)
+    with open(file, 'a', encoding='utf-8') as handle:
+        handle.write(json.dumps(dict(event), sort_keys=True) + '\n')
+        handle.flush()
 
 
 def wait_until_unloaded(

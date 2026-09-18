@@ -14,7 +14,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from inference.eligibility import EligibilityResult
-from inference.ollama_client import GenerationResult
+from inference.ollama_client import GenerationResult, OllamaTimeoutError
 from scripts import run_benchmark
 
 
@@ -129,6 +129,119 @@ class WarmupSessionTests(unittest.TestCase):
             ).fetchone()[0]
             conn.close()
             self.assertEqual(warmups, 2)
+
+    def test_corner_a_timeout_reload_success(self) -> None:
+        # timeout x3 (initial + 2 retries) -> unload/reload -> 2 fresh
+        # warmups -> final success: exactly one measured row, same identity.
+        with TemporaryDirectory() as tmp:
+            db = str(Path(tmp) / 'bench.db')
+            script: list[object] = [
+                _generation('probe'),
+                _generation('OK'),
+                _generation('7'),
+                OllamaTimeoutError('t1'),
+                OllamaTimeoutError('t2'),
+                OllamaTimeoutError('t3'),
+                _generation('reloaded'),  # reload probe inside recovery
+                _generation('OK'),  # rewarm 1
+                _generation('7'),  # rewarm 2
+                _generation('answer 00:55'),  # final attempt
+            ]
+            calls = {'n': 0}
+
+            def fake_generate(
+                base_url: str, request: object, **kwargs: object
+            ) -> GenerationResult:
+                item = script[min(calls['n'], len(script) - 1)]
+                calls['n'] += 1
+                if isinstance(item, BaseException):
+                    raise item
+                assert isinstance(item, GenerationResult)
+                return item
+
+            with patch.object(run_benchmark, 'generate', side_effect=fake_generate):
+                with patch.object(
+                    run_benchmark, 'check_eligibility', return_value=_eligible()
+                ):
+                    with patch.object(
+                        run_benchmark, 'ollama_stop', return_value=(True, 'stopped')
+                    ):
+                        with patch.object(
+                            run_benchmark, 'wait_until_unloaded', return_value=True
+                        ):
+                            with patch('time.sleep', return_value=None):
+                                code = run_benchmark.run_experiment(_namespace(db))
+            self.assertEqual(code, 0)
+            conn = sqlite3.connect(db)
+            warmups = conn.execute(
+                "SELECT trial FROM runs WHERE run_kind='WARMUP' ORDER BY trial"
+            ).fetchall()
+            measured = conn.execute(
+                'SELECT task_id, trial, status FROM runs WHERE is_warmup=0'
+            ).fetchall()
+            conn.close()
+            self.assertEqual([r[0] for r in warmups], [1, 2, 3, 4])
+            self.assertEqual(len(measured), 1)
+            self.assertEqual(measured[0][2], 'COMPLETE')
+            # Retry telemetry appended incrementally as JSONL.
+            root = Path(__file__).resolve().parents[1]
+            log_path = (
+                root / 'results/logs/transient-retries-smoke-3.jsonl'
+            )
+            self.assertTrue(log_path.exists())
+            lines = [
+                line for line in
+                log_path.read_text(encoding='utf-8').splitlines()
+                if line.strip()
+            ]
+            self.assertTrue(lines)
+            import json as _json
+
+            for line in lines:
+                event = _json.loads(line)
+                self.assertIn('attempt', event)
+                self.assertIn('action', event)
+
+    def test_corner_a_persistent_failure_no_row(self) -> None:
+        # Every attempt times out: MEASUREMENT_FAILED exit, zero measured rows.
+        with TemporaryDirectory() as tmp:
+            db = str(Path(tmp) / 'bench.db')
+            calls = {'n': 0}
+
+            def flaky(
+                base_url: str, request: object, **kwargs: object
+            ) -> GenerationResult:
+                calls['n'] += 1
+                if calls['n'] <= 3:
+                    return _generation('warm')
+                raise OllamaTimeoutError('down')
+
+            def always_timeout(
+                base_url: str, request: object, **kwargs: object
+            ) -> GenerationResult:
+                return flaky(base_url, request, **kwargs)
+
+            with patch.object(
+                run_benchmark, 'generate', side_effect=always_timeout
+            ):
+                with patch.object(
+                    run_benchmark, 'check_eligibility', return_value=_eligible()
+                ):
+                    with patch.object(
+                        run_benchmark, 'ollama_stop', return_value=(True, 'stopped')
+                    ):
+                        with patch.object(
+                            run_benchmark, 'wait_until_unloaded', return_value=True
+                        ):
+                            with patch('time.sleep', return_value=None):
+                                code = run_benchmark.run_experiment(_namespace(db))
+            self.assertEqual(code, run_benchmark.MEASUREMENT_FAILED_EXIT)
+            conn = sqlite3.connect(db)
+            measured = conn.execute(
+                'SELECT COUNT(*) FROM runs WHERE is_warmup=0'
+            ).fetchone()[0]
+            conn.close()
+            self.assertEqual(measured, 0)
 
 
 if __name__ == '__main__':
