@@ -1,0 +1,11 @@
+{
+  "model_config_id": "phi-3.5-mini-q6",
+  "execution_id": "full-baseline-v2__phi-3.5-mini-q6",
+  "residency_ratio": 1.0,
+  "weight_fit": true,
+  "sustained_generation": false,
+  "eligibility_status": "COMPLETE_INELIGIBLE_RUNTIME_HEADROOM",
+  "evidence": "Q015 t1: 3 same-identity timeouts/truncations + canonical reload + rewarm (warmups 3,4) + final truncation; 42 valid rows Q001-Q014 retained. Third Phi config with identical signature: canary passes short sustained output but benchmark-length streams abort under VRAM saturation.",
+  "amendment": "eligibility = full residency AND operational canary",
+  "family_note": "3/3 Phi configs fail the same way; canary floor (128 tokens) does not catch session-length pressure accumulation"
+}
