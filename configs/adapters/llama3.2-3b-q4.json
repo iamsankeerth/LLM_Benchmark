@@ -1,0 +1,24 @@
+{
+  "config_id": "llama3.2-3b-q4",
+  "gpu_only": true,
+  "mode": "chat",
+  "num_ctx": 4096,
+  "num_gpu": 99,
+  "num_predict_default": 512,
+  "ollama_identifier": "hf.co/bartowski/Llama-3.2-3B-Instruct-GGUF:Q4_K_M",
+  "ollama_model_digest": "78a06ba3832b76a02dffca04c26b562998cd855b669f6f22df38f8e7a689ebc1",
+  "quantization": "Q4_K_M",
+  "stop_tokens": [
+    "<|start_header_id|>",
+    "<|end_header_id|>",
+    "<|eot_id|>"
+  ],
+  "temperature_default": 0.0,
+  "template_application": "server_managed",
+  "template_id": "auto-llama3.2-3b-q4-chat-v1",
+  "template_sha256": "948af2743fc78a328dcb3b0f5a31b3d75f415840fdb699e8b1235978392ecf85",
+  "template_source": "ollama-show auto-derive (default route verified)",
+  "template_text": "{{- if or .System .Tools }}<|start_header_id|>system<|end_header_id|>\n{{- if .System }}\n\n{{ .System }}\n{{- end }}\n{{- if .Tools }}\n\nCutting Knowledge Date: December 2023\n\nWhen you receive a tool call response, use the output to format an answer to the orginal user question.\n\nYou are a helpful assistant with tool calling capabilities.\n{{- end }}<|eot_id|>\n{{- end }}\n{{- range $i, $_ := .Messages }}\n{{- $last := eq (len (slice $.Messages $i)) 1 }}\n{{- if eq .Role \"user\" }}<|start_header_id|>user<|end_header_id|>\n{{- if and $.Tools $last }}\n\nGiven the following functions, please respond with a JSON for a function call with its proper arguments that best answers the given prompt.\n\nRespond in the format {\"name\": function name, \"parameters\": dictionary of argument name and its value}. Do not use variables.\n\n{{ range $.Tools }}\n{{- . }}\n{{ end }}\nQuestion: {{ .Content }}<|eot_id|>\n{{- else }}\n\n{{ .Content }}<|eot_id|>\n{{- end }}{{ if $last }}<|start_header_id|>assistant<|end_header_id|>\n\n{{ end }}\n{{- else if eq .Role \"assistant\" }}<|start_header_id|>assistant<|end_header_id|>\n{{- if .ToolCalls }}\n{{ range .ToolCalls }}\n{\"name\": \"{{ .Function.Name }}\", \"parameters\": {{ .Function.Arguments }}}{{ end }}\n{{- else }}\n\n{{ .Content }}\n{{- end }}{{ if not $last }}<|eot_id|>{{ end }}\n{{- else if eq .Role \"tool\" }}<|start_header_id|>ipython<|end_header_id|>\n\n{{ .Content }}<|eot_id|>{{ if $last }}<|start_header_id|>assistant<|end_header_id|>\n\n{{ end }}\n{{- end }}\n{{- end }}",
+  "think": null,
+  "thinking_support": "supported"
+}
