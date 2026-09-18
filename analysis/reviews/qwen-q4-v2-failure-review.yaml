@@ -1,7 +1,7 @@
 artifact: qwen3-4b-q4 V2 failure review (post-hoc diagnostic, 2048-token lineage)
 execution_id: full-baseline-v2__qwen3-4b-q4
 taxonomy_version: failure-modes-v1
-review_status: DRAFT
+review_status: APPROVED
 populations:
   ready_deterministic_fail_rows: 97
   ready_judge_precheck_fail_rows: 6
@@ -1026,10 +1026,10 @@ tasks:
     mode_override: null
     override_reason: null
     notes: 'V2 divergence: t1 completed (1656 chars, stop) asserting explicit wrong
-      final 12:36 vs 11:36 (model skips 11:36 in its own 72-min enumeration AND
-      mis-adds 10:24+72) -> MIXED. t2/t3 assert "answer is 12:36" explicitly
-      mid-derivation (line 75) then ramble into truncation at 2048 -> MIXED +
-      TRUNCATED_AT_NUM_PREDICT. Substantive INCORRECT in all trials.'
+      final 12:36 vs 11:36 (model skips 11:36 in its own 72-min enumeration AND mis-adds
+      10:24+72) -> MIXED. t2/t3 assert "answer is 12:36" explicitly mid-derivation
+      (line 75) then ramble into truncation at 2048 -> MIXED + TRUNCATED_AT_NUM_PREDICT.
+      Substantive INCORRECT in all trials.'
 - task_id: Q026
   task_status: READY_DETERMINISTIC
   failed_trials:
@@ -1979,3 +1979,5 @@ tasks:
     override_reason: null
     notes: 'Miscounts consistency: outputs accuracy 1.0/true vs true 0.8/false (4
       of 5 = 0.8). Genuine reasoning error on a meta-consistency question.'
+reviewed_by: iamsan
+reviewed_on: '2026-09-18'
