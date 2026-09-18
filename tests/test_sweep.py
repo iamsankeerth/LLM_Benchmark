@@ -63,6 +63,16 @@ class SweepStateTests(unittest.TestCase):
         for stage in STAGES:
             self.assertIn(stage, STOPPED_STATE, stage)
 
+    def test_no_terminal_state_restarts(self) -> None:
+        # Hard invariant: terminal outcomes can never route back to work.
+        self.assertFalse(
+            set(RESTART_STAGE) & {'COMPLETE', 'COMPLETE_INELIGIBLE'}
+        )
+        state = new_sweep_state('s', ['a', 'b'])
+        set_lifecycle(state, 'a', COMPLETE)
+        set_lifecycle(state, 'b', COMPLETE_INELIGIBLE)
+        self.assertIsNone(state.next_model)
+
     def test_restart_mapping_covers_lifecycles(self) -> None:
         for lifecycle in (
             PENDING, DOWNLOAD_FAILED, 'PULLED', 'DERIVING', 'DERIVED',
@@ -238,6 +248,82 @@ class OllamaHelperTests(unittest.TestCase):
 
         self.assertTrue(wait_until_unloaded(absent, timeout_s=30.0, poll_s=0.01))
         self.assertFalse(wait_until_unloaded(lambda: False, timeout_s=0.05, poll_s=0.01))
+
+    def test_only_terminal_never_reruns(self) -> None:
+        # --only + terminal stored in the file: zero model calls, exit 0.
+        import yaml
+
+        from scripts import run_model_sweep
+        from unittest.mock import patch
+
+        with TemporaryDirectory() as tmp:
+            state_file = str(Path(tmp) / 'sweep.json')
+            registry_file = str(Path(tmp) / 'registry.yaml')
+            Path(registry_file).write_text(
+                yaml.safe_dump({
+                    'experiment_spec': 'full-baseline-v2',
+                    'models': [{'model_config_id': 'm1'}],
+                }),
+                encoding='utf-8',
+            )
+            state = new_sweep_state('s', ['m1'])
+            set_lifecycle(state, 'm1', COMPLETE)
+            save_sweep_state(state_file, state)
+            calls: list[str] = []
+
+            def fake_run(args: object, entry: dict[str, object]) -> str:
+                calls.append(str(entry['model_config_id']))
+                return COMPLETE
+
+            with patch.object(run_model_sweep, 'run_one_model', side_effect=fake_run):
+                code = run_model_sweep.main([
+                    '--only', 'm1', '--state-file', state_file,
+                    '--registry', registry_file, '--db-dir', tmp,
+                ])
+            self.assertEqual(code, 0)
+            self.assertEqual(calls, [])
+
+    def test_sweep_advances_exactly_once(self) -> None:
+        import yaml
+
+        from scripts import run_model_sweep
+        from unittest.mock import patch
+
+        with TemporaryDirectory() as tmp:
+            state_file = str(Path(tmp) / 'sweep.json')
+            registry_file = str(Path(tmp) / 'registry.yaml')
+            Path(registry_file).write_text(
+                yaml.safe_dump({
+                    'experiment_spec': 'full-baseline-v2',
+                    'models': [{'model_config_id': 'm1'}, {'model_config_id': 'm2'}],
+                }),
+                encoding='utf-8',
+            )
+            state = new_sweep_state('s', ['m1', 'm2'])
+            set_lifecycle(state, 'm1', COMPLETE)
+            save_sweep_state(state_file, state)
+            calls: list[str] = []
+
+            def fake_run(args: object, entry: dict[str, object]) -> str:
+                mid = str(entry['model_config_id'])
+                calls.append(mid)
+                live = load_sweep_state(state_file)
+                assert live is not None
+                set_lifecycle(live, mid, COMPLETE)
+                save_sweep_state(state_file, live)
+                return COMPLETE
+
+            with patch.object(run_model_sweep, 'run_one_model', side_effect=fake_run):
+                with patch.object(
+                    run_model_sweep, 'load_overlays_from_dir', return_value=0
+                ):
+                    code = run_model_sweep.main([
+                        '--state-file', state_file,
+                        '--registry', registry_file, '--db-dir', tmp,
+                    ])
+            # Exactly one advancement: m2 ran once, then next_model is None.
+            self.assertEqual(calls, ['m2'])
+            self.assertEqual(code, 0)
 
     def test_default_run_survives_non_utf8_bytes(self) -> None:
         import sys

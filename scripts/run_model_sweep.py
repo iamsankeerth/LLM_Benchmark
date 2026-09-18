@@ -33,6 +33,7 @@ from analysis.reliability import load_spec_statuses
 from inference.adapters import (
     get_model_config,
     load_overlays_from_dir,
+    render_prompt,
 )
 from inference.derive_adapter import (
     ManualPinRequired,
@@ -40,7 +41,12 @@ from inference.derive_adapter import (
     derive_adapter,
     verify_overlay_matches_live,
 )
-from inference.eligibility import check_eligibility
+from inference.eligibility import (
+    ELIGIBILITY_MEASUREMENT_ERROR,
+    check_eligibility,
+    effective_options_for,
+    run_canonical_eligibility,
+)
 from inference.ollama_client import (
     GenerationRequest,
     GenerationResult,
@@ -249,11 +255,19 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
             def trial_generate(request: GenerationRequest) -> GenerationResult:
                 return generate(args.base_url, request, timeout_s=120.0)
 
+            def ensure_unloaded() -> bool:
+                ollama_stop(ollama_bin, identifier)
+                return wait_until_unloaded(
+                    lambda: load_ps_digest(base_url, identifier)[0] is None,
+                    timeout_s=180.0,
+                )
+
             try:
                 config = derive_adapter(
                     registry_entry=entry, show_doc=show_doc,
                     observed_digest=observed_digest, trial_generate=trial_generate,
                     overlay_path=overlay_path,
+                    ensure_unloaded=ensure_unloaded,
                 )
                 adapter_source = 'derived'
             except OverlayExistsError:
@@ -279,15 +293,47 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
         return halt
 
     if run_stage('eligible'):
-        eligibility = check_eligibility(
-            base_url, identifier, expected_digest=config.ollama_model_digest
+        # Canonical eligibility: explicit unload first (a stale or
+        # misconfigured load must never be measured), then a probe with the
+        # exact pinned options, then the /api/ps verdict.
+        ollama_stop(ollama_bin, identifier)
+        if not wait_until_unloaded(
+            lambda: load_ps_digest(base_url, identifier)[0] is None,
+            timeout_s=180.0,
+        ):
+            checkpoint(BENCHMARK_ERROR, 'could not establish clean state for probe')
+            return BENCHMARK_ERROR
+        canonical = run_canonical_eligibility(
+            base_url=base_url,
+            model_identifier=identifier,
+            expected_digest=config.ollama_model_digest,
+            effective_options=effective_options_for(
+                mode=config.mode,
+                num_ctx=config.num_ctx,
+                num_gpu=config.num_gpu,
+                temperature=0.0,
+                template_sha256=config.template_sha256,
+            ),
+            render_prompt=lambda prompt: render_prompt(config, prompt),
         )
-        print(f'[{model_config_id}] eligibility: {eligibility.status}', flush=True)
+        eligibility = canonical.result
+        print(f'[{model_config_id}] eligibility: {eligibility.status} '
+              f'(residency={eligibility.gpu_residency_ratio})', flush=True)
+        if eligibility.status == ELIGIBILITY_MEASUREMENT_ERROR:
+            # Absent-after-probe: instrumentation failure, never hardware
+            # evidence. Weights retained; sweep stops loudly.
+            checkpoint(BENCHMARK_ERROR,
+                       f'ELIGIBILITY_MEASUREMENT_ERROR: {eligibility.eligibility_evidence_json}')
+            return BENCHMARK_ERROR
         if not eligibility.eligible:
             artifact = root / 'results/summaries' / f'ineligible-{model_config_id}.json'
             artifact.write_text(json.dumps({
                 'execution_id': execution_id, 'model_config_id': model_config_id,
                 'eligibility_status': eligibility.status,
+                'effective_options': canonical.effective_options.as_dict(),
+                'rendered_prompt_sha256': canonical.rendered_prompt_sha256,
+                'model_size_bytes': eligibility.model_size_bytes,
+                'size_vram_bytes': eligibility.size_vram_bytes,
                 'gpu_residency_ratio': eligibility.gpu_residency_ratio,
                 'evidence': eligibility.eligibility_evidence_json,
             }, indent=2) + '\n', encoding='utf-8')
@@ -502,10 +548,20 @@ def main(argv: list[str] | None = None) -> int:
         save_sweep_state(args.state_file, state)
     print(f'sweep: {state.sweep_id} resume_from={state.next_model}', flush=True)
     stopped_states = set(STOPPED_STATE.values())
+    terminal_states = {'COMPLETE', 'COMPLETE_INELIGIBLE'}
     while True:
+        # The state FILE is authoritative: reload every iteration so a
+        # terminal outcome can never select the same model again.
+        fresh = load_sweep_state(args.state_file)
+        if fresh is not None:
+            state = fresh
         current = state.next_model
         if current is None:
             print('SWEEP COMPLETE', flush=True)
+            return 0
+        if args.only and state.models[current].lifecycle in terminal_states:
+            print(f'sweep paused: {current} already terminal '
+                  f'({state.models[current].lifecycle})', flush=True)
             return 0
         entry = next(e for e in registry['models'] if e['model_config_id'] == current)
         outcome = run_one_model(args, entry)

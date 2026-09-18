@@ -1,0 +1,19 @@
+{
+  "sweep_id": "full-baseline-v2-sweep",
+  "order": [
+    "qwen3-4b-q4"
+  ],
+  "models": {
+    "qwen3-4b-q4": {
+      "model_config_id": "qwen3-4b-q4",
+      "lifecycle": "DOWNLOADING",
+      "execution_id": null,
+      "detail": "free=22.4GiB",
+      "verified": false
+    }
+  },
+  "ineligible": [
+    "qwen3-4b-q4"
+  ],
+  "failed": []
+}

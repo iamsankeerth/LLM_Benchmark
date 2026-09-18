@@ -57,6 +57,14 @@ PORTED_RAW_TEMPLATES: dict[str, dict[str, str]] = {
 
 TRIAL_PROMPT = 'Return only the word OK.'
 
+# Canonical trial options shared by route verification and eligibility:
+# identical context/offload/temperature so a verified load IS the measured
+# load. num_predict=1 keeps trials cheap; residency follows num_ctx.
+TRIAL_NUM_CTX = 4096
+TRIAL_NUM_PREDICT = 1
+TRIAL_NUM_GPU = 99
+TRIAL_TEMPERATURE = 0.0
+
 
 def parse_modelfile_stops(parameters: str) -> list[str]:
     """Extract stop "..." lines from the /api/show parameters blob."""
@@ -89,8 +97,10 @@ def trial_default_route(
     try:
         result = trial_generate(
             GenerationRequest(
-                model=model_identifier, prompt=TRIAL_PROMPT, temperature=0.0,
-                num_ctx=512, num_predict=16, raw=False,
+                model=model_identifier, prompt=TRIAL_PROMPT,
+                temperature=TRIAL_TEMPERATURE, num_ctx=TRIAL_NUM_CTX,
+                num_predict=TRIAL_NUM_PREDICT, num_gpu=TRIAL_NUM_GPU,
+                raw=False,
             )
         )
     except Exception:
@@ -105,11 +115,17 @@ def derive_adapter(
     observed_digest: str,
     trial_generate: Callable[[GenerationRequest], GenerationResult],
     overlay_path: str | Path,
+    ensure_unloaded: Callable[[], bool] | None = None,
 ) -> ModelConfig:
     """Derive + atomically write the overlay (create-once enforced).
 
     Raises OverlayExistsError (already pinned), ManualPinRequired (unknown
     raw fallback or failed verification), ValueError (malformed show doc).
+
+    Unload rule: when the default-route trial has already loaded the model
+    and the raw fallback is needed, the old load is explicitly evicted via
+    ensure_unloaded (which must confirm /api/ps-empty) before the raw
+    trial. Never trust the server to reload on changed options.
     """
     overlay_file = Path(overlay_path)
     if overlay_file.exists():
@@ -141,11 +157,17 @@ def derive_adapter(
                 f'for family markers {family_markers(show_doc)}'
             )
         ported = PORTED_RAW_TEMPLATES[marker]
+        if ensure_unloaded is not None and not ensure_unloaded():
+            raise ManualPinRequired(
+                f'{config_id}: could not evict default-route load before raw trial'
+            )
         # Verify the ported template on the raw path before pinning.
         trial_request = GenerationRequest(
             model=identifier,
             prompt=ported['template_text'].replace('{prompt}', TRIAL_PROMPT),
-            temperature=0.0, num_ctx=512, num_predict=16, raw=True, think=False,
+            temperature=TRIAL_TEMPERATURE, num_ctx=TRIAL_NUM_CTX,
+            num_predict=TRIAL_NUM_PREDICT, num_gpu=TRIAL_NUM_GPU,
+            raw=True, think=False,
         )
         try:
             trial_result = trial_generate(trial_request)

@@ -1,0 +1,7 @@
+{
+  "execution_id": "full-baseline-v2__qwen3-4b-q4",
+  "model_config_id": "qwen3-4b-q4",
+  "eligibility_status": "INELIGIBLE_GPU_ONLY",
+  "gpu_residency_ratio": 0.781232888446534,
+  "evidence": "{\"context_length\": 512, \"details\": {\"families\": [\"qwen3\"], \"family\": \"qwen3\", \"format\": \"gguf\", \"parameter_size\": \"4.02B\", \"parent_model\": \"\", \"quantization_level\": \"unknown\"}, \"digest\": \"5cfd6a526dc35c24a21a8a457db3e8810165e93bbb134dd6a7ac20b34e97b25a\", \"expires_at\": \"2026-09-18T16:17:15.8111669+05:30\", \"model\": \"hf.co/bartowski/Qwen_Qwen3-4B-Instruct-2507-GGUF:Q4_K_M\", \"name\": \"hf.co/bartowski/Qwen_Qwen3-4B-Instruct-2507-GGUF:Q4_K_M\", \"size\": 2987309136, \"size_vram\": 2333784145}"
+}

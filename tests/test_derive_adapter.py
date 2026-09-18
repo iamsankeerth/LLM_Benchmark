@@ -82,21 +82,68 @@ class DeriveTests(unittest.TestCase):
     def test_raw_fallback_for_known_family(self) -> None:
         with TemporaryDirectory() as tmp:
             overlay = str(Path(tmp) / 'q.json')
+            seen: list[GenerationRequest] = []
+            unloads = {'n': 0}
 
             def trial(request: GenerationRequest) -> GenerationResult:
+                seen.append(request)
                 if not request.raw:
                     return _result('')
                 return _result('OK')
+
+            def ensure_unloaded() -> bool:
+                unloads['n'] += 1
+                return True
 
             config = derive_adapter(
                 registry_entry={**ENTRY, 'model_config_id': 'qwen3-4b-q9'},
                 show_doc=dict(_show('qwen3')),
                 observed_digest='b' * 64, trial_generate=trial,
-                overlay_path=overlay,
+                overlay_path=overlay, ensure_unloaded=ensure_unloaded,
             )
             self.assertEqual(config.mode, 'raw')
             self.assertEqual(config.template_application, 'client_rendered')
             self.assertIn('{prompt}', config.template_text)
+            # Unload rule: old chat load evicted before the raw trial.
+            self.assertEqual(unloads['n'], 1)
+            raw_trials = [r for r in seen if r.raw]
+            self.assertEqual(len(raw_trials), 1)
+            self.assertEqual(raw_trials[0].num_ctx, 4096)
+            self.assertEqual(raw_trials[0].num_predict, 1)
+            self.assertEqual(raw_trials[0].num_gpu, 99)
+
+    def test_raw_fallback_aborts_when_unload_fails(self) -> None:
+        with TemporaryDirectory() as tmp:
+            def trial(request: GenerationRequest) -> GenerationResult:
+                return _result('' if not request.raw else 'OK')
+
+            with self.assertRaises(ManualPinRequired):
+                derive_adapter(
+                    registry_entry={**ENTRY, 'model_config_id': 'qwen3-4b-q9'},
+                    show_doc=dict(_show('qwen3')),
+                    observed_digest='b' * 64, trial_generate=trial,
+                    overlay_path=str(Path(tmp) / 'q.json'),
+                    ensure_unloaded=lambda: False,
+                )
+
+    def test_chat_trial_uses_canonical_options(self) -> None:
+        with TemporaryDirectory() as tmp:
+            seen: list[GenerationRequest] = []
+
+            def trial(request: GenerationRequest) -> GenerationResult:
+                seen.append(request)
+                return _result('OK')
+
+            derive_adapter(
+                registry_entry=dict(ENTRY), show_doc=dict(_show('llama')),
+                observed_digest='a' * 64, trial_generate=trial,
+                overlay_path=str(Path(tmp) / 'x.json'),
+            )
+            self.assertEqual(len(seen), 1)
+            self.assertEqual(seen[0].num_ctx, 4096)
+            self.assertEqual(seen[0].num_predict, 1)
+            self.assertEqual(seen[0].num_gpu, 99)
+            self.assertFalse(seen[0].raw)
 
     def test_unknown_family_fails_closed(self) -> None:
         with TemporaryDirectory() as tmp:
