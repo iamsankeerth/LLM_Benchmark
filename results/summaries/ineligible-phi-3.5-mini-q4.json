@@ -1,0 +1,19 @@
+{
+  "model_config_id": "phi-3.5-mini-q4",
+  "execution_id": "full-baseline-v2__phi-3.5-mini-q4",
+  "residency_ratio": 1.0,
+  "vram_total_mib": 4096,
+  "vram_free_post_load_mib": 95,
+  "weight_fit": true,
+  "sustained_generation": false,
+  "eligibility_status": "COMPLETE_INELIGIBLE_RUNTIME_HEADROOM",
+  "effective_options": {
+    "mode": "chat",
+    "num_ctx": 4096,
+    "num_predict": 1,
+    "num_gpu": 99,
+    "temperature": 0.0
+  },
+  "evidence": "4 consecutive TruncatedStreamError on Q007 t1 across unload/reload + live single-generation repro; nvidia-smi 3871/4096 MiB; valid rows Q001-Q006 (18) retained in DB, excluded from denominators",
+  "amendment": "eligibility = full residency AND operational canary (was: residency alone)"
+}
