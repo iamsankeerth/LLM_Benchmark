@@ -1,0 +1,778 @@
+{
+  "title": "Why Qwen3-4B Q4 Fails the Frozen Eval Contract",
+  "diagnostic_only": true,
+  "contract_accuracy_note": "52.5% benchmark result untouched by this artifact",
+  "table_contract_modes_97_rows": {
+    "denominator_rows": 97,
+    "counts": {
+      "CONTENT_ERROR": 33,
+      "LEXICAL_CONSTRAINT": 13,
+      "MIXED": 12,
+      "OUTPUT_CONTRACT": 39
+    },
+    "percent": {
+      "CONTENT_ERROR": 0.3402,
+      "LEXICAL_CONSTRAINT": 0.134,
+      "MIXED": 0.1237,
+      "OUTPUT_CONTRACT": 0.4021
+    }
+  },
+  "table_substance_97_rows": {
+    "denominator_rows": 97,
+    "counts": {
+      "CORRECT": 61,
+      "INCORRECT": 30,
+      "LIKELY_CORRECT": 6
+    },
+    "percent": {
+      "CORRECT": 0.6289,
+      "INCORRECT": 0.3093,
+      "LIKELY_CORRECT": 0.0619
+    }
+  },
+  "table_judge_prechecks_6_rows": {
+    "tasks": [
+      {
+        "task_id": "Q014",
+        "failed_trials": [
+          1,
+          2,
+          3
+        ],
+        "row_modes": [
+          "LEXICAL_CONSTRAINT",
+          "LEXICAL_CONSTRAINT",
+          "LEXICAL_CONSTRAINT"
+        ],
+        "generation_flags": [],
+        "substantive": "LIKELY_CORRECT",
+        "notes": "Good recursion analogy + factorial example, but 35 words vs required 50-60 and contains forbidden \"itself\". Length shortfall leaves completeness uncertain."
+      },
+      {
+        "task_id": "Q051",
+        "failed_trials": [
+          1,
+          2,
+          3
+        ],
+        "row_modes": [
+          "CONTENT_ERROR",
+          "CONTENT_ERROR",
+          "CONTENT_ERROR"
+        ],
+        "generation_flags": [],
+        "substantive": "CORRECT",
+        "notes": "All policy facts present; missing fact \"carry\" is satisfied by \"carried forward\" (morphology). Strict substring miss, same class as Q012-plants/Q048."
+      }
+    ],
+    "total_rows": 6
+  },
+  "task_table": [
+    {
+      "task_id": "Q003",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "CONTENT_ERROR": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "INCORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Arithmetic slip: 18500+500+3420=22420, model wrote 22020/12020. Wrong value.",
+      "representative_excerpt": "{\n  \"invoice_id\": \"INV-9081\",\n  \"buyer\": \"Kaveri Labs\",\n  \"gross_total\": 22020,\n  \"amount_paid\": 10000,\n  \"balance_due\": 12020,\n  \"due_date\": \"2026-09"
+    },
+    {
+      "task_id": "Q005",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "CONTENT_ERROR": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Dates/times semantically identical (3 Oct 2026 = 2026-10-03; 21:10 = 1270 min). Failure is format (ISO date, minutes-integer time), not substance.",
+      "representative_excerpt": "{\n  \"outbound\": {\n    \"origin\": \"HYD\",\n    \"destination\": \"DEL\",\n    \"flight_no\": \"AI 541\",\n    \"date\": \"3 Oct 2026\",\n    \"time\": \"06:25\"\n  },\n  \"retu"
+    },
+    {
+      "task_id": "Q006",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "CONTENT_ERROR": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Only delta is 'Project Atlas' vs 'Atlas'; all dates/amounts exact.",
+      "representative_excerpt": "{\n  \"project\": \"Project Atlas\",\n  \"owner\": \"Sana\",\n  \"launch_date\": \"2026-11-12\",\n  \"budget_cap_inr\": 950000,\n  \"security_review_deadline\": \"2026-11-0"
+    },
+    {
+      "task_id": "Q011",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1
+      ],
+      "mode_distribution": {
+        "LEXICAL_CONSTRAINT": 1
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Four-bullet explanation is good; fails only on latency x2 vs x1. t2/t3 passed with the 277-char form.",
+      "representative_excerpt": "- TCP ensures reliable data transfer with error checking and retransmission.  \n- UDP sends data quickly with no guarantees of delivery or order.  \n- T"
+    },
+    {
+      "task_id": "Q012",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "LEXICAL_CONSTRAINT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Three clean sentences, chlorophyll present, ends with question. Fails only because \"Three\" is not a digit token. t1-t3 are byte-identical with the single numeric-token violation; no plant/sunlight hit in any trial. (An earlier analyst remark about 'plant' matching inside 'plants' referred to a synthetic probe string, never to persisted rows.)",
+      "representative_excerpt": "Chlorophyll in green leaves absorbs light energy to convert carbon dioxide and water into glucose and oxygen.  \nThree molecules of carbon dioxide are "
+    },
+    {
+      "task_id": "Q014",
+      "task_status": "READY_JUDGE",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "LEXICAL_CONSTRAINT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "LIKELY_CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Good recursion analogy + factorial example, but 35 words vs required 50-60 and contains forbidden \"itself\". Length shortfall leaves completeness uncertain.",
+      "representative_excerpt": "Think of recursion like a set of nested Russian dolls\u2014each doll contains a smaller version of itself until reaching the smallest one. In code, `factor"
+    },
+    {
+      "task_id": "Q015",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "LEXICAL_CONSTRAINT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "INCORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Frozen matcher reports six `index` substring hits, including occurrences inside `indexing`; independent A.-F. marker-format violations also remain. Multiple substantive requirement misses, not envelope.",
+      "representative_excerpt": "A database index speeds up data retrieval.  \nB index organizes records for faster access.  \nC query performance improves with proper indexing.  \nD ind"
+    },
+    {
+      "task_id": "Q016",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "MIXED": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "INCORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Values are reasonable summaries but no value contains \"latency\" (required exactly once) and word-range flags trip. Explicit requirement missed.",
+      "representative_excerpt": "{\"benefit_1\": \"Reduces server load by storing frequently accessed data.\", \"benefit_2\": \"Lowers response time by serving data from memory.\", \"risk\": \"S"
+    },
+    {
+      "task_id": "Q017",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "LEXICAL_CONSTRAINT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "INCORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Steps 1-3 satisfy their requirements; step 4 (\"Use a tool to test call with low latencie.\") still contains e/E despite evasion attempt. The intentionally hard constraint defeats it.",
+      "representative_excerpt": "1. Measure response time from the API call to idenify if delay is in send or recv.  \n2. Check logs for any error or warning that may show timeout caus"
+    },
+    {
+      "task_id": "Q018",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "LEXICAL_CONSTRAINT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "INCORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "65 words vs 70, no parenthetical phrase, ends \"usage.\" not \"tradeoff\". Three independent requirement misses.",
+      "representative_excerpt": "Quantization is the process of reducing data precision to compress information, often used in signal processing and machine learning. It converts cont"
+    },
+    {
+      "task_id": "Q019",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "OUTPUT_CONTRACT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Full derivation reaches 136 = expected. Failure is bare-number packaging only (891 chars of LaTeX reasoning).",
+      "representative_excerpt": "We are given:\n\n- Total batteries in warehouse: **480**\n- 15% fail inspection \u2192 so 85% pass\n- One-third of the **passing** batteries go to **Store A**\n"
+    },
+    {
+      "task_id": "Q020",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "OUTPUT_CONTRACT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Computes 66080 = expected through correct discount+GST steps. Single asserted value, no contradiction; packaging only.",
+      "representative_excerpt": "First, calculate the discount amount:\n\n12.5% of \u20b964,000 =  \n$ \\frac{12.5}{100} \\times 64000 = 0.125 \\times 64000 = 8000 $\n\nSo, the discounted price is"
+    },
+    {
+      "task_id": "Q021",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "OUTPUT_CONTRACT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Derives 2352 = expected (300x4 + 192x6). Packaging only.",
+      "representative_excerpt": "We are given:\n\n- Original request rate: **240 requests per second**\n- Total time: **10 seconds**\n- For the **first 4 seconds**, traffic **rises by 25%"
+    },
+    {
+      "task_id": "Q022",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "OUTPUT_CONTRACT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Derives 218.4 = expected (168 + 50.4). Packaging only.",
+      "representative_excerpt": "We are given:\n\n- Total GPU-hours: 840  \n- Ratio shared among three teams: 2:3:5  \n- Team B uses 20% less than its allocation  \n- The unused hours from"
+    },
+    {
+      "task_id": "Q023",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "MIXED": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "INCORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Genuine arithmetic slip: 252/156h = 96.92min but model writes 36.92min (dropped the hour), concluding 10:37 vs 11:37. Contract violation AND wrong value.",
+      "representative_excerpt": "We are given:\n\n- Train 1 leaves **City A at 09:20** traveling at **72 km/h** toward City B.\n- Train 2 leaves **City B at 10:00** traveling at **84 km/"
+    },
+    {
+      "task_id": "Q024",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "OUTPUT_CONTRACT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Derives 978 = expected (378+240+360). Packaging only.",
+      "representative_excerpt": "We are given:\n\n- Total examples: 1,200  \n- Class A: 35%  \n- Class B: 25%  \n- Class C: the rest \u2192 100% - 35% - 25% = 40%  \n\nModel accuracy:\n- 90% corre"
+    },
+    {
+      "task_id": "Q025",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "MIXED": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [
+        "TRUNCATED_AT_NUM_PREDICT"
+      ],
+      "substantive": "INCORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "V2 divergence: t1 completed (1656 chars, stop) asserting explicit wrong final 12:36 vs 11:36 (model skips 11:36 in its own 72-min enumeration AND mis-adds 10:24+72) -> MIXED. t2/t3 assert \"answer is 12:36\" explicitly mid-derivation (line 75) then ramble into truncation at 2048 -> MIXED + TRUNCATED_AT_NUM_PREDICT. Substantive INCORRECT in all trials.",
+      "representative_excerpt": "We are given:\n\n- Job A runs every **18 minutes**\n- Job B runs every **24 minutes**\n- Both run together at **08:00**\n- A **maintenance window** blocks "
+    },
+    {
+      "task_id": "Q026",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "MIXED": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "INCORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Genuine arithmetic slip at step 3: 0.92169x0.97 = 0.8940393, model writes 0.9000493, concluding 86.40 vs 85.83 (outside tolerance). Contract violation AND wrong value.",
+      "representative_excerpt": "To find the end-to-end success probability in a pipeline where **any stage failure causes the entire request to fail**, we multiply the success probab"
+    },
+    {
+      "task_id": "Q036",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "CONTENT_ERROR": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "INCORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Overconfident negation: answers NO where context supports only UNKNOWN (USB-C charging does not imply wireless). Clean wrong answer.",
+      "representative_excerpt": "NO"
+    },
+    {
+      "task_id": "Q039",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "OUTPUT_CONTRACT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Opens with CANNOT_DETERMINE = expected, with statistically sound reasoning. Failure is the appended explanation paragraph.",
+      "representative_excerpt": "CANNOT_DETERMINE\n\nExplanation: The question asks whether Group B's score is statistically significantly higher than Group A's. While Group B has a hig"
+    },
+    {
+      "task_id": "Q040",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "OUTPUT_CONTRACT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Opens with NOT_ESTABLISHED = expected, reasoning sound. Failure is the appended explanation.",
+      "representative_excerpt": "NOT_ESTABLISHED\n\nExplanation: The API documentation states that the endpoint returns HTTP 202 when an export job is accepted, but it provides no infor"
+    },
+    {
+      "task_id": "Q044",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "CONTENT_ERROR": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Value 25 exact; only the unit form (\"s\") missing. Unambiguous, no contradiction; presentational.",
+      "representative_excerpt": "25"
+    },
+    {
+      "task_id": "Q045",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "OUTPUT_CONTRACT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Opens with CACHE = expected plus accurate evidence chain. Failure is the appended justification.",
+      "representative_excerpt": "CACHE\n\nThe strongest evidence pointing to the cache as the proximate cause is the drop in cache hit rate from 91% to 28% at 09:12, followed by memory "
+    },
+    {
+      "task_id": "Q047",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "CONTENT_ERROR": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "LIKELY_CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Meaning largely preserved but qualifiers dropped: \"currently enrolled\" lost, \"September\" abbreviated to \"Sept\", email refusal only implied (\"portal only\"). Precision loss keeps this below CORRECT.",
+      "representative_excerpt": "Undergraduate students may apply for the 2026 Student Innovation Grant. Deadline: 5:00 PM, 30 Sept 2026. Max 4 members. \u20b9250 non-refundable fee. Submi"
+    },
+    {
+      "task_id": "Q048",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "CONTENT_ERROR": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Missing fact is \"imports longer than two hours\"; output says \"imports over two hours\" \u2014 same meaning, strict substring miss. Paraphrase penalized, not wrongness.",
+      "representative_excerpt": "- Fixes memory leak in long-running imports and adds CSV delimiter auto-detection.  \n- No schema changes or data migration; restart workers required. "
+    },
+    {
+      "task_id": "Q049",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "CONTENT_ERROR": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Faithful cause/impact/resolution summary; the \"violation\" is mentioning database health, which is source-faithful but spec-forbidden. Truthful output, scope failure.",
+      "representative_excerpt": "Cause: A configuration rollout reduced the connection pool limit from 200 to 20 on three API instances.  \nImpact: Queue depth increased rapidly, causi"
+    },
+    {
+      "task_id": "Q050",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "CONTENT_ERROR": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "LIKELY_CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Team-selection meaning present (\"has not yet selected\"), but \"multi-step\" genuinely absent (replaced by \"task complexity\"). One real omission.",
+      "representative_excerpt": "A pilot tested offline 3B and 4B language models on 50 support tasks. The 3B model achieved 43 correct completions and valid JSON on 47 tasks, averagi"
+    },
+    {
+      "task_id": "Q051",
+      "task_status": "READY_JUDGE",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "CONTENT_ERROR": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "All policy facts present; missing fact \"carry\" is satisfied by \"carried forward\" (morphology). Strict substring miss, same class as Q012-plants/Q048.",
+      "representative_excerpt": "Employees may work remotely up to two days per week with manager approval. New hires must work on-site for their first 30 days unless HR grants an exc"
+    },
+    {
+      "task_id": "Q054",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "OUTPUT_CONTRACT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Opens with NO = expected with valid modal-logic reasoning (possibility vs necessity). Appendix only.",
+      "representative_excerpt": "NO\n\nExplanation: The facts do not logically contradict each other. \n\n- The statement \"If a build passes all tests, it may be deployed\" is a conditiona"
+    },
+    {
+      "task_id": "Q055",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "OUTPUT_CONTRACT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Reaches YES = expected via a valid proof by contradiction. Appendix only.",
+      "representative_excerpt": "We are given the following statements:\n\n1. **All A are B.**  \n2. **Some B are C.**  \n3. **No C are D.**  \n4. **All A are D.**\n\nWe are asked: **Is it l"
+    },
+    {
+      "task_id": "Q066",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "CONTENT_ERROR": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Owners/shares exact; project and milestone names carry source status words (\"Project Nova\", \"Prototype complete\"). Naming format, not substance.",
+      "representative_excerpt": "{\n  \"project\": \"Project Nova\",\n  \"owners\": [\n    {\n      \"name\": \"Leena\",\n      \"share_pct\": 60\n    },\n    {\n      \"name\": \"Omar\",\n      \"share_pct\": "
+    },
+    {
+      "task_id": "Q068",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "OUTPUT_CONTRACT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Derives and simplifies to 4/15 = expected (even excludes the yellow-ball distractor correctly). Boxed-prose packaging only.",
+      "representative_excerpt": "We are given:\n\n- 12 red balls  \n- 8 blue balls  \n- 10 green balls  \n- 5 yellow balls are **shown in a picture** but **not inside the box**\n\nWe are to "
+    },
+    {
+      "task_id": "Q070",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "OUTPUT_CONTRACT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Derives 18 = expected (30 initial failures, 12 retried). Packaging only.",
+      "representative_excerpt": "We are given:\n\n- Total requests = 2,500  \n- 1.2% fail initially  \n- Of the failed requests, 40% succeed on retry  \n\nWe need to find: **How many reques"
+    },
+    {
+      "task_id": "Q071",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "OUTPUT_CONTRACT": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "CORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Timeline reaches 00:55 = expected with all intermediate steps right. Strict HH:MM parse rejects the prose; packaging only.",
+      "representative_excerpt": "Let's break down the timeline step by step:\n\n1. **Backup starts at 23:50**  \n2. **Backup lasts 35 minutes**  \n   \u2192 Backup ends at:  \n   23:50 + 35 min"
+    },
+    {
+      "task_id": "Q080",
+      "task_status": "READY_DETERMINISTIC",
+      "failed_trials": [
+        1,
+        2,
+        3
+      ],
+      "mode_distribution": {
+        "CONTENT_ERROR": 3
+      },
+      "multi_mode_across_trials": false,
+      "generation_flags": [],
+      "substantive": "INCORRECT",
+      "assessment_author": "draft_review",
+      "mode_override": null,
+      "notes": "Miscounts consistency: outputs accuracy 1.0/true vs true 0.8/false (4 of 5 = 0.8). Genuine reasoning error on a meta-consistency question.",
+      "representative_excerpt": "{\"accuracy_rate\": 1.0, \"all_runs_consistent\": true}"
+    }
+  ],
+  "lineage_v1_v2_statements": [
+    "Across all 216 measured rows, the persisted benchmark verdict was identical between V1 and V2.",
+    "Within the 204 READY_DETERMINISTIC rows, the PASS/FAIL matrix was identical row-for-row."
+  ],
+  "threats_to_validity": [
+    "Substring semantics are frozen for eval-v1: required/forbidden term matching is substring-based (e.g. \"plant\" matches inside \"plants\", \"carried forward\" does not satisfy \"carry\", \"over two hours\" does not satisfy \"longer than two hours\"). Human interpretation is token-level; the grader is character-level. This is intentional and versioned, not a defect to hotfix \u2014 but cross-study comparisons must account for it.",
+    "Generation-cap entanglement: Q025 trials hitting num_predict truncation cannot establish what final the model would have asserted with a larger budget. Truncation is recorded orthogonally (TRUNCATED_AT_NUM_PREDICT) and never merged into failure modes.",
+    "Strict output contracts (bare numbers, exact tokens, ISO dates) punish verbosity and paraphrase even when substance is correct. The 52.5% contract accuracy therefore understates reasoning capability by design; Table 2 quantifies the gap.",
+    "Single-model scope: every substantive label below describes Qwen3-4B Q4 outputs only. The deterministic mode taxonomy is frozen for reuse; human substantive labels must never be auto-generated for other models."
+  ],
+  "decomposition_shell": {
+    "taxonomy_version": "failure-modes-v1",
+    "columns": {
+      "qwen3-4b-q4": {
+        "denominator_rows": 97,
+        "mode_counts": {
+          "CONTENT_ERROR": 33,
+          "LEXICAL_CONSTRAINT": 13,
+          "MIXED": 12,
+          "OUTPUT_CONTRACT": 39
+        }
+      }
+    },
+    "reserved": [
+      "qwen3-4b-q5"
+    ]
+  },
+  "taxonomy_disposition": "failure-modes-v1: CONFIRMED_UNCHANGED",
+  "provenance": {
+    "grading_spec_hash": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+    "dataset_hash": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
+    "taxonomy_version": "failure-modes-v1",
+    "taxonomy_hash": "fc5515a1c568745ad05c566b5ac0448b03a6ad69669f9a98edce76e57335dc30",
+    "review_file": "analysis\\reviews\\qwen-q4-v2-failure-review.yaml",
+    "review_file_hash": "d0ddb4266521f6e1fc8ad246f21888cce1a4bd4fe91b71a1a5c64778dec82e9f",
+    "review_status": "APPROVED",
+    "reviewed_by": "iamsan",
+    "reviewed_on": "2026-09-18",
+    "analysis_code_git_commit": "b5382ec54d3ad2a8b30d7e1a3fea08042e51c8da",
+    "analysis_worktree_dirty": false
+  }
+}
