@@ -340,14 +340,18 @@ def _reload_canonical(
     *,
     ollama_bin: str,
     base_url: str,
-    model_identifier: str,
-    expected_digest: str,
+    config: ModelConfig,
     timeout_s: float,
 ) -> None:
-    """Unload, reload with a tiny probe, and re-verify exact config identity.
+    """Unload, reload with the EXACT pinned options, re-verify identity.
 
+    The reload probe uses the adapter's template/mode, num_ctx, num_gpu and
+    temperature (num_predict=4 keeps it cheap; residency follows num_ctx).
+    A default-options probe here would repeat the 512-context incident:
+    measuring a misconfigured load as if it were the benchmark config.
     Raises MeasurementFailed on any fault: the session cannot be trusted.
     """
+    model_identifier = config.ollama_identifier
     ollama_stop(ollama_bin, model_identifier)
     if not wait_until_unloaded(
         lambda: _ps_absent(base_url, model_identifier), timeout_s=120.0
@@ -355,12 +359,19 @@ def _reload_canonical(
         raise MeasurementFailed(
             model_identifier, 'model did not unload for recovery reload'
         )
+    probe_prompt = (
+        render_prompt(config, 'OK')
+        if config.mode == 'raw'
+        else 'OK'
+    )
     try:
         generate(
             base_url,
             GenerationRequest(
-                model=model_identifier, prompt='OK', temperature=0.0,
-                num_ctx=512, num_predict=4, raw=False,
+                model=model_identifier, prompt=probe_prompt, temperature=0.0,
+                num_ctx=config.num_ctx, num_predict=4, num_gpu=config.num_gpu,
+                stop=config.stop_tokens, raw=(config.mode == 'raw'),
+                think=config.think,
             ),
             timeout_s=timeout_s,
         )
@@ -369,7 +380,7 @@ def _reload_canonical(
             model_identifier, f'reload probe failed: {exc}'
         ) from exc
     reverified = check_eligibility(
-        base_url, model_identifier, expected_digest=expected_digest
+        base_url, model_identifier, expected_digest=config.ollama_model_digest
     )
     if not reverified.eligible:
         raise MeasurementFailed(
@@ -396,7 +407,8 @@ def _ps_absent(base_url: str, model_identifier: str) -> bool:
     )
 
 
-def _generate_with_recovery(    *,
+def _generate_with_recovery(
+    *,
     make_request: Any,
     task_id: str,
     trial: int,
@@ -404,7 +416,7 @@ def _generate_with_recovery(    *,
     timeout_s: float,
     ollama_bin: str,
     model_identifier: str,
-    expected_digest: str,
+    config: ModelConfig,
     rewarm: Any,
     log_event: Any,
     sleep_fn: Any = None,
@@ -453,8 +465,7 @@ def _generate_with_recovery(    *,
     try:
         _reload_canonical(
             ollama_bin=ollama_bin, base_url=base_url,
-            model_identifier=model_identifier, expected_digest=expected_digest,
-            timeout_s=timeout_s,
+            config=config, timeout_s=timeout_s,
         )
     except MeasurementFailed as exc:
         raise MeasurementFailed(identity, exc.reason) from exc
@@ -796,7 +807,7 @@ def run_experiment(args: argparse.Namespace) -> int:
                     timeout_s=args.timeout_s,
                     ollama_bin=ollama_bin,
                     model_identifier=config.ollama_identifier,
-                    expected_digest=config.ollama_model_digest,
+                    config=config,
                     rewarm=_rewarm_now,
                     log_event=_log_retry,
                 )

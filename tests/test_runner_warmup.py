@@ -114,6 +114,49 @@ class WarmupSessionTests(unittest.TestCase):
             self.assertEqual([r[0] for r in warmups], [1, 2, 3, 4])
             self.assertEqual(measured, 1)
 
+    def test_reload_probe_uses_canonical_options(self) -> None:
+        # Regression for the 512-context incident: the recovery probe must
+        # carry the exact pinned options, never server defaults.
+        from inference.adapters import get_model_config
+
+        seen: list[object] = []
+
+        def fake_generate(
+            base_url: str, request: object, **kwargs: object
+        ) -> GenerationResult:
+            seen.append(request)
+            return _generation('ok')
+
+        config = get_model_config('qwen3-4b-q4')
+        with patch.object(
+            run_benchmark, 'generate', side_effect=fake_generate
+        ):
+            with patch.object(
+                run_benchmark, 'ollama_stop', return_value=(True, 's')
+            ):
+                with patch.object(
+                    run_benchmark, 'wait_until_unloaded', return_value=True
+                ):
+                    with patch.object(
+                        run_benchmark, 'check_eligibility',
+                        return_value=_eligible(),
+                    ):
+                        run_benchmark._reload_canonical(
+                            ollama_bin='o', base_url='u', config=config,
+                            timeout_s=30.0,
+                        )
+        assert len(seen) == 1
+        request = seen[0]
+        assert isinstance(request, object)
+        from inference.ollama_client import GenerationRequest
+
+        assert isinstance(request, GenerationRequest)
+        self.assertTrue(request.raw)
+        self.assertEqual(request.num_ctx, 4096)
+        self.assertEqual(request.num_predict, 4)
+        self.assertEqual(request.num_gpu, 99)
+        self.assertIn('<|im_start|>', request.prompt)
+
     def test_no_spike_no_rewarm(self) -> None:
         with TemporaryDirectory() as tmp:
             db = str(Path(tmp) / 'bench.db')
