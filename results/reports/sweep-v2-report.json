@@ -1,0 +1,536 @@
+{
+  "title": "LocalLLM Lab V2 sweep report (canonical analysis artifact)",
+  "experiment_spec_id": "full-baseline-v2",
+  "registry_table_14_rows": [
+    {
+      "model_config_id": "qwen3-4b-q4",
+      "family": "qwen3-4b",
+      "quantization": "Q4_K_M",
+      "eligibility_status": "ELIGIBLE_GPU",
+      "deterministic_trial_accuracy": 0.5245098039215687,
+      "any_pass_3_rate": 0.5294117647058824,
+      "all_pass_3_rate": 0.5147058823529411,
+      "decode_median_tok_s": 37.93877968346223,
+      "decode_p25_tok_s": 37.53972540048624,
+      "decode_p75_tok_s": 42.44527215535261,
+      "decode_p95_tok_s": 74.69375560203167,
+      "ttft_median_ms": 54.3994,
+      "ttft_p95_ms": 125.2691,
+      "peak_vram_mib": 3251.50390625,
+      "model_size_bytes": 2987309136,
+      "model_artifact_digest": "5cfd6a526dc35c24a21a8a457db3e8810165e93bbb134dd6a7ac20b34e97b25a",
+      "failure_modes": {
+        "CONTENT_ERROR": 33,
+        "LEXICAL_CONSTRAINT": 13,
+        "MIXED": 3,
+        "OUTPUT_CONTRACT": 48
+      }
+    },
+    {
+      "model_config_id": "qwen3-4b-q5",
+      "family": "qwen3-4b",
+      "quantization": "Q5_K_M",
+      "eligibility_status": "ELIGIBLE_GPU",
+      "deterministic_trial_accuracy": 0.5441176470588235,
+      "any_pass_3_rate": 0.5588235294117647,
+      "all_pass_3_rate": 0.5294117647058824,
+      "decode_median_tok_s": 33.47534314667533,
+      "decode_p25_tok_s": 33.1919061904928,
+      "decode_p75_tok_s": 38.360764591417166,
+      "decode_p95_tok_s": 65.47930853850183,
+      "ttft_median_ms": 59.359700000000004,
+      "ttft_p95_ms": 130.5602,
+      "peak_vram_mib": 3625.50390625,
+      "model_size_bytes": 3397973439,
+      "model_artifact_digest": "7b56805a15439abd489ff24764b46b349c2f5fa0d52cf41c66c6ba2492093138",
+      "failure_modes": {
+        "CONTENT_ERROR": 20,
+        "LEXICAL_CONSTRAINT": 12,
+        "STRUCTURE_ERROR": 3,
+        "MIXED": 3,
+        "OUTPUT_CONTRACT": 49,
+        "UNKNOWN": 6
+      }
+    },
+    {
+      "model_config_id": "llama3.2-3b-q4",
+      "family": "llama3.2-3b",
+      "quantization": "Q4_K_M",
+      "eligibility_status": "ELIGIBLE_GPU",
+      "deterministic_trial_accuracy": 0.3480392156862745,
+      "any_pass_3_rate": 0.35294117647058826,
+      "all_pass_3_rate": 0.3382352941176471,
+      "decode_median_tok_s": 47.96454957111304,
+      "decode_p25_tok_s": 47.49206344965758,
+      "decode_p75_tok_s": 53.740813827998544,
+      "decode_p95_tok_s": 94.00263207369807,
+      "ttft_median_ms": 48.27045,
+      "ttft_p95_ms": 96.511,
+      "peak_vram_mib": 2657.50390625,
+      "model_size_bytes": 2139996814,
+      "model_artifact_digest": "78a06ba3832b76a02dffca04c26b562998cd855b669f6f22df38f8e7a689ebc1",
+      "failure_modes": {
+        "UNKNOWN": 16,
+        "CONTENT_ERROR": 49,
+        "LEXICAL_CONSTRAINT": 18,
+        "MIXED": 2,
+        "OUTPUT_CONTRACT": 48
+      }
+    },
+    {
+      "model_config_id": "llama3.2-3b-q5",
+      "family": "llama3.2-3b",
+      "quantization": "Q5_K_M",
+      "eligibility_status": "ELIGIBLE_GPU",
+      "deterministic_trial_accuracy": 0.3382352941176471,
+      "any_pass_3_rate": 0.3382352941176471,
+      "all_pass_3_rate": 0.3382352941176471,
+      "decode_median_tok_s": 42.349978491248,
+      "decode_p25_tok_s": 42.05408381631671,
+      "decode_p75_tok_s": 46.30545820541014,
+      "decode_p95_tok_s": 82.48783304462592,
+      "ttft_median_ms": 51.316950000000006,
+      "ttft_p95_ms": 97.5664,
+      "peak_vram_mib": 2945.50390625,
+      "model_size_bytes": 2785363884,
+      "model_artifact_digest": "9d73e0f3da1b6e9e8878138cbbe500dd16cf18b832451cf1ec5d7c3113612c89",
+      "failure_modes": {
+        "UNKNOWN": 18,
+        "CONTENT_ERROR": 45,
+        "LEXICAL_CONSTRAINT": 18,
+        "MIXED": 3,
+        "OUTPUT_CONTRACT": 51
+      }
+    },
+    {
+      "model_config_id": "llama3.2-3b-q6",
+      "family": "llama3.2-3b",
+      "quantization": "Q6_K",
+      "eligibility_status": "ELIGIBLE_GPU",
+      "deterministic_trial_accuracy": 0.38235294117647056,
+      "any_pass_3_rate": 0.38235294117647056,
+      "all_pass_3_rate": 0.38235294117647056,
+      "decode_median_tok_s": 37.697249745206264,
+      "decode_p25_tok_s": 37.44269628588478,
+      "decode_p75_tok_s": 41.36529150204999,
+      "decode_p95_tok_s": 73.27349331379374,
+      "ttft_median_ms": 53.7137,
+      "ttft_p95_ms": 102.1525,
+      "peak_vram_mib": 3249.50390625,
+      "model_size_bytes": 3118674737,
+      "model_artifact_digest": "0d4b86d1730825cde7cb2ebcd09c040f200d3230af45c2d03f656cfa4cd00a8f",
+      "failure_modes": {
+        "UNKNOWN": 18,
+        "CONTENT_ERROR": 36,
+        "LEXICAL_CONSTRAINT": 17,
+        "STRUCTURE_ERROR": 1,
+        "MIXED": 3,
+        "OUTPUT_CONTRACT": 51
+      }
+    },
+    {
+      "model_config_id": "gemma-3n-e2b-q4",
+      "family": "gemma-3n-e2b",
+      "quantization": "Q4_K_M",
+      "eligibility_status": "ELIGIBLE_GPU",
+      "deterministic_trial_accuracy": 0.35294117647058826,
+      "any_pass_3_rate": 0.35294117647058826,
+      "all_pass_3_rate": 0.35294117647058826,
+      "decode_median_tok_s": 49.32587433396558,
+      "decode_p25_tok_s": 45.601655208037634,
+      "decode_p75_tok_s": 49.96482243357852,
+      "decode_p95_tok_s": 50.32243528563414,
+      "ttft_median_ms": 167.4237,
+      "ttft_p95_ms": 256.4228,
+      "peak_vram_mib": 1857.50390625,
+      "model_size_bytes": 1632035143,
+      "model_artifact_digest": "2880ed3fd1ad200cefb415c4377bf1929175885f45f268480d49559030eb8b11",
+      "failure_modes": {
+        "CONTENT_ERROR": 45,
+        "LEXICAL_CONSTRAINT": 18,
+        "MIXED": 3,
+        "OUTPUT_CONTRACT": 57,
+        "UNKNOWN": 6,
+        "STRUCTURE_ERROR": 3
+      }
+    },
+    {
+      "model_config_id": "gemma-3n-e2b-q5",
+      "family": "gemma-3n-e2b",
+      "quantization": "Q5_K_M",
+      "eligibility_status": "ELIGIBLE_GPU",
+      "deterministic_trial_accuracy": 0.3088235294117647,
+      "any_pass_3_rate": 0.3088235294117647,
+      "all_pass_3_rate": 0.3088235294117647,
+      "decode_median_tok_s": 44.12780703439907,
+      "decode_p25_tok_s": 42.11003644654454,
+      "decode_p75_tok_s": 44.532721045502605,
+      "decode_p95_tok_s": 44.803702017275334,
+      "ttft_median_ms": 172.77685000000002,
+      "ttft_p95_ms": 260.5769,
+      "peak_vram_mib": 2111.50390625,
+      "model_size_bytes": 1899946311,
+      "model_artifact_digest": "c9555a5981a2470e4dc981c3b04c45eab7b33659fd70307058fa5aa94471cd7a",
+      "failure_modes": {
+        "CONTENT_ERROR": 51,
+        "LEXICAL_CONSTRAINT": 18,
+        "MIXED": 3,
+        "OUTPUT_CONTRACT": 63,
+        "UNKNOWN": 3,
+        "STRUCTURE_ERROR": 3
+      }
+    },
+    {
+      "model_config_id": "phi-3.5-mini-q4",
+      "family": "phi-3.5-mini",
+      "quantization": "Q4_K_M",
+      "eligibility_status": "COMPLETE_INELIGIBLE_RUNTIME_HEADROOM",
+      "deterministic_trial_accuracy": null,
+      "any_pass_3_rate": null,
+      "all_pass_3_rate": null,
+      "decode_median_tok_s": null,
+      "decode_p95_tok_s": null,
+      "ttft_median_ms": null,
+      "peak_vram_mib": null,
+      "model_size_bytes": null,
+      "failure_modes": null,
+      "evidence_ref": "results\\summaries\\ineligible-phi-3.5-mini-q4.json",
+      "residency_ratio": 1.0
+    },
+    {
+      "model_config_id": "phi-3.5-mini-q5",
+      "family": "phi-3.5-mini",
+      "quantization": "Q5_K_M",
+      "eligibility_status": "COMPLETE_INELIGIBLE_RUNTIME_HEADROOM",
+      "deterministic_trial_accuracy": null,
+      "any_pass_3_rate": null,
+      "all_pass_3_rate": null,
+      "decode_median_tok_s": null,
+      "decode_p95_tok_s": null,
+      "ttft_median_ms": null,
+      "peak_vram_mib": null,
+      "model_size_bytes": null,
+      "failure_modes": null,
+      "evidence_ref": "results\\summaries\\ineligible-phi-3.5-mini-q5.json",
+      "residency_ratio": 1.0
+    },
+    {
+      "model_config_id": "phi-3.5-mini-q6",
+      "family": "phi-3.5-mini",
+      "quantization": "Q6_K",
+      "eligibility_status": "COMPLETE_INELIGIBLE_RUNTIME_HEADROOM",
+      "deterministic_trial_accuracy": null,
+      "any_pass_3_rate": null,
+      "all_pass_3_rate": null,
+      "decode_median_tok_s": null,
+      "decode_p95_tok_s": null,
+      "ttft_median_ms": null,
+      "peak_vram_mib": null,
+      "model_size_bytes": null,
+      "failure_modes": null,
+      "evidence_ref": "results\\summaries\\ineligible-phi-3.5-mini-q6.json",
+      "residency_ratio": 1.0
+    },
+    {
+      "model_config_id": "smolm2-1.7b-q4",
+      "family": "smolm2-1.7b",
+      "quantization": "Q4_K_M",
+      "eligibility_status": "ELIGIBLE_GPU",
+      "deterministic_trial_accuracy": 0.3137254901960784,
+      "any_pass_3_rate": 0.3235294117647059,
+      "all_pass_3_rate": 0.29411764705882354,
+      "decode_median_tok_s": 84.80652950610042,
+      "decode_p25_tok_s": 83.85790716278743,
+      "decode_p75_tok_s": 91.3069045034792,
+      "decode_p95_tok_s": 158.04030027657052,
+      "ttft_median_ms": 38.0533,
+      "ttft_p95_ms": 94.195,
+      "peak_vram_mib": 2055.50390625,
+      "model_size_bytes": 1217941994,
+      "model_artifact_digest": "d85d621a51f5805fe4f33f241bfc7eb7382d54581abbc999c2c62883c802fd7b",
+      "failure_modes": {
+        "CONTENT_ERROR": 51,
+        "UNKNOWN": 19,
+        "LEXICAL_CONSTRAINT": 16,
+        "OUTPUT_CONTRACT": 48,
+        "STRUCTURE_ERROR": 6
+      }
+    },
+    {
+      "model_config_id": "smolm2-1.7b-q5",
+      "family": "smolm2-1.7b",
+      "quantization": "Q5_K_M",
+      "eligibility_status": "ELIGIBLE_GPU",
+      "deterministic_trial_accuracy": 0.28921568627450983,
+      "any_pass_3_rate": 0.29411764705882354,
+      "all_pass_3_rate": 0.27941176470588236,
+      "decode_median_tok_s": 74.91284709928786,
+      "decode_p25_tok_s": 73.45382877699697,
+      "decode_p75_tok_s": 82.56431676781587,
+      "decode_p95_tok_s": 113.23104795334879,
+      "ttft_median_ms": 48.88635,
+      "ttft_p95_ms": 103.9531,
+      "peak_vram_mib": 2217.50390625,
+      "model_size_bytes": 1387811306,
+      "model_artifact_digest": "73e268f7e9494f4364037da8922f946525ab42c44531c98b6ef9af041b8b381f",
+      "failure_modes": {
+        "CONTENT_ERROR": 53,
+        "UNKNOWN": 22,
+        "LEXICAL_CONSTRAINT": 19,
+        "OUTPUT_CONTRACT": 45,
+        "STRUCTURE_ERROR": 6
+      }
+    },
+    {
+      "model_config_id": "smolm2-1.7b-q6",
+      "family": "smolm2-1.7b",
+      "quantization": "Q6_K",
+      "eligibility_status": "ELIGIBLE_GPU",
+      "deterministic_trial_accuracy": 0.3137254901960784,
+      "any_pass_3_rate": 0.3235294117647059,
+      "all_pass_3_rate": 0.3088235294117647,
+      "decode_median_tok_s": 66.97786581650739,
+      "decode_p25_tok_s": 66.30335919736495,
+      "decode_p75_tok_s": 74.27408023580065,
+      "decode_p95_tok_s": 101.21457489878543,
+      "ttft_median_ms": 39.42775,
+      "ttft_p95_ms": 95.2934,
+      "peak_vram_mib": 2387.50390625,
+      "model_size_bytes": 1568292207,
+      "model_artifact_digest": "7459ad2adb03a8728c713cb682830e355d3045e4f1beca54a6ea38088cfa1da3",
+      "failure_modes": {
+        "CONTENT_ERROR": 53,
+        "UNKNOWN": 24,
+        "LEXICAL_CONSTRAINT": 20,
+        "OUTPUT_CONTRACT": 43
+      }
+    },
+    {
+      "model_config_id": "smolm2-1.7b-q8",
+      "family": "smolm2-1.7b",
+      "quantization": "Q8_0",
+      "eligibility_status": "ELIGIBLE_GPU",
+      "deterministic_trial_accuracy": 0.2647058823529412,
+      "any_pass_3_rate": 0.2647058823529412,
+      "all_pass_3_rate": 0.2647058823529412,
+      "decode_median_tok_s": 54.038063967113175,
+      "decode_p25_tok_s": 53.24056243155517,
+      "decode_p75_tok_s": 60.37987709981381,
+      "decode_p95_tok_s": 94.50902561194594,
+      "ttft_median_ms": 44.70755,
+      "ttft_p95_ms": 93.1975,
+      "peak_vram_mib": 2783.50390625,
+      "model_size_bytes": 1982741871,
+      "model_artifact_digest": "056e0339aa482e86fb4b941c4931104f34d2d6da14c1b578f4fc8c5b3f0d017a",
+      "failure_modes": {
+        "CONTENT_ERROR": 57,
+        "UNKNOWN": 24,
+        "LEXICAL_CONSTRAINT": 21,
+        "OUTPUT_CONTRACT": 42,
+        "STRUCTURE_ERROR": 6
+      }
+    }
+  ],
+  "quant_pairs": [
+    {
+      "comparison": "gemma-3n-e2b-q4-vs-gemma-3n-e2b-q5",
+      "trial_accuracy_delta": -0.04411764705882354,
+      "all_pass_delta": -3,
+      "net_task_gain": -3,
+      "fail_to_pass": [
+        "Q069"
+      ],
+      "pass_to_fail": [
+        "Q006",
+        "Q043",
+        "Q063",
+        "Q075"
+      ],
+      "mcnemar_b": 1,
+      "mcnemar_c": 4,
+      "mcnemar_exact_p": 0.375
+    },
+    {
+      "comparison": "llama3.2-3b-q4-vs-llama3.2-3b-q5",
+      "trial_accuracy_delta": -0.009803921568627416,
+      "all_pass_delta": 0,
+      "net_task_gain": 0,
+      "fail_to_pass": [
+        "Q004",
+        "Q049"
+      ],
+      "pass_to_fail": [
+        "Q053",
+        "Q080"
+      ],
+      "mcnemar_b": 2,
+      "mcnemar_c": 2,
+      "mcnemar_exact_p": 1.0
+    },
+    {
+      "comparison": "llama3.2-3b-q4-vs-llama3.2-3b-q6",
+      "trial_accuracy_delta": 0.03431372549019607,
+      "all_pass_delta": 3,
+      "net_task_gain": 3,
+      "fail_to_pass": [
+        "Q004",
+        "Q006",
+        "Q049",
+        "Q072"
+      ],
+      "pass_to_fail": [
+        "Q053"
+      ],
+      "mcnemar_b": 4,
+      "mcnemar_c": 1,
+      "mcnemar_exact_p": 0.375
+    },
+    {
+      "comparison": "qwen3-4b-q4-vs-qwen3-4b-q5",
+      "trial_accuracy_delta": 0.019607843137254832,
+      "all_pass_delta": 1,
+      "net_task_gain": 1,
+      "fail_to_pass": [
+        "Q003",
+        "Q006",
+        "Q011",
+        "Q080"
+      ],
+      "pass_to_fail": [
+        "Q013",
+        "Q046",
+        "Q075"
+      ],
+      "mcnemar_b": 4,
+      "mcnemar_c": 3,
+      "mcnemar_exact_p": 1.0
+    },
+    {
+      "comparison": "smolm2-1.7b-q4-vs-smolm2-1.7b-q5",
+      "trial_accuracy_delta": -0.024509803921568596,
+      "all_pass_delta": -1,
+      "net_task_gain": -1,
+      "fail_to_pass": [
+        "Q061"
+      ],
+      "pass_to_fail": [
+        "Q013",
+        "Q054"
+      ],
+      "mcnemar_b": 1,
+      "mcnemar_c": 2,
+      "mcnemar_exact_p": 1.0
+    },
+    {
+      "comparison": "smolm2-1.7b-q4-vs-smolm2-1.7b-q6",
+      "trial_accuracy_delta": 0.0,
+      "all_pass_delta": 1,
+      "net_task_gain": 1,
+      "fail_to_pass": [
+        "Q057",
+        "Q058",
+        "Q074"
+      ],
+      "pass_to_fail": [
+        "Q013",
+        "Q054"
+      ],
+      "mcnemar_b": 3,
+      "mcnemar_c": 2,
+      "mcnemar_exact_p": 1.0
+    },
+    {
+      "comparison": "smolm2-1.7b-q4-vs-smolm2-1.7b-q8",
+      "trial_accuracy_delta": -0.04901960784313725,
+      "all_pass_delta": -2,
+      "net_task_gain": -2,
+      "fail_to_pass": [],
+      "pass_to_fail": [
+        "Q013",
+        "Q054"
+      ],
+      "mcnemar_b": 0,
+      "mcnemar_c": 2,
+      "mcnemar_exact_p": 0.5
+    }
+  ],
+  "pareto_accuracy_speed": [
+    "gemma-3n-e2b-q4",
+    "qwen3-4b-q4",
+    "qwen3-4b-q5",
+    "smolm2-1.7b-q4"
+  ],
+  "pareto_accuracy_vram": [
+    "gemma-3n-e2b-q4",
+    "llama3.2-3b-q6",
+    "qwen3-4b-q4",
+    "qwen3-4b-q5"
+  ],
+  "methodology_incidents": [
+    {
+      "id": "wrong-canonical-load",
+      "cause": "Eligibility measured a model loaded under default options (num_ctx=512, no num_gpu) instead of the pinned config.",
+      "fixture": "512-context probe/config mismatch hard error; captured size/size_vram numbers as poisoned input.",
+      "rule": "Canonical load probe with exact pinned options; explicit unload + ps-empty before any measured load."
+    },
+    {
+      "id": "stale-state-loop",
+      "cause": "Main loop held a launch-time state copy, re-selecting a terminal model forever.",
+      "fixture": "File-authoritative reload per iteration; terminal-state transition invariant test.",
+      "rule": "State file reloaded every iteration; no terminal state transitions back to work."
+    },
+    {
+      "id": "silent-gemma-metadata",
+      "cause": "/api/show returned empty metadata for Gemma-3n (both sources) although the model downloads and generates.",
+      "fixture": "Overlay-precedence regression test (pinned adapter resolves with show mocked to fail).",
+      "rule": "Committed overlay takes precedence; interrogation failure with no pin is MANUAL_PIN_REQUIRED; human handbook pin with raw-canonical route for Gemma."
+    },
+    {
+      "id": "first-token-trial",
+      "cause": "1-token route trial falsely failed SmolLM2 Q6, whose first token can be non-text on a healthy route.",
+      "fixture": "Trial-v1.1: 16-token budget; mid-derivation assertion test.",
+      "rule": "Trials prove transport, not brevity."
+    },
+    {
+      "id": "phi-runtime-headroom",
+      "cause": "Phi Q4 100% resident yet aborted sustained generation with ~95 MiB free; residency necessary but not sufficient.",
+      "fixture": "Residency-plus-canary amendment; RUNTIME_HEADROOM terminal.",
+      "rule": "Eligibility = full residency AND operational canary."
+    },
+    {
+      "id": "ghost-deletion",
+      "cause": "rm success does not imply absence; list/ps can disagree.",
+      "fixture": "Ghost-state unit test (rm-ok + still-present).",
+      "rule": "Verified deletion guard; DELETION_FAILED never advances."
+    }
+  ],
+  "limitations": [
+    "Observed quantization differences within the tested paired deterministic tasks were small and were not statistically distinguishable under the exact McNemar tests used here.",
+    "Temperature-0 inference showed high repeatability under this benchmark, hardware, and runtime configuration; no universal determinism claim is made.",
+    "Single machine (RTX 2050 4 GB VRAM); feasibility findings are hardware-specific by construction.",
+    "READY_JUDGE tasks are excluded from all capability denominators; qualitative outcomes remain deferred.",
+    "Temperature study (0 vs 0.7), long-context, and judge-bias suites are out of scope for this lineage.",
+    "Strict substring matchers (terms, dates, units) punish paraphrase; contract accuracy understates reasoning capability by design."
+  ],
+  "next_experiments": [
+    "retry/rescue: 39/97 deterministic Qwen Q4 failure rows classified as pure OUTPUT_CONTRACT form the pre-registered recovery population.",
+    "temperature 0 vs 0.7 on the frozen 72-task contract.",
+    "long-context and reliability suites."
+  ],
+  "human_substantive_review": {
+    "qwen3-4b-q4": "available / APPROVED (results/reports/qwen3-4b-q4-failure-analysis.json)",
+    "other_configs": "NOT_REVIEWED (automatic taxonomy only)"
+  },
+  "licensed_claims": [
+    "Observed quantization differences within the tested paired deterministic tasks were small and were not statistically distinguishable under the exact McNemar tests used here.",
+    "Temperature-0 inference showed high repeatability under this benchmark, hardware, and runtime configuration."
+  ],
+  "provenance": {
+    "report_dependencies": {
+      "matplotlib": "3.10.9",
+      "pandas": "2.2.3",
+      "numpy": "2.2.3"
+    },
+    "analysis_code_git_commit": "1d63305fadd416387f218ad8ba868e85a1345382"
+  }
+}
