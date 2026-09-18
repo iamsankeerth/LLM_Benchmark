@@ -1,0 +1,16 @@
+{
+  "execution_id": "full-baseline-v2__qwen3-4b-q5",
+  "taxonomy_version": "failure-modes-v1",
+  "scope_note": "auto modes only; substantive review is a separate process",
+  "deterministic_fail_rows": 93,
+  "judge_precheck_fail_rows": 6,
+  "mode_counts_deterministic": {
+    "CONTENT_ERROR": 20,
+    "LEXICAL_CONSTRAINT": 12,
+    "STRUCTURE_ERROR": 3,
+    "MIXED": 3,
+    "OUTPUT_CONTRACT": 49,
+    "UNKNOWN": 6
+  },
+  "total_fail_rows": 99
+}
