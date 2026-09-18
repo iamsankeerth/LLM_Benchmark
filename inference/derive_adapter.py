@@ -78,9 +78,12 @@ TRIAL_PROMPT = 'Return only the word OK.'
 
 # Canonical trial options shared by route verification and eligibility:
 # identical context/offload/temperature so a verified load IS the measured
-# load. num_predict=1 keeps trials cheap; residency follows num_ctx.
+# load. num_predict=16 (trial-v1.1): the 1-token budget falsely failed
+# SmolLM2 Q6, whose first token can be non-text while the route transports
+# correctly (verified live: 16-token probe streams well-formed output).
+# The trial proves transport, not brevity; benchmark budgets are separate.
 TRIAL_NUM_CTX = 4096
-TRIAL_NUM_PREDICT = 1
+TRIAL_NUM_PREDICT = 16
 TRIAL_NUM_GPU = 99
 TRIAL_TEMPERATURE = 0.0
 

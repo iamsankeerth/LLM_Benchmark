@@ -110,7 +110,7 @@ class DeriveTests(unittest.TestCase):
             raw_trials = [r for r in seen if r.raw]
             self.assertEqual(len(raw_trials), 1)
             self.assertEqual(raw_trials[0].num_ctx, 4096)
-            self.assertEqual(raw_trials[0].num_predict, 1)
+            self.assertEqual(raw_trials[0].num_predict, 16)
             self.assertEqual(raw_trials[0].num_gpu, 99)
 
     def test_raw_fallback_aborts_when_unload_fails(self) -> None:
@@ -142,7 +142,7 @@ class DeriveTests(unittest.TestCase):
             )
             self.assertEqual(len(seen), 1)
             self.assertEqual(seen[0].num_ctx, 4096)
-            self.assertEqual(seen[0].num_predict, 1)
+            self.assertEqual(seen[0].num_predict, 16)
             self.assertEqual(seen[0].num_gpu, 99)
             self.assertFalse(seen[0].raw)
 
