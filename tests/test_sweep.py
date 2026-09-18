@@ -106,6 +106,52 @@ class SweepStateTests(unittest.TestCase):
             self.assertEqual(state.next_model, None)
             self.assertEqual(state.ineligible, ['b'])
 
+    def test_complete_clears_stale_terminal_lists(self) -> None:
+        # Terminal truth lives in exactly one list (V1-era stale tag fix).
+        state = new_sweep_state('s', ['a'])
+        set_lifecycle(state, 'a', COMPLETE_INELIGIBLE)
+        self.assertEqual(state.ineligible, ['a'])
+        set_lifecycle(state, 'a', COMPLETE)
+        self.assertEqual(state.ineligible, [])
+        self.assertEqual(state.failed, [])
+        self.assertEqual(state.completed, ['a'])
+
+    def test_unhandled_model_crash_persists_and_stops(self) -> None:
+        import yaml
+
+        from scripts import run_model_sweep
+        from unittest.mock import patch
+
+        with TemporaryDirectory() as tmp:
+            state_file = str(Path(tmp) / 'sweep.json')
+            registry_file = str(Path(tmp) / 'registry.yaml')
+            Path(registry_file).write_text(
+                yaml.safe_dump({
+                    'experiment_spec': 'full-baseline-v2',
+                    'models': [{'model_config_id': 'm1'}, {'model_config_id': 'm2'}],
+                }),
+                encoding='utf-8',
+            )
+            state = new_sweep_state('s', ['m1', 'm2'])
+            save_sweep_state(state_file, state)
+
+            def boom(args: object, entry: dict[str, object]) -> str:
+                raise RuntimeError('simulated harness bug')
+
+            with patch.object(run_model_sweep, 'run_one_model', side_effect=boom):
+                with patch.object(
+                    run_model_sweep, 'load_overlays_from_dir', return_value=0
+                ):
+                    code = run_model_sweep.main([
+                        '--state-file', state_file,
+                        '--registry', registry_file, '--db-dir', tmp,
+                    ])
+            self.assertEqual(code, 1)
+            reloaded = load_sweep_state(state_file)
+            assert reloaded is not None
+            self.assertEqual(reloaded.models['m1'].lifecycle, 'BENCHMARK_ERROR')
+            self.assertEqual(reloaded.models['m2'].lifecycle, 'PENDING')
+
     def test_failed_tracked(self) -> None:
         state = new_sweep_state('sweep', ['a'])
         set_lifecycle(state, 'a', DOWNLOAD_FAILED, 'net down')

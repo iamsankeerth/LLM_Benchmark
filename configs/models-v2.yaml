@@ -30,11 +30,11 @@ models:
   - model_config_id: gemma-3n-e2b-q4
     family: gemma-3n-e2b
     quantization: Q4_K_M
-    ollama_identifier: hf.co/bartowski/google_gemma-3n-E2B-it-GGUF:Q4_K_M
+    ollama_identifier: hf.co/unsloth/gemma-3n-E2B-it-GGUF:Q4_K_M
   - model_config_id: gemma-3n-e2b-q5
     family: gemma-3n-e2b
     quantization: Q5_K_M
-    ollama_identifier: hf.co/bartowski/google_gemma-3n-E2B-it-GGUF:Q5_K_M
+    ollama_identifier: hf.co/unsloth/gemma-3n-E2B-it-GGUF:Q5_K_M
   - model_config_id: phi-3.5-mini-q4
     family: phi-3.5-mini
     quantization: Q4_K_M

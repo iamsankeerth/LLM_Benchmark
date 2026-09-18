@@ -894,7 +894,19 @@ def _run_loop(
                   f'({state.models[current].lifecycle})', flush=True)
             return 0
         entry = next(e for e in registry['models'] if e['model_config_id'] == current)
-        outcome = run_one_model(args, entry)
+        try:
+            outcome = run_one_model(args, entry)
+        except Exception as exc:
+            # Last-line integrity net: an unhandled per-model crash must
+            # persist as BENCHMARK_ERROR and stop, never kill state silently.
+            checkpoint_state = load_sweep_state(args.state_file)
+            if checkpoint_state is not None:
+                set_lifecycle(checkpoint_state, current, BENCHMARK_ERROR,
+                              f'unhandled: {type(exc).__name__}: {exc}')
+                save_sweep_state(args.state_file, checkpoint_state)
+            print(f'sweep stopped: {current} -> BENCHMARK_ERROR '
+                  f'(unhandled {type(exc).__name__})', flush=True)
+            return 1
         if outcome == 'PAUSED':
             return 0  # banner already printed by the pausing layer
         if outcome in stopped_states:

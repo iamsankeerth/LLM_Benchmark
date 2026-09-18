@@ -275,6 +275,13 @@ def set_lifecycle(
         state.models[model_config_id].detail = detail
     if lifecycle == COMPLETE_INELIGIBLE and model_config_id not in state.ineligible:
         state.ineligible.append(model_config_id)
+    if lifecycle == COMPLETE:
+        # A completed lifecycle clears any stale failure/ineligible record:
+        # terminal truth lives in exactly one list.
+        if model_config_id in state.ineligible:
+            state.ineligible.remove(model_config_id)
+        if model_config_id in state.failed:
+            state.failed.remove(model_config_id)
     if lifecycle in (DOWNLOAD_FAILED, BENCHMARK_ERROR, VERIFY_FAILED,
                      MANUAL_PIN_REQUIRED, ADAPTER_MISMATCH, PREFLIGHT_FAILED,
                      MEASUREMENT_FAILED, DELETION_FAILED):
