@@ -373,6 +373,23 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
 
     if run_stage('derived'):
         checkpoint(DERIVING)
+        # Resume may land here with weights absent (registry correction,
+        # manual cleanup, or eviction): re-pull boundedly, never assume.
+        if not ollama_model_present(ollama_bin, identifier):
+            print(f'[{model_config_id}] weights absent, re-pulling', flush=True)
+            repulled = False
+            for attempt in range(1 + len(PULL_BACKOFFS)):
+                ok, _ = ollama_pull(ollama_bin, identifier)
+                if ok and ollama_model_present(ollama_bin, identifier):
+                    repulled = True
+                    break
+                if attempt < len(PULL_BACKOFFS):
+                    import time as _time
+
+                    _time.sleep(PULL_BACKOFFS[attempt])
+            if not repulled:
+                checkpoint(DOWNLOAD_FAILED, 're-pull failed on resume')
+                return DOWNLOAD_FAILED
         show_doc = fetch_show(base_url, identifier)
         try:
             generate(
