@@ -31,6 +31,7 @@ from analysis.reliability import load_spec_statuses
 from inference.adapters import (
     get_model_config,
     load_overlays_from_dir,
+    register_overlay,
     render_prompt,
 )
 from inference.derive_adapter import (
@@ -415,6 +416,10 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
                     ensure_unloaded=ensure_unloaded,
                 )
                 adapter_source = 'derived'
+                # The overlay file exists but this process registered
+                # adapters at startup: register the derived config live so
+                # preflight/smoke/benchmark resolve it in-process.
+                register_overlay(config)
             except OverlayExistsError:
                 load_overlays_from_dir(root / 'configs/adapters')
                 config = get_model_config(model_config_id)
