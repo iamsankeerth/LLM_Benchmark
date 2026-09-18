@@ -304,6 +304,25 @@ class GemmaPinTests(unittest.TestCase):
         # Machine-derived overlays are exempt (verified at derive time).
         assert_overlay_approved({'config_id': 'y'})
 
+    def test_q5_overlay_matches_q4_family_pin(self) -> None:
+        from inference.adapters import clear_overlays, load_overlays_from_dir
+
+        root = Path(__file__).resolve().parents[1]
+        clear_overlays()
+        try:
+            count = load_overlays_from_dir(root / 'configs/adapters')
+            self.assertGreaterEqual(count, 2)
+            from inference.adapters import get_model_config
+
+            q4 = get_model_config('gemma-3n-e2b-q4')
+            q5 = get_model_config('gemma-3n-e2b-q5')
+            for field in ('template_sha256', 'mode', 'stop_tokens', 'think'):
+                self.assertEqual(getattr(q4, field), getattr(q5, field), field)
+            self.assertNotEqual(q4.ollama_model_digest, q5.ollama_model_digest)
+            self.assertNotEqual(q4.quantization, q5.quantization)
+        finally:
+            clear_overlays()
+
 
 if __name__ == '__main__':
     unittest.main()
