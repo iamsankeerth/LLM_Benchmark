@@ -390,73 +390,84 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
             if not repulled:
                 checkpoint(DOWNLOAD_FAILED, 're-pull failed on resume')
                 return DOWNLOAD_FAILED
-        try:
-            show_doc = fetch_show(base_url, identifier)
-        except Exception as exc:
-            # Interrogation impossible (e.g. server returns no metadata):
-            # no adapter can be pinned or verified -> human decision.
-            checkpoint(STATE_MANUAL_PIN,
-                       f'model interrogation failed: {type(exc).__name__}: {exc}')
-            return STATE_MANUAL_PIN
-        try:
-            generate(
-                base_url,
-                GenerationRequest(
-                    model=identifier, prompt='OK', temperature=0.0,
-                    num_ctx=512, num_predict=4, raw=False,
-                ),
-                timeout_s=300.0,
-            )
-        except OllamaClientError as exc:
-            checkpoint(BENCHMARK_ERROR, f'load probe failed: {exc}')
-            return BENCHMARK_ERROR
-        observed_digest, _ = load_ps_digest(base_url, identifier)
-        if observed_digest is None:
-            checkpoint(BENCHMARK_ERROR, 'model absent from /api/ps after load probe')
-            return BENCHMARK_ERROR
         overlay_path = root / 'configs/adapters' / f'{model_config_id}.json'
-        try:
+        if overlay_path.exists():
+            # Committed overlay takes precedence: no interrogation needed,
+            # so a silent /api/show can never block a pinned adapter.
+            # Digest binds later at canonical eligibility (expected_digest).
+            load_overlays_from_dir(root / 'configs/adapters')
             config = get_model_config(model_config_id)
-            adapter_source = 'coded-or-overlay'
-        except KeyError:
-            config = None
-            adapter_source = None
-        if config is None:
-            def trial_generate(request: GenerationRequest) -> GenerationResult:
-                return generate(args.base_url, request, timeout_s=120.0)
-
-            def ensure_unloaded() -> bool:
-                ollama_stop(ollama_bin, identifier)
-                return wait_until_unloaded(
-                    lambda: load_ps_digest(base_url, identifier)[0] is None,
-                    timeout_s=180.0,
-                )
-
-            try:
-                config = derive_adapter(
-                    registry_entry=entry, show_doc=show_doc,
-                    observed_digest=observed_digest, trial_generate=trial_generate,
-                    overlay_path=overlay_path,
-                    ensure_unloaded=ensure_unloaded,
-                )
-                adapter_source = 'derived'
-                # The overlay file exists but this process registered
-                # adapters at startup: register the derived config live so
-                # preflight/smoke/benchmark resolve it in-process.
-                register_overlay(config)
-            except OverlayExistsError:
-                load_overlays_from_dir(root / 'configs/adapters')
-                config = get_model_config(model_config_id)
-                adapter_source = 'overlay-reload'
-            except ManualPinRequired as exc:
-                checkpoint(STATE_MANUAL_PIN, str(exc))
-                return STATE_MANUAL_PIN
+            adapter_source = 'overlay-pinned'
         else:
-            mismatches = verify_overlay_matches_live(config, show_doc, observed_digest)
-            if mismatches:
-                checkpoint('ADAPTER_MISMATCH', '; '.join(
-                    f'{m.field}: {m.pinned} != {m.observed}' for m in mismatches))
-                return 'ADAPTER_MISMATCH'
+            try:
+                show_doc = fetch_show(base_url, identifier)
+            except Exception as exc:
+                # Interrogation impossible and nothing pinned: human decision.
+                checkpoint(STATE_MANUAL_PIN,
+                           f'model interrogation failed: {type(exc).__name__}: {exc}')
+                return STATE_MANUAL_PIN
+            # Digest observation only (never measured for eligibility: the
+            # canonical stage unloads first, then probes pinned options).
+            try:
+                generate(
+                    base_url,
+                    GenerationRequest(
+                        model=identifier, prompt='OK', temperature=0.0,
+                        num_ctx=512, num_predict=4, raw=False,
+                    ),
+                    timeout_s=300.0,
+                )
+            except OllamaClientError as exc:
+                checkpoint(BENCHMARK_ERROR, f'load probe failed: {exc}')
+                return BENCHMARK_ERROR
+            observed_digest, _ = load_ps_digest(base_url, identifier)
+            if observed_digest is None:
+                checkpoint(BENCHMARK_ERROR, 'model absent from /api/ps after load probe')
+                return BENCHMARK_ERROR
+            # No committed overlay: derive from interrogation (show_doc is
+            # defined in this branch only).
+            try:
+                config = get_model_config(model_config_id)
+                adapter_source = 'coded-or-overlay'
+            except KeyError:
+                config = None
+                adapter_source = None
+            if config is None:
+                def trial_generate(request: GenerationRequest) -> GenerationResult:
+                    return generate(args.base_url, request, timeout_s=120.0)
+
+                def ensure_unloaded() -> bool:
+                    ollama_stop(ollama_bin, identifier)
+                    return wait_until_unloaded(
+                        lambda: load_ps_digest(base_url, identifier)[0] is None,
+                        timeout_s=180.0,
+                    )
+
+                try:
+                    config = derive_adapter(
+                        registry_entry=entry, show_doc=show_doc,
+                        observed_digest=observed_digest, trial_generate=trial_generate,
+                        overlay_path=overlay_path,
+                        ensure_unloaded=ensure_unloaded,
+                    )
+                    adapter_source = 'derived'
+                    # The overlay file exists but this process registered
+                    # adapters at startup: register the derived config live so
+                    # preflight/smoke/benchmark resolve it in-process.
+                    register_overlay(config)
+                except OverlayExistsError:
+                    load_overlays_from_dir(root / 'configs/adapters')
+                    config = get_model_config(model_config_id)
+                    adapter_source = 'overlay-reload'
+                except ManualPinRequired as exc:
+                    checkpoint(STATE_MANUAL_PIN, str(exc))
+                    return STATE_MANUAL_PIN
+            else:
+                mismatches = verify_overlay_matches_live(config, show_doc, observed_digest)
+                if mismatches:
+                    checkpoint('ADAPTER_MISMATCH', '; '.join(
+                        f'{m.field}: {m.pinned} != {m.observed}' for m in mismatches))
+                    return 'ADAPTER_MISMATCH'
         print(f'[{model_config_id}] adapter: {adapter_source} '
               f'mode={config.mode}', flush=True)
         assert config is not None, 'adapter unresolved'

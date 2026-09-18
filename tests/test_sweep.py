@@ -6,7 +6,11 @@ import subprocess
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
+import yaml
+
+from scripts import run_model_sweep
 from storage.db import RunRecord, connect, create_experiment, init_schema, insert_run
 from storage.sweep import (
     BENCHMARK_ERROR,
@@ -117,10 +121,8 @@ class SweepStateTests(unittest.TestCase):
         self.assertEqual(state.completed, ['a'])
 
     def test_unhandled_model_crash_persists_and_stops(self) -> None:
-        import yaml
 
         from scripts import run_model_sweep
-        from unittest.mock import patch
 
         with TemporaryDirectory() as tmp:
             state_file = str(Path(tmp) / 'sweep.json')
@@ -342,10 +344,8 @@ class OllamaHelperTests(unittest.TestCase):
     def test_natural_complete_advances_not_pauses(self) -> None:
         # Regression: natural COMPLETE must advance the sweep, not pause it.
         # Only an explicit --stop-after complete pauses on completion.
-        import yaml
 
         from scripts import run_model_sweep
-        from unittest.mock import patch
 
         def _run(order: list[str], stop_after: object) -> tuple[list[str], int]:
             with TemporaryDirectory() as tmp:
@@ -391,12 +391,46 @@ class OllamaHelperTests(unittest.TestCase):
         self.assertEqual(calls, ['m1'])
         self.assertEqual(code, 0)
 
-    def test_deletion_failed_stops_sweep(self) -> None:
-        import yaml
+    def test_overlay_takes_precedence_over_show(self) -> None:
+        # A committed overlay must resolve without any /api/show call, so a
+        # silent show can never block a pinned adapter (Gemma incident).
+        import argparse
 
         from scripts import run_model_sweep
-        from unittest.mock import patch
 
+        with TemporaryDirectory() as tmp:
+            state_file = str(Path(tmp) / 'sweep.json')
+            db_dir = str(Path(tmp) / 'local')
+            Path(db_dir).mkdir()
+            state = new_sweep_state('s', ['llama3.2-3b-q4'])
+            save_sweep_state(state_file, state)
+            args = argparse.Namespace(
+                spec='full-baseline-v2', model='llama3.2-3b-q4',
+                db_dir=db_dir, base_url='http://127.0.0.1:9',
+                ollama_bin='ollama', state_file=state_file,
+                stop_after='derived', stop_on_ineligible=False,
+            )
+            entry = {
+                'model_config_id': 'llama3.2-3b-q4',
+                'ollama_identifier': 'hf.co/bartowski/Llama-3.2-3B-Instruct-GGUF:Q4_K_M',
+            }
+
+            def forbidden_show(base_url: str, identifier: str) -> object:
+                raise AssertionError('show must not be called for pinned adapters')
+
+            with patch.object(
+                run_model_sweep, 'ollama_pull', return_value=(True, 'pulled')
+            ):
+                with patch.object(
+                    run_model_sweep, 'ollama_model_present', return_value=True
+                ):
+                    with patch.object(
+                        run_model_sweep, 'fetch_show', side_effect=forbidden_show
+                    ):
+                        outcome = run_model_sweep.run_one_model(args, entry)
+            self.assertEqual(outcome, 'DERIVED')
+
+    def test_deletion_failed_stops_sweep(self) -> None:
         with TemporaryDirectory() as tmp:
             state_file = str(Path(tmp) / 'sweep.json')
             registry_file = str(Path(tmp) / 'registry.yaml')
@@ -444,10 +478,8 @@ class OllamaHelperTests(unittest.TestCase):
 
     def test_only_terminal_never_reruns(self) -> None:
         # --only + terminal stored in the file: zero model calls, exit 0.
-        import yaml
 
         from scripts import run_model_sweep
-        from unittest.mock import patch
 
         with TemporaryDirectory() as tmp:
             state_file = str(Path(tmp) / 'sweep.json')
@@ -477,10 +509,8 @@ class OllamaHelperTests(unittest.TestCase):
             self.assertEqual(calls, [])
 
     def test_sweep_advances_exactly_once(self) -> None:
-        import yaml
 
         from scripts import run_model_sweep
-        from unittest.mock import patch
 
         with TemporaryDirectory() as tmp:
             state_file = str(Path(tmp) / 'sweep.json')
