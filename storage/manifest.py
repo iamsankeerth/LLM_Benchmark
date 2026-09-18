@@ -53,6 +53,9 @@ class ExperimentManifest:
     stop_tokens: tuple[str, ...]
     think: bool | None
     thinking_source: str
+    # Runtime policy, not generation identity (kept OUT of run_config_hash):
+    # the load-duration threshold whose breach triggers automatic re-warm.
+    reload_evidence_load_duration_ms: float
     started_at_utc: str
 
     def to_json(self) -> str:
@@ -129,6 +132,7 @@ def build_manifest(
     think: bool | None,
     thinking_source: str,
     experiment_config_hash: str,
+    reload_evidence_load_duration_ms: float,
     live: LiveEnvironment,
 ) -> ExperimentManifest:
     return ExperimentManifest(
@@ -157,5 +161,6 @@ def build_manifest(
         think=think,
         thinking_source=thinking_source,
         experiment_config_hash=experiment_config_hash,
+        reload_evidence_load_duration_ms=reload_evidence_load_duration_ms,
         started_at_utc=live.started_at_utc,
     )

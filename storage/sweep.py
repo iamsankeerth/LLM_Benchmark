@@ -15,21 +15,85 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Callable, Mapping, Sequence
 
-# Lifecycle states (per model).
+# Lifecycle states (per model). -ING = in progress (crash: restart stage);
+# bare names = stage complete (resume continues from the next stage).
 PENDING = 'PENDING'
 DOWNLOADING = 'DOWNLOADING'
 DOWNLOAD_FAILED = 'DOWNLOAD_FAILED'
+PULLED = 'PULLED'
 DERIVING = 'DERIVING'
 MANUAL_PIN_REQUIRED = 'MANUAL_PIN_REQUIRED'
+DERIVED = 'DERIVED'
+ADAPTER_MISMATCH = 'ADAPTER_MISMATCH'
+ELIGIBLE = 'ELIGIBLE'
 PREFLIGHTING = 'PREFLIGHTING'
 PREFLIGHT_FAILED = 'PREFLIGHT_FAILED'
+PREFLIGHTED = 'PREFLIGHTED'
 SMOKING = 'SMOKING'
+SMOKED = 'SMOKED'
+WARMING_UP = 'WARMING_UP'
 BENCHMARKING = 'BENCHMARKING'
 BENCHMARK_ERROR = 'BENCHMARK_ERROR'
+BENCHMARKED = 'BENCHMARKED'
+VALIDATED = 'VALIDATED'
+SUMMARIZED = 'SUMMARIZED'
 VERIFYING = 'VERIFYING'
 VERIFY_FAILED = 'VERIFY_FAILED'
 COMPLETE = 'COMPLETE'
 COMPLETE_INELIGIBLE = 'COMPLETE_INELIGIBLE'
+
+# Ordered stages for --stop-after and resume mapping.
+STAGES = (
+    'pulled', 'derived', 'eligible', 'preflighted', 'smoked',
+    'benchmarked', 'validated', 'summarized', 'verified',
+    'unloaded', 'deleted', 'complete',
+)
+
+# Lifecycle value recorded when --stop-after halts after a stage.
+STOPPED_STATE = {
+    'pulled': PULLED,
+    'derived': DERIVED,
+    'eligible': ELIGIBLE,
+    'preflighted': PREFLIGHTED,
+    'smoked': SMOKED,
+    'benchmarked': BENCHMARKED,
+    'validated': VALIDATED,
+    'summarized': SUMMARIZED,
+    'verified': 'VERIFIED',
+    'unloaded': 'UNLOADED',
+    'deleted': 'DELETED',
+    'complete': COMPLETE,
+}
+
+# Resume: lifecycle -> first stage to (re)run. Pull/show are cheap and
+# idempotent, so resume re-enters through them; warmups re-run every
+# invocation by the runner's session rule (see run_benchmark).
+RESTART_STAGE = {
+    PENDING: 'pulled',
+    DOWNLOADING: 'pulled',
+    DOWNLOAD_FAILED: 'pulled',
+    PULLED: 'derived',
+    DERIVING: 'derived',
+    MANUAL_PIN_REQUIRED: 'derived',
+    DERIVED: 'eligible',
+    ADAPTER_MISMATCH: 'derived',
+    ELIGIBLE: 'preflighted',
+    PREFLIGHTING: 'preflighted',
+    PREFLIGHT_FAILED: 'preflighted',
+    PREFLIGHTED: 'smoked',
+    SMOKING: 'smoked',
+    SMOKED: 'benchmarked',
+    WARMING_UP: 'benchmarked',
+    BENCHMARKING: 'benchmarked',
+    BENCHMARK_ERROR: 'benchmarked',
+    BENCHMARKED: 'validated',
+    VALIDATED: 'summarized',
+    SUMMARIZED: 'verified',
+    VERIFYING: 'verified',
+    VERIFY_FAILED: 'verified',
+    'UNLOADED': 'deleted',
+    'DELETED': 'complete',
+}
 
 TERMINAL_OK = frozenset({COMPLETE, COMPLETE_INELIGIBLE})
 
@@ -177,12 +241,14 @@ def set_lifecycle(
     state.models[model_config_id].lifecycle = lifecycle
     if detail:
         state.models[model_config_id].detail = detail
-    if lifecycle in TERMINAL_OK and model_config_id not in state.completed + state.ineligible:
-        if lifecycle == COMPLETE_INELIGIBLE and model_config_id not in state.ineligible:
-            state.ineligible.append(model_config_id)
-    if lifecycle in (DOWNLOAD_FAILED, BENCHMARK_ERROR, VERIFY_FAILED, MANUAL_PIN_REQUIRED):
+    if lifecycle == COMPLETE_INELIGIBLE and model_config_id not in state.ineligible:
+        state.ineligible.append(model_config_id)
+    if lifecycle in (DOWNLOAD_FAILED, BENCHMARK_ERROR, VERIFY_FAILED,
+                     MANUAL_PIN_REQUIRED, ADAPTER_MISMATCH, PREFLIGHT_FAILED):
         if model_config_id not in state.failed:
             state.failed.append(model_config_id)
+    if lifecycle in TERMINAL_OK and model_config_id in state.failed:
+        state.failed.remove(model_config_id)
 
 
 @dataclass

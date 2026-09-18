@@ -23,6 +23,23 @@ from inference.ollama_client import GenerationResult
 _NS_PER_S = 1_000_000_000
 _NS_PER_MS = 1_000_000
 
+# Reload evidence: a measured generation whose server load_duration exceeds
+# this threshold is treated as proof the model was (re)loaded mid-run
+# (eviction), triggering automatic re-warm. Named, frozen, and recorded in
+# every manifest so re-warm events reproduce exactly. NOT part of the
+# generation identity hash: it is runtime policy, not a trial condition.
+RELOAD_EVIDENCE_LOAD_DURATION_MS = 1000.0
+
+
+def needs_rewarm(
+    server_load_duration_ms: float | None,
+    threshold_ms: float = RELOAD_EVIDENCE_LOAD_DURATION_MS,
+) -> bool:
+    """True when a generation's load duration evidences a (re)load."""
+    return (
+        server_load_duration_ms is not None and server_load_duration_ms > threshold_ms
+    )
+
 
 @dataclass(frozen=True)
 class ProfiledMetrics:

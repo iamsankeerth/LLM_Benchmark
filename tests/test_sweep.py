@@ -9,9 +9,18 @@ from tempfile import TemporaryDirectory
 
 from storage.db import RunRecord, connect, create_experiment, init_schema, insert_run
 from storage.sweep import (
+    BENCHMARK_ERROR,
+    BENCHMARKED,
+    BENCHMARKING,
     COMPLETE,
     COMPLETE_INELIGIBLE,
     DOWNLOAD_FAILED,
+    PENDING,
+    RESTART_STAGE,
+    SMOKED,
+    STAGES,
+    STOPPED_STATE,
+    WARMING_UP,
     disk_reclaimed_ok,
     guard_deletion,
     load_sweep_state,
@@ -50,6 +59,23 @@ def _fail_process() -> subprocess.CompletedProcess[str]:
 
 
 class SweepStateTests(unittest.TestCase):
+    def test_stopped_states_cover_every_stage(self) -> None:
+        for stage in STAGES:
+            self.assertIn(stage, STOPPED_STATE, stage)
+
+    def test_restart_mapping_covers_lifecycles(self) -> None:
+        for lifecycle in (
+            PENDING, DOWNLOAD_FAILED, 'PULLED', 'DERIVING', 'DERIVED',
+            'ELIGIBLE', 'PREFLIGHTED', 'SMOKED', WARMING_UP, BENCHMARKING,
+            BENCHMARK_ERROR, BENCHMARKED, 'VALIDATED', 'SUMMARIZED',
+            'VERIFYING',
+        ):
+            self.assertIn(lifecycle, RESTART_STAGE, lifecycle)
+        # Warmup-adjacent states resume into the benchmark (fresh re-warm).
+        self.assertEqual(RESTART_STAGE[SMOKED], 'benchmarked')
+        self.assertEqual(RESTART_STAGE[WARMING_UP], 'benchmarked')
+        self.assertEqual(RESTART_STAGE[BENCHMARKED], 'validated')
+
     def test_round_trip_and_progression(self) -> None:
         with TemporaryDirectory() as tmp:
             path = str(Path(tmp) / 'sweep.json')

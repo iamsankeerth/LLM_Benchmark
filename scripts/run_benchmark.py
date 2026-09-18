@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from evals.graders.engine import GraderResult, grade_output
 from evals.verdicts import ERROR, REFUSED_NOT_EXECUTABLE, reduce_verdict
 from inference.adapters import (
+    ModelConfig,
     get_model_config,
     model_config_hash,
     render_prompt,
@@ -35,7 +36,12 @@ from inference.ollama_client import (
     OllamaClientError,
     generate,
 )
-from inference.profiler import ProfiledMetrics, derive_metrics
+from inference.profiler import (
+    RELOAD_EVIDENCE_LOAD_DURATION_MS,
+    ProfiledMetrics,
+    derive_metrics,
+    needs_rewarm,
+)
 from inference.sysmon import SystemSampler, sample_vram_once
 from storage.db import (
     RunRecord,
@@ -230,6 +236,82 @@ def _load_probe(base_url: str, model_identifier: str) -> None:
     )
 
 
+def _run_warmup_trial(
+    conn: sqlite3.Connection,
+    *,
+    experiment_id: str,
+    config: ModelConfig,
+    config_hash: str,
+    temperature: float,
+    num_predict: int,
+    warmup_prompt: str,
+    base_url: str,
+    timeout_s: float,
+    ollama_ver: str | None,
+) -> ProfiledMetrics:
+    """Run, profile, persist and commit ONE warmup generation.
+
+    Trial numbers continue from persisted history (collision-free resume),
+    but warmth is proven only by fresh completion in this invocation.
+    """
+    trial_no = int(conn.execute(
+        "SELECT COUNT(*) FROM runs WHERE experiment_id=? AND model_config_id=?"
+        " AND run_kind='WARMUP'",
+        (experiment_id, config.config_id),
+    ).fetchone()[0]) + 1
+    started = utcnow()
+    rendered = render_prompt(config, warmup_prompt)
+    with SystemSampler() as sampler:
+        result = generate(
+            base_url,
+            GenerationRequest(
+                model=config.ollama_identifier,
+                prompt=rendered,
+                temperature=temperature,
+                num_ctx=config.num_ctx,
+                num_predict=num_predict,
+                stop=config.stop_tokens,
+                raw=(config.mode == 'raw'),
+                think=config.think,
+                num_gpu=config.num_gpu,
+            ),
+            timeout_s=timeout_s,
+        )
+    metrics = derive_metrics(result)
+    sample = sampler.sample()
+    post, _ = sample_vram_once()
+    insert_measured_row(
+        conn,
+        base={
+            'experiment_id': experiment_id, 'model_config_id': config.config_id,
+            'task_id': f'WARMUP-{trial_no}', 'trial': trial_no,
+            'run_kind': 'WARMUP', 'run_config_hash': config_hash,
+            'is_warmup': True, 'prompt': warmup_prompt,
+            'rendered_prompt_sha256': rendered_prompt_sha256(rendered),
+            'temperature': temperature, 'num_ctx': config.num_ctx,
+            'num_predict': num_predict,
+            'template_sha256': config.template_sha256,
+            'num_gpu': config.num_gpu,
+            'stop_tokens': list(config.stop_tokens),
+            'think': repr(config.think),
+            'started_at_utc': started, 'ended_at_utc': utcnow(),
+        },
+        text=result.text, thinking=result.thinking,
+        done_reason=result.done_reason, metrics=metrics,
+        sampler_ram=(sample.ram_baseline_mb, sample.ram_peak_mb),
+        vram_pre=(sample.vram_baseline_mib, sample.vram_peak_mib,
+                  sample.vram_total_mib),
+        vram_post_mib=post, verdict=WARMUP_VERDICT, details=[],
+        status='COMPLETE', error=None, eligibility_status=None,
+        residency_ratio=None, evidence_json=None, ollama_ver=ollama_ver,
+        model_digest=config.ollama_model_digest,
+    )
+    print(f'warmup {trial_no}: {len(result.text)} chars, '
+          f'decode={metrics.decode_tok_s:.1f} tok/s' if metrics.decode_tok_s else
+          f'warmup {trial_no}: {len(result.text)} chars', flush=True)
+    return metrics
+
+
 def run_experiment(args: argparse.Namespace) -> int:
     root = Path(__file__).resolve().parent.parent
     run_config = yaml.safe_load(open(args.config, encoding='utf-8'))
@@ -340,55 +422,24 @@ def run_experiment(args: argparse.Namespace) -> int:
 
     ollama_ver = ollama_version(args.base_url)
 
-    # Warm-ups: 2 per invocation (per model load), continuing trial numbers
-    # so reruns never collide on the WARMUP identity.
-    warmup_done = conn.execute(
-        "SELECT COUNT(*) FROM runs WHERE experiment_id=? AND model_config_id=?"
-        " AND run_kind='WARMUP'",
-        (experiment_id, args.model),
-    ).fetchone()[0]
-    for offset, warmup_prompt in enumerate(WARMUP_PROMPTS, start=1):
-        trial_no = int(warmup_done) + offset
-        started = utcnow()
-        rendered = render_prompt(config, warmup_prompt)
-        with SystemSampler() as sampler:
-            result = generate(
-                args.base_url,
-                build_request(args.model, rendered, temperature, num_predict),
-                timeout_s=args.timeout_s,
-            )
-        metrics = derive_metrics(result)
-        sample = sampler.sample()
-        post, _ = sample_vram_once()
-        insert_measured_row(
-            conn,
-            base={
-                'experiment_id': experiment_id, 'model_config_id': args.model,
-                'task_id': f'WARMUP-{trial_no}', 'trial': trial_no,
-                'run_kind': 'WARMUP', 'run_config_hash': config_hash,
-                'is_warmup': True, 'prompt': warmup_prompt,
-                'rendered_prompt_sha256': rendered_prompt_sha256(rendered),
-                'temperature': temperature, 'num_ctx': config.num_ctx,
-                'num_predict': num_predict,
-                'template_sha256': config.template_sha256,
-                'num_gpu': config.num_gpu,
-                'stop_tokens': list(config.stop_tokens),
-                'think': repr(config.think),
-                'started_at_utc': started, 'ended_at_utc': utcnow(),
-            },
-            text=result.text, thinking=result.thinking,
-            done_reason=result.done_reason, metrics=metrics,
-            sampler_ram=(sample.ram_baseline_mb, sample.ram_peak_mb),
-            vram_pre=(sample.vram_baseline_mib, sample.vram_peak_mib,
-                      sample.vram_total_mib),
-            vram_post_mib=post, verdict=WARMUP_VERDICT, details=[],
-            status='COMPLETE', error=None, eligibility_status=None,
-            residency_ratio=None, evidence_json=None, ollama_ver=ollama_ver,
-            model_digest=config.ollama_model_digest,
+    # Warm-ups are bound to THIS loaded session: 2 fresh warmups complete in
+    # this invocation before any measured generation. Persisted history is
+    # used only for trial numbering, never as proof of warmth.
+    fresh_warmups = 0
+    for warmup_prompt in WARMUP_PROMPTS:
+        _run_warmup_trial(
+            conn, experiment_id=experiment_id, config=config,
+            config_hash=config_hash, temperature=temperature,
+            num_predict=num_predict, warmup_prompt=warmup_prompt,
+            base_url=args.base_url, timeout_s=args.timeout_s,
+            ollama_ver=ollama_ver,
         )
-        print(f'warmup {trial_no}: {len(result.text)} chars, '
-              f'decode={metrics.decode_tok_s:.1f} tok/s' if metrics.decode_tok_s else
-              f'warmup {trial_no}: {len(result.text)} chars', flush=True)
+        fresh_warmups += 1
+    if fresh_warmups != len(WARMUP_PROMPTS):
+        raise RuntimeError(
+            f'measured rows require {len(WARMUP_PROMPTS)} fresh warmups, '
+            f'got {fresh_warmups}'
+        )
 
     eligibility = check_eligibility(
         args.base_url, config.ollama_identifier,
@@ -422,6 +473,7 @@ def run_experiment(args: argparse.Namespace) -> int:
         num_predict=num_predict, num_gpu=config.num_gpu,
         stop_tokens=config.stop_tokens, think=config.think,
         thinking_source='explicit_config' if config.think is not None else 'model_default',
+        reload_evidence_load_duration_ms=RELOAD_EVIDENCE_LOAD_DURATION_MS,
         live=collect_live_environment(
             ollama_version=ollama_ver, started_at_utc=utcnow()),
     )
@@ -574,6 +626,23 @@ def run_experiment(args: argparse.Namespace) -> int:
                   f'({len(result.text)} chars, {decode}, '
                   f'cache={metrics.prefill_cache_state})', flush=True)
             ran += 1
+            if needs_rewarm(metrics.server_load_duration_ms):
+                # Mid-run reload evidence (eviction): the loaded session is
+                # no longer the warmed one. Record 2 fresh warmups before
+                # the next measured generation.
+                print(f'{task_id} t{trial}: reload evidence '
+                      f'(load={metrics.server_load_duration_ms:.0f}ms > '
+                      f'{RELOAD_EVIDENCE_LOAD_DURATION_MS:.0f}ms) -> re-warming',
+                      flush=True)
+                for warmup_prompt in WARMUP_PROMPTS:
+                    _run_warmup_trial(
+                        conn, experiment_id=experiment_id, config=config,
+                        config_hash=config_hash, temperature=temperature,
+                        num_predict=num_predict, warmup_prompt=warmup_prompt,
+                        base_url=args.base_url, timeout_s=args.timeout_s,
+                        ollama_ver=ollama_ver,
+                    )
+                    fresh_warmups += 1
 
     measured = fetch_measured(conn, experiment_id)
     verdicts: dict[str, int] = {}

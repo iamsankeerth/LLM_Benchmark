@@ -1,10 +1,12 @@
 """Sweep orchestrator: one thin coordinator over the per-model pipeline.
 
 Owns the 14-config lifecycle: disk check -> pull -> show/pin/derive ->
-eligibility -> preflight -> smoke -> warmups/baseline -> validate ->
-summaries -> VERIFY -> unload -> delete (gated) -> disk verify -> next.
+eligibility -> preflight -> smoke -> warming_up/benchmarking -> validated
+-> summarized -> VERIFY -> unload -> delete (gated) -> disk verify -> next.
 
-Deletion is forbidden until persistence verification succeeds. State in
+Stage controls (--only/--stop-after) pause the same code path unattended
+execution uses; resume continues from RESTART_STAGE mapping. Deletion is
+forbidden until persistence verification succeeds. State in
 results/checkpoints/ gives resume across restarts; completed models are
 never re-downloaded. Benchmark errors fail closed by default; ineligible
 models record an artifact and auto-continue by default.
@@ -56,7 +58,6 @@ from storage.db import connect
 from storage.execution import derive_execution_id
 from storage.sweep import (
     BENCHMARK_ERROR,
-    BENCHMARKING,
     COMPLETE,
     COMPLETE_INELIGIBLE,
     DERIVING,
@@ -65,9 +66,13 @@ from storage.sweep import (
     MANUAL_PIN_REQUIRED as STATE_MANUAL_PIN,
     PREFLIGHT_FAILED,
     PREFLIGHTING,
+    RESTART_STAGE,
     SMOKING,
+    STAGES,
+    STOPPED_STATE,
     VERIFY_FAILED,
     VERIFYING,
+    WARMING_UP,
     disk_free_bytes,
     disk_reclaimed_ok,
     guard_deletion,
@@ -169,7 +174,7 @@ def write_performance_artifact(
 
 
 def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
-    """Execute the full lifecycle for one registry entry. Returns outcome."""
+    """Execute the lifecycle for one entry, honoring resume and --stop-after."""
     root = Path(__file__).resolve().parent.parent
     model_config_id = str(entry['model_config_id'])
     identifier = str(entry['ollama_identifier'])
@@ -180,198 +185,274 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
     ollama_bin: str = args.ollama_bin
     db_path = str(Path(args.db_dir) / f'{derive_execution_id(args.spec, model_config_id)}.db')
     execution_id = derive_execution_id(args.spec, model_config_id)
+    stop_after: str | None = getattr(args, 'stop_after', None)
+    if stop_after is not None and stop_after not in STAGES:
+        raise ValueError(f'unknown stage {stop_after!r}; valid: {list(STAGES)}')
+    start_stage = RESTART_STAGE.get(
+        state.models[model_config_id].lifecycle, 'pulled'
+    )
 
     def checkpoint(lifecycle: str, detail: str = '') -> None:
         set_lifecycle(state, model_config_id, lifecycle, detail)
         save_sweep_state(str(state_path), state)
         print(f'[{model_config_id}] {lifecycle} {detail}'.rstrip(), flush=True)
 
-    # --- disk check + pull ---
+    def run_stage(stage: str) -> bool:
+        return STAGES.index(stage) >= STAGES.index(start_stage)
+
+    def halted(stage: str) -> str | None:
+        if stop_after == stage:
+            checkpoint(STOPPED_STATE[stage], 'stop-after requested')
+            return STOPPED_STATE[stage]
+        return None
+
+    config = None
     free_before = disk_free_bytes(args.db_dir)
-    checkpoint(DOWNLOADING, f'free={free_before / 1024**3:.1f}GiB')
-    ok, detail = ollama_pull(ollama_bin, identifier)
-    if not ok:
-        checkpoint(DOWNLOAD_FAILED, detail)
-        return DOWNLOAD_FAILED
 
-    # --- show + load probe (digest before any pin decision) ---
-    checkpoint(DERIVING)
-    show_doc = fetch_show(base_url, identifier)
-    try:
-        generate(
-            base_url,
-            GenerationRequest(
-                model=identifier, prompt='OK', temperature=0.0,
-                num_ctx=512, num_predict=4, raw=False,
-            ),
-            timeout_s=300.0,
-        )
-    except OllamaClientError as exc:
-        checkpoint(BENCHMARK_ERROR, f'load probe failed: {exc}')
-        return BENCHMARK_ERROR
-    observed_digest, _ = load_ps_digest(base_url, identifier)
-    if observed_digest is None:
-        checkpoint(BENCHMARK_ERROR, 'model absent from /api/ps after load probe')
-        return BENCHMARK_ERROR
-    overlay_path = root / 'configs/adapters' / f'{model_config_id}.json'
-    try:
-        config = get_model_config(model_config_id)
-        adapter_source = 'coded-or-overlay'
-    except KeyError:
-        config = None
-        adapter_source = None
-    if config is None:
-        def trial_generate(request: GenerationRequest) -> GenerationResult:
-            return generate(args.base_url, request, timeout_s=120.0)
+    if run_stage('pulled'):
+        checkpoint(DOWNLOADING, f'free={free_before / 1024**3:.1f}GiB')
+        ok, detail = ollama_pull(ollama_bin, identifier)
+        if not ok:
+            checkpoint(DOWNLOAD_FAILED, detail)
+            return DOWNLOAD_FAILED
+    halt = halted('pulled')
+    if halt:
+        return halt
 
+    if run_stage('derived'):
+        checkpoint(DERIVING)
+        show_doc = fetch_show(base_url, identifier)
         try:
-            config = derive_adapter(
-                registry_entry=entry, show_doc=show_doc,
-                observed_digest=observed_digest, trial_generate=trial_generate,
-                overlay_path=overlay_path,
+            generate(
+                base_url,
+                GenerationRequest(
+                    model=identifier, prompt='OK', temperature=0.0,
+                    num_ctx=512, num_predict=4, raw=False,
+                ),
+                timeout_s=300.0,
             )
-            adapter_source = 'derived'
-        except OverlayExistsError:
-            load_overlays_from_dir(root / 'configs/adapters')
+        except OllamaClientError as exc:
+            checkpoint(BENCHMARK_ERROR, f'load probe failed: {exc}')
+            return BENCHMARK_ERROR
+        observed_digest, _ = load_ps_digest(base_url, identifier)
+        if observed_digest is None:
+            checkpoint(BENCHMARK_ERROR, 'model absent from /api/ps after load probe')
+            return BENCHMARK_ERROR
+        overlay_path = root / 'configs/adapters' / f'{model_config_id}.json'
+        try:
             config = get_model_config(model_config_id)
-            adapter_source = 'overlay-reload'
-        except ManualPinRequired as exc:
-            checkpoint(STATE_MANUAL_PIN, str(exc))
-            return STATE_MANUAL_PIN
+            adapter_source = 'coded-or-overlay'
+        except KeyError:
+            config = None
+            adapter_source = None
+        if config is None:
+            def trial_generate(request: GenerationRequest) -> GenerationResult:
+                return generate(args.base_url, request, timeout_s=120.0)
+
+            try:
+                config = derive_adapter(
+                    registry_entry=entry, show_doc=show_doc,
+                    observed_digest=observed_digest, trial_generate=trial_generate,
+                    overlay_path=overlay_path,
+                )
+                adapter_source = 'derived'
+            except OverlayExistsError:
+                load_overlays_from_dir(root / 'configs/adapters')
+                config = get_model_config(model_config_id)
+                adapter_source = 'overlay-reload'
+            except ManualPinRequired as exc:
+                checkpoint(STATE_MANUAL_PIN, str(exc))
+                return STATE_MANUAL_PIN
+        else:
+            mismatches = verify_overlay_matches_live(config, show_doc, observed_digest)
+            if mismatches:
+                checkpoint('ADAPTER_MISMATCH', '; '.join(
+                    f'{m.field}: {m.pinned} != {m.observed}' for m in mismatches))
+                return 'ADAPTER_MISMATCH'
+        print(f'[{model_config_id}] adapter: {adapter_source} '
+              f'mode={config.mode}', flush=True)
+        assert config is not None, 'adapter unresolved'
     else:
-        # Create-once: live metadata must match the pinned overlay/config.
-        # Digest binds here (post-probe); stops/template drift fails closed.
-        mismatches = verify_overlay_matches_live(config, show_doc, observed_digest)
-        if mismatches:
-            checkpoint('ADAPTER_MISMATCH', '; '.join(
-                f'{m.field}: {m.pinned} != {m.observed}' for m in mismatches))
-            return 'ADAPTER_MISMATCH'
-    print(f'[{model_config_id}] adapter: {adapter_source} '
-          f'mode={config.mode}', flush=True)
+        config = get_model_config(model_config_id)
+    halt = halted('derived')
+    if halt:
+        return halt
 
-    # --- eligibility ---
-    eligibility = check_eligibility(
-        base_url, identifier, expected_digest=config.ollama_model_digest
-    )
-    print(f'[{model_config_id}] eligibility: {eligibility.status}', flush=True)
-    if not eligibility.eligible:
-        artifact = root / 'results/summaries' / f'ineligible-{model_config_id}.json'
-        artifact.write_text(json.dumps({
-            'execution_id': execution_id, 'model_config_id': model_config_id,
-            'eligibility_status': eligibility.status,
-            'gpu_residency_ratio': eligibility.gpu_residency_ratio,
-            'evidence': eligibility.eligibility_evidence_json,
-        }, indent=2) + '\n', encoding='utf-8')
-        ollama_stop(ollama_bin, identifier)
-        wait_until_unloaded(
-            lambda: load_ps_digest(base_url, identifier)[0] is None,
-            timeout_s=180.0,
+    if run_stage('eligible'):
+        eligibility = check_eligibility(
+            base_url, identifier, expected_digest=config.ollama_model_digest
         )
-        ollama_remove(ollama_bin, identifier)
-        checkpoint(COMPLETE_INELIGIBLE, eligibility.status)
-        return COMPLETE_INELIGIBLE
+        print(f'[{model_config_id}] eligibility: {eligibility.status}', flush=True)
+        if not eligibility.eligible:
+            artifact = root / 'results/summaries' / f'ineligible-{model_config_id}.json'
+            artifact.write_text(json.dumps({
+                'execution_id': execution_id, 'model_config_id': model_config_id,
+                'eligibility_status': eligibility.status,
+                'gpu_residency_ratio': eligibility.gpu_residency_ratio,
+                'evidence': eligibility.eligibility_evidence_json,
+            }, indent=2) + '\n', encoding='utf-8')
+            ollama_stop(ollama_bin, identifier)
+            wait_until_unloaded(
+                lambda: load_ps_digest(base_url, identifier)[0] is None,
+                timeout_s=180.0,
+            )
+            ollama_remove(ollama_bin, identifier)
+            checkpoint(COMPLETE_INELIGIBLE, eligibility.status)
+            return COMPLETE_INELIGIBLE
+    else:
+        eligibility = check_eligibility(
+            base_url, identifier, expected_digest=config.ollama_model_digest
+        )
+        if not eligibility.eligible:
+            checkpoint(BENCHMARK_ERROR, f'eligibility lost: {eligibility.status}')
+            return BENCHMARK_ERROR
+    halt = halted('eligible')
+    if halt:
+        return halt
 
-    # --- preflight ---
-    checkpoint(PREFLIGHTING)
-    preflight_code = preflight_main([
-        '--model', model_config_id, '--num-predict', '2048',
-        '--base-url', base_url,
-        '--out', str(root / 'results/summaries' / f'prompt-tokens-v2-{model_config_id}.json'),
-    ])
-    if preflight_code != 0:
-        checkpoint(PREFLIGHT_FAILED, f'exit={preflight_code}')
-        return PREFLIGHT_FAILED
+    if run_stage('preflighted'):
+        checkpoint(PREFLIGHTING)
+        preflight_code = preflight_main([
+            '--model', model_config_id, '--num-predict', '2048',
+            '--base-url', base_url,
+            '--out', str(root / 'results/summaries' / f'prompt-tokens-v2-{model_config_id}.json'),
+        ])
+        if preflight_code != 0:
+            checkpoint(PREFLIGHT_FAILED, f'exit={preflight_code}')
+            return PREFLIGHT_FAILED
+    halt = halted('preflighted')
+    if halt:
+        return halt
 
-    # --- smoke ---
-    checkpoint(SMOKING)
-    smoke_db = str(Path(args.db_dir) / f'smoke-v2__{model_config_id}.db')
-    smoke_code = smoke_main([
-        '--db', smoke_db, '--model', model_config_id,
-        '--base-url', base_url, '--config', 'smoke-v2.yaml',
-        '--num-predict', '2048',
-    ])
-    if smoke_code != 0:
-        checkpoint(BENCHMARK_ERROR, 'smoke failed')
-        return BENCHMARK_ERROR
+    if run_stage('smoked'):
+        checkpoint(SMOKING)
+        smoke_db = str(Path(args.db_dir) / f'smoke-v2__{model_config_id}.db')
+        smoke_code = smoke_main([
+            '--db', smoke_db, '--model', model_config_id,
+            '--base-url', base_url, '--config', 'smoke-v2.yaml',
+            '--num-predict', '2048',
+        ])
+        if smoke_code != 0:
+            checkpoint(BENCHMARK_ERROR, 'smoke failed')
+            return BENCHMARK_ERROR
+    halt = halted('smoked')
+    if halt:
+        return halt
 
-    # --- baseline (existing resume-safe runner) ---
-    checkpoint(BENCHMARKING)
-    run_ns = argparse.Namespace(
-        config=str(root / 'configs' / f'{args.spec}.yaml'),
-        model=model_config_id, db=db_path, base_url=base_url,
-        resume=True, execution_id=None, num_predict=None,
-        timeout_s=600.0, max_tasks=None,
-    )
-    bench_code = run_experiment(run_ns)
-    if bench_code != 0:
-        checkpoint(BENCHMARK_ERROR, f'baseline exit={bench_code}')
-        return BENCHMARK_ERROR
+    if run_stage('benchmarked'):
+        # Warmups are bound to this loaded session (internal warming_up state):
+        # the runner records 2 fresh warmups every invocation and re-warms
+        # automatically on mid-run reload evidence.
+        checkpoint(WARMING_UP)
+        run_ns = argparse.Namespace(
+            config=str(root / 'configs' / f'{args.spec}.yaml'),
+            model=model_config_id, db=db_path, base_url=base_url,
+            resume=True, execution_id=None, num_predict=None,
+            timeout_s=600.0, max_tasks=None,
+        )
+        bench_code = run_experiment(run_ns)
+        if bench_code != 0:
+            checkpoint(BENCHMARK_ERROR, f'baseline exit={bench_code}')
+            return BENCHMARK_ERROR
+    halt = halted('benchmarked')
+    if halt:
+        return halt
 
-    # --- summaries ---
-    summarize_main([
-        '--db', db_path, '--experiment', execution_id,
-        '--config', str(root / 'configs' / f'{args.spec}.yaml'),
-        '--out', str(root / 'results/summaries' / f'{execution_id}-capability.json'),
-    ])
-    write_performance_artifact(
-        db_path, execution_id,
-        root / 'results/summaries' / f'{execution_id}-performance.json',
-    )
     statuses = load_spec_statuses(str(root / 'evals/specs/eval-v1-grading.yaml'))
-    write_failure_modes_artifact(
-        db_path, execution_id, statuses,
-        root / 'results/summaries' / f'{execution_id}-failure-modes.json',
-    )
-
-    # --- VERIFY (deletion gate inputs) ---
-    checkpoint(VERIFYING)
-    summary_dir = root / 'results/summaries'
-    manifest_dir = root / 'results/experiment-manifests'
     run_config = yaml.safe_load(
         open(root / 'configs' / f'{args.spec}.yaml', encoding='utf-8')
     )
     trials = int(run_config.get('trials', 3))
-    statuses = load_spec_statuses(str(root / 'evals/specs/eval-v1-grading.yaml'))
     expected_det = sum(1 for s in statuses.values() if s == 'READY_DETERMINISTIC')
     expected_judge = sum(1 for s in statuses.values() if s == 'READY_JUDGE')
-    verdict = verify_execution_persisted(
-        db_path, execution_id, statuses,
-        expected_det_tasks=expected_det, expected_judge_tasks=expected_judge,
-        trials_per_task=trials,
-        required_files={
-            'manifest': manifest_dir / f'{execution_id}.json',
-            'capability': summary_dir / f'{execution_id}-capability.json',
-            'performance': summary_dir / f'{execution_id}-performance.json',
-            'preflight': summary_dir / f'prompt-tokens-v2-{model_config_id}.json',
-            'failure_modes': summary_dir / f'{execution_id}-failure-modes.json',
-            'summary': summary_dir / f'{execution_id}.json',
-        },
-    )
-    state.models[model_config_id].verified = verdict.ok
-    save_sweep_state(str(state_path), state)
-    if not verdict.ok:
-        checkpoint(VERIFY_FAILED, verdict.detail)
-        return VERIFY_FAILED
+    summary_dir = root / 'results/summaries'
+    manifest_dir = root / 'results/experiment-manifests'
 
-    # --- unload -> delete (gated) -> disk verify ---
-    guard_deletion(state.models[model_config_id].verified)
-    ollama_stop(ollama_bin, identifier)
-    unloaded = wait_until_unloaded(
-        lambda: load_ps_digest(base_url, identifier)[0] is None, timeout_s=180.0
-    )
-    if not unloaded:
-        checkpoint(BENCHMARK_ERROR, 'VRAM not released after stop')
-        return BENCHMARK_ERROR
-    ollama_remove(ollama_bin, identifier)
-    if ollama_model_present(ollama_bin, identifier):
-        checkpoint(BENCHMARK_ERROR, 'model still present after rm')
-        return BENCHMARK_ERROR
-    free_after = disk_free_bytes(args.db_dir)
-    if not disk_reclaimed_ok(free_before, free_after):
-        checkpoint(BENCHMARK_ERROR,
-                   f'disk not reclaimed: {free_before} -> {free_after}')
-        return BENCHMARK_ERROR
-    checkpoint(COMPLETE, f'freed={(free_after - free_before) / 1024**3:+.1f}GiB')
+    if run_stage('validated'):
+        counts = verify_execution_persisted(
+            db_path, execution_id, statuses,
+            expected_det_tasks=expected_det, expected_judge_tasks=expected_judge,
+            trials_per_task=trials, required_files={},
+        )
+        row_checks = {k: v for k, v in counts.checks.items() if not k.startswith('file:')}
+        if not all(row_checks.values()):
+            checkpoint(BENCHMARK_ERROR, f'row validation: {counts.detail}')
+            return BENCHMARK_ERROR
+    halt = halted('validated')
+    if halt:
+        return halt
+
+    if run_stage('summarized'):
+        summarize_main([
+            '--db', db_path, '--experiment', execution_id,
+            '--config', str(root / 'configs' / f'{args.spec}.yaml'),
+            '--out', str(summary_dir / f'{execution_id}-capability.json'),
+        ])
+        write_performance_artifact(
+            db_path, execution_id,
+            summary_dir / f'{execution_id}-performance.json',
+        )
+        write_failure_modes_artifact(
+            db_path, execution_id, statuses,
+            summary_dir / f'{execution_id}-failure-modes.json',
+        )
+    halt = halted('summarized')
+    if halt:
+        return halt
+
+    if run_stage('verified'):
+        checkpoint(VERIFYING)
+        verdict = verify_execution_persisted(
+            db_path, execution_id, statuses,
+            expected_det_tasks=expected_det, expected_judge_tasks=expected_judge,
+            trials_per_task=trials,
+            required_files={
+                'manifest': manifest_dir / f'{execution_id}.json',
+                'capability': summary_dir / f'{execution_id}-capability.json',
+                'performance': summary_dir / f'{execution_id}-performance.json',
+                'preflight': summary_dir / f'prompt-tokens-v2-{model_config_id}.json',
+                'failure_modes': summary_dir / f'{execution_id}-failure-modes.json',
+                'summary': summary_dir / f'{execution_id}.json',
+            },
+        )
+        state.models[model_config_id].verified = verdict.ok
+        save_sweep_state(str(state_path), state)
+        if not verdict.ok:
+            checkpoint(VERIFY_FAILED, verdict.detail)
+            return VERIFY_FAILED
+    halt = halted('verified')
+    if halt:
+        return halt
+
+    if run_stage('unloaded'):
+        guard_deletion(state.models[model_config_id].verified)
+        ollama_stop(ollama_bin, identifier)
+        unloaded = wait_until_unloaded(
+            lambda: load_ps_digest(base_url, identifier)[0] is None, timeout_s=180.0
+        )
+        if not unloaded:
+            checkpoint(BENCHMARK_ERROR, 'VRAM not released after stop')
+            return BENCHMARK_ERROR
+    halt = halted('unloaded')
+    if halt:
+        return halt
+
+    if run_stage('deleted'):
+        guard_deletion(state.models[model_config_id].verified)
+        ollama_remove(ollama_bin, identifier)
+        if ollama_model_present(ollama_bin, identifier):
+            checkpoint(BENCHMARK_ERROR, 'model still present after rm')
+            return BENCHMARK_ERROR
+        free_after = disk_free_bytes(args.db_dir)
+        if not disk_reclaimed_ok(free_before, free_after):
+            checkpoint(BENCHMARK_ERROR,
+                       f'disk not reclaimed: {free_before} -> {free_after}')
+            return BENCHMARK_ERROR
+    halt = halted('deleted')
+    if halt:
+        return halt
+
+    checkpoint(COMPLETE, 'lifecycle complete')
     return COMPLETE
 
 
@@ -388,6 +469,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--continue-on-benchmark-error', action='store_true')
     parser.add_argument('--continue-on-persistence-error', action='store_true')
     parser.add_argument('--only', default=None, help='run a single model_config_id')
+    parser.add_argument('--stop-after', default=None,
+                        help=f'step mode: stop after one of {list(STAGES)}')
     args = parser.parse_args(argv)
     root = Path(__file__).resolve().parent.parent
     args.spec = args.experiment
@@ -418,6 +501,7 @@ def main(argv: list[str] | None = None) -> int:
         state.order = order
         save_sweep_state(args.state_file, state)
     print(f'sweep: {state.sweep_id} resume_from={state.next_model}', flush=True)
+    stopped_states = set(STOPPED_STATE.values())
     while True:
         current = state.next_model
         if current is None:
@@ -425,6 +509,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         entry = next(e for e in registry['models'] if e['model_config_id'] == current)
         outcome = run_one_model(args, entry)
+        if outcome in stopped_states:
+            print(f'sweep paused: {current} -> {outcome}', flush=True)
+            return 0
         if outcome in (COMPLETE, COMPLETE_INELIGIBLE):
             if outcome == COMPLETE_INELIGIBLE and args.stop_on_ineligible:
                 print('stopping on ineligible (flag)', flush=True)

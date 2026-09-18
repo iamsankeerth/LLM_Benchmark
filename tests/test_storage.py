@@ -238,6 +238,7 @@ class ManifestTests(unittest.TestCase):
             'stop_tokens': ('a', 'b'),
             'think': False,
             'thinking_source': 'explicit_config',
+            'reload_evidence_load_duration_ms': 1000.0,
             'live': self._live(),
         }
         kwargs.update(overrides)
@@ -255,7 +256,7 @@ class ManifestTests(unittest.TestCase):
             'quantization', 'template_sha256', 'ollama_version',
             'python_version', 'hardware_id', 'power_mode', 'temperature',
             'num_ctx', 'num_predict', 'num_gpu', 'stop_tokens', 'think',
-            'thinking_source', 'started_at_utc',
+            'thinking_source', 'started_at_utc', 'reload_evidence_load_duration_ms',
         }
         self.assertTrue(required.issubset(document.keys()), required - set(document.keys()))
 

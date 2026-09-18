@@ -5,7 +5,11 @@ from __future__ import annotations
 import unittest
 
 from inference.ollama_client import GenerationResult
-from inference.profiler import derive_metrics
+from inference.profiler import (
+    RELOAD_EVIDENCE_LOAD_DURATION_MS,
+    derive_metrics,
+    needs_rewarm,
+)
 from inference.sysmon import SystemSampler, sample_vram_once
 
 
@@ -136,6 +140,18 @@ class ProfilerFormulaTests(unittest.TestCase):
         m = derive_metrics(_result(first_token_ns=None))
         self.assertIsNone(m.ttft_ms)
         self.assertAlmostEqual(m.client_e2e_ms, 9500.0, places=1)
+
+
+class ReloadEvidenceTests(unittest.TestCase):
+    def test_threshold_pinned(self) -> None:
+        self.assertEqual(RELOAD_EVIDENCE_LOAD_DURATION_MS, 1000.0)
+
+    def test_boundary(self) -> None:
+        self.assertFalse(needs_rewarm(None))
+        self.assertFalse(needs_rewarm(0.0))
+        self.assertFalse(needs_rewarm(1000.0))
+        self.assertTrue(needs_rewarm(1000.0001))
+        self.assertTrue(needs_rewarm(9179.7))
 
 
 class SystemSamplerTests(unittest.TestCase):
