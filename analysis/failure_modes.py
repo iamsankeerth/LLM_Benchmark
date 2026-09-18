@@ -42,6 +42,31 @@ SUBSTANTIVE_LABELS = frozenset(
     {'CORRECT', 'LIKELY_CORRECT', 'INCORRECT', 'AMBIGUOUS', 'NOT_REVIEWED'}
 )
 
+ASSERTED_SINGLE = 'ASSERTED_SINGLE'
+ASSERTED_CONTRADICTION = 'ASSERTED_CONTRADICTION'
+NO_ASSERTED_VALUE = 'NO_ASSERTED_VALUE'
+
+TRUNCATED_AT_NUM_PREDICT = 'TRUNCATED_AT_NUM_PREDICT'
+
+# Explicit final-answer markers (case-insensitive). A value counts as
+# asserted only in these contexts, on the standalone final line, or in an
+# equivalent terminal statement — never as a bare number mid-derivation.
+_FINAL_MARKER_PATTERNS = (
+    r'final\s+answer\s*[:\u2013\-]?\s*(.+)',
+    r'answer\s+is\s*[:\u2013\-]?\s*(.+)',
+    r'\*\*answer\s*:\s*(.+?)\*\*',
+    r'boxed\{([^}]+)\}',
+)
+
+_TIME_FORM_PATTERN = r'\b\d{1,2}:\d{2}(?:\s?[APap]\.?[Mm]\.?)?\b'
+_NUMBER_PATTERN = r'-?\d[\d,]*(?:\.\d+)?'
+
+
+@dataclass(frozen=True)
+class AssertedValue:
+    status: str  # ASSERTED_SINGLE | ASSERTED_CONTRADICTION | NO_ASSERTED_VALUE
+    values: tuple[str, ...] = ()
+
 # Committed signature -> mode rule table. Signature extraction is
 # deterministic over persisted grader details; mapping is total over the
 # rule table with UNKNOWN as the explicit fallback.
@@ -91,6 +116,162 @@ _GRADER_MODE_RULES: tuple[tuple[str, str, str], ...] = (
     ('constraints', 'parenthetical_count', LEXICAL_CONSTRAINT),
     ('constraints', 'markdown_table_shape', STRUCTURE_ERROR),
 )
+
+
+def _clean_candidate(raw: str) -> str:
+    candidate = raw.strip().strip('*_`$ ').strip()
+    candidate = candidate.rstrip('.').strip()
+    return candidate
+
+
+def _time_candidates(text: str) -> list[str]:
+    import re
+
+    return re.findall(_TIME_FORM_PATTERN, text)
+
+
+def _number_candidates(text: str) -> list[str]:
+    import re
+
+    return [match.replace(',', '') for match in re.findall(_NUMBER_PATTERN, text)]
+
+
+def extract_asserted_value(raw_output: str, *, kind: str) -> AssertedValue:
+    """Extract the model's asserted final value under tightened rules.
+
+    kind is 'numeric' or 'time'. Candidates come only from explicit
+    final-answer markers, the standalone final non-empty line, or an
+    equivalent terminal statement. Complete time forms only; fragments
+    never count. Distinct finals -> ASSERTED_CONTRADICTION; none ->
+    NO_ASSERTED_VALUE. False negatives preferred over false CONTENT_ERRORs.
+    """
+    import re
+
+    candidates: list[str] = []
+
+    def harvest(text: str) -> None:
+        if kind == 'time':
+            pool = _time_candidates(text)
+        else:
+            pool = _number_candidates(text)
+        for item in pool:
+            cleaned = _clean_candidate(item)
+            if cleaned and cleaned not in candidates:
+                candidates.append(cleaned)
+
+    lines = [line for line in raw_output.split('\n')]
+    for line in lines:
+        lowered = line.lower()
+        if any(
+            key in lowered
+            for key in ('final answer', 'answer is', 'answer:', 'boxed{', '\u2705')
+        ):
+            harvest(line)
+    non_empty = [line.strip() for line in lines if line.strip()]
+    if non_empty:
+        final_line = _clean_candidate(non_empty[-1])
+        if kind == 'time':
+            if re.fullmatch(
+                r'\d{1,2}:\d{2}(?:\s?[APap]\.?[Mm]\.?)?', final_line
+            ):
+                harvest(final_line)
+        else:
+            if re.fullmatch(r'-?\d[\d,]*(?:\.\d+)?', final_line):
+                harvest(final_line)
+    if not candidates:
+        return AssertedValue(NO_ASSERTED_VALUE, ())
+    if len(candidates) == 1:
+        return AssertedValue(ASSERTED_SINGLE, (candidates[0],))
+    return AssertedValue(ASSERTED_CONTRADICTION, tuple(candidates))
+
+
+def _numeric_matches(expected: Any, asserted: str, grader: Mapping[str, Any]) -> bool:
+    try:
+        exp_value = float(expected)
+        got_value = float(asserted)
+    except (TypeError, ValueError):
+        return str(expected).strip() == asserted.strip()
+    if exp_value == got_value:
+        return True
+    abs_tol = grader.get('absolute_tolerance', 0) or 0
+    rel_tol = grader.get('relative_tolerance', 0) or 0
+    try:
+        return abs(exp_value - got_value) <= float(abs_tol) + float(rel_tol) * abs(exp_value)
+    except (TypeError, ValueError):
+        return False
+
+
+def _time_matches(expected: Any, asserted: str, grader: Mapping[str, Any]) -> bool:
+    from evals.graders.engine import _parse_time
+
+    parsing = grader.get('parsing')
+    expected_text = str(expected)
+    if asserted.strip() == expected_text.strip():
+        return True
+    parsed_expected = _parse_time(
+        expected_text, list(parsing) if isinstance(parsing, list) else None
+    )
+    parsed_asserted = _parse_time(
+        asserted, list(parsing) if isinstance(parsing, list) else None
+    )
+    return (
+        parsed_expected is not None
+        and parsed_asserted is not None
+        and parsed_expected == parsed_asserted
+    )
+
+
+def asserted_value_check(
+    raw_output: str, grader: Mapping[str, Any]
+) -> tuple[str, list[str], list[str]]:
+    """Apply the asserted-value rule to one failed numeric/time grader.
+
+    Returns (status, extra_signatures, extra_modes). Parse-failure rows
+    whose prose asserts the WRONG final gain CONTENT_ERROR (row -> MIXED);
+    matching finals, derivation-only outputs and fragments change nothing.
+    """
+    grader_type = str(grader.get('type', ''))
+    if grader_type not in ('numeric', 'time'):
+        return NO_ASSERTED_VALUE, [], []
+    kind = grader_type
+    asserted = extract_asserted_value(raw_output, kind=kind)
+    if asserted.status == NO_ASSERTED_VALUE:
+        return NO_ASSERTED_VALUE, [], []
+    if asserted.status == ASSERTED_CONTRADICTION:
+        return (
+            ASSERTED_CONTRADICTION,
+            [f'{grader_type}:value_contradiction'],
+            [CONTENT_ERROR],
+        )
+    value = asserted.values[0]
+    expected = grader.get('expected')
+    matches = (
+        _numeric_matches(expected, value, grader)
+        if kind == 'numeric'
+        else _time_matches(expected, value, grader)
+    )
+    if matches:
+        return ASSERTED_SINGLE, [], []
+    return (
+        ASSERTED_SINGLE,
+        [f'{grader_type}:asserted_value_mismatch'],
+        [CONTENT_ERROR],
+    )
+
+
+def truncation_flag(
+    done_reason: str | None, eval_count: int | None, num_predict: int | None
+) -> list[str]:
+    """TRUNCATED_AT_NUM_PREDICT iff done_reason is length AND the token
+    budget was exhausted. Narrow by construction."""
+    if (
+        done_reason == 'length'
+        and eval_count is not None
+        and num_predict is not None
+        and eval_count >= num_predict
+    ):
+        return [TRUNCATED_AT_NUM_PREDICT]
+    return []
 
 
 def taxonomy_hash() -> str:
@@ -182,6 +363,8 @@ class FailedRowFeatures:
     benchmark_verdict: str
     signatures: list[str] = field(default_factory=list)
     failure_mode: str = UNKNOWN
+    asserted_value_status: str = NO_ASSERTED_VALUE
+    generation_flags: list[str] = field(default_factory=list)
     excerpt: str = ''
 
 
@@ -191,6 +374,7 @@ def extract_failed_rows(
     statuses: Mapping[str, str],
     *,
     excerpt_chars: int = 300,
+    graders_map: Mapping[str, list[dict[str, Any]]] | None = None,
 ) -> list[FailedRowFeatures]:
     """Objective pre-fill from persisted rows. Verdicts re-asserted, never
     recomputed. Unknown task IDs raise (same invariant as capability)."""
@@ -198,7 +382,8 @@ def extract_failed_rows(
     try:
         rows = conn.execute(
             'SELECT task_id, trial, grader_verdict, grader_details_json,'
-            ' raw_output FROM runs WHERE experiment_id=? AND is_warmup=0'
+            ' raw_output, done_reason, eval_count, num_predict FROM runs'
+            ' WHERE experiment_id=? AND is_warmup=0'
             " AND grader_verdict='FAIL' ORDER BY task_id, trial",
             (execution_id,),
         ).fetchall()
@@ -217,11 +402,42 @@ def extract_failed_rows(
             details = []
         if not isinstance(details, list):
             details = []
-        signatures, modes = modes_for_failed_row(
-            [d for d in details if isinstance(d, dict)],
-            raw_output=str(row['raw_output'] or ''),
-        )
+        dict_details = [d for d in details if isinstance(d, dict)]
         raw = str(row['raw_output'] or '')
+        signatures, modes = modes_for_failed_row(dict_details, raw_output=raw)
+        asserted_status = NO_ASSERTED_VALUE
+        if graders_map and task_id in graders_map:
+            for grader in graders_map[task_id]:
+                detail_types = {
+                    str(d.get('grader_type', '')) for d in dict_details
+                    if not d.get('passed', True)
+                }
+                if str(grader.get('type', '')) not in detail_types:
+                    continue
+                status, extra_sigs, extra_modes = asserted_value_check(raw, grader)
+                if status != NO_ASSERTED_VALUE:
+                    asserted_status = status
+                for sig, mode in zip(extra_sigs, extra_modes):
+                    signatures.append(sig)
+                    if mode not in modes:
+                        modes.append(mode)
+        try:
+            eval_count = (
+                int(row['eval_count']) if row['eval_count'] is not None else None
+            )
+        except (TypeError, ValueError):
+            eval_count = None
+        try:
+            num_predict = (
+                int(row['num_predict']) if row['num_predict'] is not None else None
+            )
+        except (TypeError, ValueError):
+            num_predict = None
+        done_reason = row['done_reason']
+        flags = truncation_flag(
+            str(done_reason) if done_reason is not None else None,
+            eval_count, num_predict,
+        )
         features.append(
             FailedRowFeatures(
                 task_id=task_id,
@@ -230,6 +446,8 @@ def extract_failed_rows(
                 benchmark_verdict=str(row['grader_verdict']),
                 signatures=signatures,
                 failure_mode=row_failure_mode(modes),
+                asserted_value_status=asserted_status,
+                generation_flags=flags,
                 excerpt=raw[:excerpt_chars],
             )
         )

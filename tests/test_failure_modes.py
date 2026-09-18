@@ -3,21 +3,29 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 from typing import Any, cast
 
 from analysis.failure_modes import (
+    ASSERTED_CONTRADICTION,
+    ASSERTED_SINGLE,
     CONTENT_ERROR,
     LEXICAL_CONSTRAINT,
     MIXED,
+    NO_ASSERTED_VALUE,
     OUTPUT_CONTRACT,
     STRUCTURE_ERROR,
+    TRUNCATED_AT_NUM_PREDICT,
     UNKNOWN,
+    asserted_value_check,
+    extract_asserted_value,
     mode_for_signature,
     modes_for_failed_row,
     review_generation_allowed,
     row_failure_mode,
     signature_for_detail,
     taxonomy_hash,
+    truncation_flag,
     validate_review_entry,
     validate_review_file,
 )
@@ -127,6 +135,127 @@ class ModeMappingTests(unittest.TestCase):
     def test_taxonomy_hash_stable(self) -> None:
         self.assertEqual(taxonomy_hash(), taxonomy_hash())
         self.assertEqual(len(taxonomy_hash()), 64)
+
+
+class AssertedValueTests(unittest.TestCase):
+    def test_explicit_wrong_final_numeric(self) -> None:
+        # Q026 shape: "Final answer:" marker line, standalone 86.40 final.
+        text = 'Some derivation with 0.90 and 0.96 in it.\nFinal answer:  \n86.40'
+        asserted = extract_asserted_value(text, kind='numeric')
+        self.assertEqual(asserted.status, ASSERTED_SINGLE)
+        self.assertEqual(asserted.values, ('86.40',))
+
+    def test_explicit_correct_final_numeric(self) -> None:
+        text = 'Long derivation.\n✅ Final answer: **136**'
+        asserted = extract_asserted_value(text, kind='numeric')
+        self.assertEqual(asserted.status, ASSERTED_SINGLE)
+        self.assertEqual(asserted.values, ('136',))
+
+    def test_explicit_final_time(self) -> None:
+        text = '### Final Answer:\n**10:37**'
+        asserted = extract_asserted_value(text, kind='time')
+        self.assertEqual(asserted.status, ASSERTED_SINGLE)
+        self.assertEqual(asserted.values, ('10:37',))
+
+    def test_derivation_only_no_assertion(self) -> None:
+        text = 'Step 1 uses 50.4 extra hours.\nStep 2 adds 168 more.\nBut'
+        asserted = extract_asserted_value(text, kind='numeric')
+        self.assertEqual(asserted.status, NO_ASSERTED_VALUE)
+
+    def test_time_fragments_never_count(self) -> None:
+        text = 'Ends at 36.92 minutes after 10:00, roughly speaking.'
+        asserted = extract_asserted_value(text, kind='time')
+        self.assertEqual(asserted.status, NO_ASSERTED_VALUE)
+
+    def test_conflicting_finals(self) -> None:
+        text = 'Final answer: 66,080, revised to 65,080'
+        asserted = extract_asserted_value(text, kind='numeric')
+        self.assertEqual(asserted.status, ASSERTED_CONTRADICTION)
+        self.assertEqual(set(asserted.values), {'66080', '65080'})
+
+    def test_mismatch_check_numeric(self) -> None:
+        grader = {'type': 'numeric', 'expected': 85.83, 'absolute_tolerance': 0.01}
+        status, sigs, modes = asserted_value_check(
+            'Work.\nFinal answer:  \n86.40', grader
+        )
+        self.assertEqual(status, ASSERTED_SINGLE)
+        self.assertEqual(sigs, ['numeric:asserted_value_mismatch'])
+        self.assertEqual(modes, [CONTENT_ERROR])
+
+    def test_match_check_numeric(self) -> None:
+        grader = {'type': 'numeric', 'expected': 136}
+        status, sigs, modes = asserted_value_check(
+            'Work.\n✅ Final answer: **136**', grader
+        )
+        self.assertEqual(status, ASSERTED_SINGLE)
+        self.assertEqual(sigs, [])
+        self.assertEqual(modes, [])
+
+    def test_mismatch_check_time(self) -> None:
+        grader = {'type': 'time', 'expected': '11:37', 'precision': 'minute',
+                  'parsing': ['HH:MM']}
+        status, sigs, modes = asserted_value_check(
+            'Work.\n### Final Answer:\n**10:37**', grader
+        )
+        self.assertEqual(status, ASSERTED_SINGLE)
+        self.assertEqual(sigs, ['time:asserted_value_mismatch'])
+        self.assertEqual(modes, [CONTENT_ERROR])
+
+    def test_contradiction_check(self) -> None:
+        grader = {'type': 'numeric', 'expected': 66080}
+        status, sigs, modes = asserted_value_check(
+            'Final answer: 66,080, revised to 65,080', grader
+        )
+        self.assertEqual(status, ASSERTED_CONTRADICTION)
+        self.assertEqual(sigs, ['numeric:value_contradiction'])
+
+    def test_non_numeric_time_graders_untouched(self) -> None:
+        status, sigs, modes = asserted_value_check(
+            'Anything.', {'type': 'exact', 'expected': 'X'}
+        )
+        self.assertEqual((status, sigs, modes), (NO_ASSERTED_VALUE, [], []))
+
+    def test_locked_q023_q026_q025_shapes(self) -> None:
+        # Frozen-spec entries with persisted-output shapes.
+        import yaml
+
+        root = Path(__file__).resolve().parents[1]
+        spec = yaml.safe_load(
+            (root / 'evals/specs/eval-v1-grading.yaml').read_text(encoding='utf-8')
+        )
+        q023 = spec['tasks']['Q023']['graders'][0]
+        status, _, modes = asserted_value_check(
+            'Steps.\n### Final Answer:\n**10:37**', q023
+        )
+        self.assertEqual(status, ASSERTED_SINGLE)
+        self.assertEqual(modes, [CONTENT_ERROR])
+        q026 = spec['tasks']['Q026']['graders'][0]
+        status, _, modes = asserted_value_check(
+            'Steps.\nFinal answer:  \n86.40', q026
+        )
+        self.assertEqual(status, ASSERTED_SINGLE)
+        self.assertEqual(modes, [CONTENT_ERROR])
+        q025 = spec['tasks']['Q025']['graders'][0]
+        status, sigs, modes = asserted_value_check(
+            'So the first time is **12:36**?\n\nWait \u2014 is there a time **after 10:3',
+            q025,
+        )
+        self.assertEqual((status, sigs, modes), (NO_ASSERTED_VALUE, [], []))
+
+
+class TruncationFlagTests(unittest.TestCase):
+    def test_truncated_when_length_and_budget_hit(self) -> None:
+        self.assertEqual(
+            truncation_flag('length', 512, 512), [TRUNCATED_AT_NUM_PREDICT]
+        )
+
+    def test_not_truncated_on_stop(self) -> None:
+        self.assertEqual(truncation_flag('stop', 491, 512), [])
+
+    def test_not_truncated_when_unmeasurable(self) -> None:
+        self.assertEqual(truncation_flag('length', None, 512), [])
+        self.assertEqual(truncation_flag(None, 512, 512), [])
+        self.assertEqual(truncation_flag('length', 100, 512), [])
 
 
 class AuthorshipBoundaryTests(unittest.TestCase):

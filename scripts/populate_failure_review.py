@@ -30,7 +30,14 @@ def main() -> int:
     root = Path(__file__).resolve().parent.parent
     conn = connect(str(root / 'results/local/full-baseline-v1.db'))
     statuses = load_spec_statuses(str(root / 'evals/specs/eval-v1-grading.yaml'))
-    rows = extract_failed_rows(conn, 'full-baseline-v1', statuses)
+    spec = yaml.safe_load(
+        open(root / 'evals/specs/eval-v1-grading.yaml', encoding='utf-8')
+    )
+    graders_map = {
+        str(tid): [dict(g) for g in (entry.get('graders') or [])]
+        for tid, entry in spec['tasks'].items()
+    }
+    rows = extract_failed_rows(conn, 'full-baseline-v1', statuses, graders_map=graders_map)
     conn.close()
     grouped: dict[str, list[FailedRowFeatures]] = defaultdict(list)
     for row in rows:
@@ -39,9 +46,29 @@ def main() -> int:
     judge = sum(1 for r in rows if r.task_status == 'READY_JUDGE')
     print(f'failed rows: {len(rows)} (deterministic={det}, judge={judge})')
     print(f'tasks: {len(grouped)}')
+    out = root / 'analysis/reviews/qwen-q4-failure-review.yaml'
+    out.parent.mkdir(parents=True, exist_ok=True)
+    # Preserve human-authored review sections across re-scaffolds: only
+    # auto_analysis regenerates. Authorship boundary holds by construction.
+    prior_reviews: dict[str, object] = {}
+    prior_status = 'DRAFT'
+    if out.exists():
+        prior_doc = yaml.safe_load(out.read_text(encoding='utf-8'))
+        if isinstance(prior_doc, dict):
+            prior_status = str(prior_doc.get('review_status', 'DRAFT'))
+            for task in prior_doc.get('tasks') or []:
+                if isinstance(task, dict) and 'task_id' in task:
+                    prior_reviews[str(task['task_id'])] = task.get('review')
     tasks = []
     for task_id in sorted(grouped):
         task_rows = grouped[task_id]
+        review = prior_reviews.get(task_id) or {
+            'substantive_answer_assessment': None,
+            'assessment_author': None,
+            'mode_override': None,
+            'override_reason': None,
+            'notes': None,
+        }
         tasks.append(
             {
                 'task_id': task_id,
@@ -55,24 +82,27 @@ def main() -> int:
                         {s for r in task_rows for s in r.signatures}
                     ),
                     'excerpts': [
-                        {'trial': r.trial, 'excerpt': r.excerpt}
+                        {
+                            'trial': r.trial,
+                            'excerpt': r.excerpt,
+                            'row_mode': r.failure_mode,
+                            'asserted_value_status': r.asserted_value_status,
+                            'generation_flags': list(r.generation_flags),
+                        }
                         for r in task_rows
                     ],
+                    'generation_flags': sorted(
+                        {f for r in task_rows for f in r.generation_flags}
+                    ),
                 },
-                'review': {
-                    'substantive_answer_assessment': None,
-                    'assessment_author': None,
-                    'mode_override': None,
-                    'override_reason': None,
-                    'notes': None,
-                },
+                'review': review,
             }
         )
     review = {
         'artifact': 'qwen3-4b-q4 failure review (post-hoc diagnostic)',
         'execution_id': 'full-baseline-v1',
         'taxonomy_version': TAXONOMY_VERSION,
-        'review_status': 'DRAFT',
+        'review_status': prior_status,
         'populations': {
             'ready_deterministic_fail_rows': det,
             'ready_judge_precheck_fail_rows': judge,
@@ -80,7 +110,6 @@ def main() -> int:
         },
         'tasks': tasks,
     }
-    out = root / 'analysis/reviews/qwen-q4-failure-review.yaml'
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(
         yaml.safe_dump(review, allow_unicode=True, sort_keys=False), encoding='utf-8'
