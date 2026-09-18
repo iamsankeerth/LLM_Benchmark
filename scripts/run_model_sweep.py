@@ -76,6 +76,7 @@ from storage.sweep import (
     BENCHMARK_ERROR,
     COMPLETE,
     COMPLETE_INELIGIBLE,
+    COMPLETE_INELIGIBLE_RUNTIME_HEADROOM,
     DELETION_FAILED,
     DERIVING,
     DOWNLOAD_FAILED,
@@ -512,6 +513,55 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
             checkpoint(BENCHMARK_ERROR,
                        f'ELIGIBILITY_MEASUREMENT_ERROR: {eligibility.eligibility_evidence_json}')
             return BENCHMARK_ERROR
+        if eligibility.eligible:
+            # Second gate: full residency is necessary but not sufficient.
+            # The operational canary proves sustained canonical inference
+            # (Phi Q4 was 100% resident yet aborted streams at 95 MiB free).
+            from inference.eligibility import run_operational_canary
+            from inference.sysmon import sample_vram_once
+
+            canary = run_operational_canary(
+                base_url=base_url,
+                model_identifier=identifier,
+                effective_options=canonical.effective_options,
+                render_prompt=lambda prompt: render_prompt(config, prompt),
+            )
+            print(f'[{model_config_id}] canary: '
+                  f'{"PASS" if canary.passed else "FAIL " + canary.failure_kind} '
+                  f'(eval={canary.eval_count})', flush=True)
+            if not canary.passed:
+                vram_used, vram_total = sample_vram_once()
+                vram_free = (
+                    (vram_total - vram_used)
+                    if vram_used is not None and vram_total is not None
+                    else None
+                )
+                artifact = root / 'results/summaries' / f'ineligible-{model_config_id}.json'
+                artifact.write_text(json.dumps({
+                    'execution_id': execution_id,
+                    'model_config_id': model_config_id,
+                    'eligibility_status': COMPLETE_INELIGIBLE_RUNTIME_HEADROOM,
+                    'effective_options': canonical.effective_options.as_dict(),
+                    'residency_ratio': eligibility.gpu_residency_ratio,
+                    'vram_total_mib': vram_total,
+                    'vram_free_post_load_mib': vram_free,
+                    'weight_fit': True,
+                    'sustained_generation': False,
+                    'canary_eval_count': canary.eval_count,
+                    'canary_done_reason': canary.done_reason,
+                    'canary_failure': canary.failure_kind,
+                    'canary_detail': canary.detail,
+                    'evidence': eligibility.eligibility_evidence_json,
+                }, indent=2) + '\n', encoding='utf-8')
+                ollama_stop(ollama_bin, identifier)
+                wait_until_unloaded(
+                    lambda: load_ps_digest(base_url, identifier)[0] is None,
+                    timeout_s=180.0,
+                )
+                ollama_remove(ollama_bin, identifier)
+                checkpoint(COMPLETE_INELIGIBLE_RUNTIME_HEADROOM,
+                           f'canary {canary.failure_kind}')
+                return COMPLETE_INELIGIBLE_RUNTIME_HEADROOM
         if not eligibility.eligible:
             artifact = root / 'results/summaries' / f'ineligible-{model_config_id}.json'
             artifact.write_text(json.dumps({
@@ -882,7 +932,8 @@ def _run_loop(
 ) -> int:
     print(f'sweep: {state.sweep_id} resume_from={state.next_model}', flush=True)
     stopped_states = set(STOPPED_STATE.values())
-    terminal_states = {'COMPLETE', 'COMPLETE_INELIGIBLE'}
+    terminal_states = {'COMPLETE', 'COMPLETE_INELIGIBLE',
+                       COMPLETE_INELIGIBLE_RUNTIME_HEADROOM}
     checkpoints_dir = root / 'results/checkpoints'
     while True:
         # The state FILE is authoritative: reload every iteration so a
@@ -951,13 +1002,16 @@ def _run_loop(
         if outcome in stopped_states:
             print(f'sweep paused: {current} -> {outcome}', flush=True)
             return 0
-        if outcome in (COMPLETE, COMPLETE_INELIGIBLE):
+        if outcome in (COMPLETE, COMPLETE_INELIGIBLE,
+                        COMPLETE_INELIGIBLE_RUNTIME_HEADROOM):
             # Stepped mode: an explicit --stop-after complete pauses even on
             # natural completion. Otherwise COMPLETE always advances.
             if getattr(args, 'stop_after', None) == 'complete' and outcome == COMPLETE:
                 print(f'sweep paused: {current} -> COMPLETE (stepped)', flush=True)
                 return 0
-            if outcome == COMPLETE_INELIGIBLE and args.stop_on_ineligible:
+            if outcome in (COMPLETE_INELIGIBLE,
+                           COMPLETE_INELIGIBLE_RUNTIME_HEADROOM) \
+                    and args.stop_on_ineligible:
                 print('stopping on ineligible (flag)', flush=True)
                 return 0
             # Non-blocking family reports: generated, recorded, never gated.

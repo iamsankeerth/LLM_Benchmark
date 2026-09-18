@@ -77,9 +77,12 @@ class SweepStateTests(unittest.TestCase):
         self.assertFalse(
             set(RESTART_STAGE) & {'COMPLETE', 'COMPLETE_INELIGIBLE'}
         )
-        state = new_sweep_state('s', ['a', 'b'])
-        set_lifecycle(state, 'a', COMPLETE)
-        set_lifecycle(state, 'b', COMPLETE_INELIGIBLE)
+        from storage.sweep import TERMINAL_OK
+
+        self.assertIn('COMPLETE_INELIGIBLE_RUNTIME_HEADROOM', TERMINAL_OK)
+        state = new_sweep_state('s', ['a'])
+        set_lifecycle(state, 'a', 'COMPLETE_INELIGIBLE_RUNTIME_HEADROOM')
+        self.assertEqual(state.ineligible, ['a'])
         self.assertIsNone(state.next_model)
 
     def test_restart_mapping_covers_lifecycles(self) -> None:

@@ -44,6 +44,7 @@ MEASUREMENT_FAILED = 'MEASUREMENT_FAILED'
 DELETION_FAILED = 'DELETION_FAILED'
 COMPLETE = 'COMPLETE'
 COMPLETE_INELIGIBLE = 'COMPLETE_INELIGIBLE'
+COMPLETE_INELIGIBLE_RUNTIME_HEADROOM = 'COMPLETE_INELIGIBLE_RUNTIME_HEADROOM'
 
 # Ordered stages for --stop-after and resume mapping.
 STAGES = (
@@ -102,7 +103,9 @@ RESTART_STAGE = {
     'DELETED': 'complete',
 }
 
-TERMINAL_OK = frozenset({COMPLETE, COMPLETE_INELIGIBLE})
+TERMINAL_OK = frozenset({
+    COMPLETE, COMPLETE_INELIGIBLE, COMPLETE_INELIGIBLE_RUNTIME_HEADROOM,
+})
 
 
 @dataclass
@@ -273,7 +276,8 @@ def set_lifecycle(
     state.models[model_config_id].lifecycle = lifecycle
     if detail:
         state.models[model_config_id].detail = detail
-    if lifecycle == COMPLETE_INELIGIBLE and model_config_id not in state.ineligible:
+    if lifecycle in (COMPLETE_INELIGIBLE, COMPLETE_INELIGIBLE_RUNTIME_HEADROOM) \
+            and model_config_id not in state.ineligible:
         state.ineligible.append(model_config_id)
     if lifecycle == COMPLETE:
         # A completed lifecycle clears any stale failure/ineligible record:

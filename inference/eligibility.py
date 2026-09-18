@@ -26,6 +26,19 @@ INELIGIBLE_GPU_ONLY = 'INELIGIBLE_GPU_ONLY'
 UNMEASURABLE_FAIL_CLOSED = 'UNMEASURABLE_FAIL_CLOSED'
 DIGEST_MISMATCH_FAIL_CLOSED = 'DIGEST_MISMATCH_FAIL_CLOSED'
 ELIGIBILITY_MEASUREMENT_ERROR = 'ELIGIBILITY_MEASUREMENT_ERROR'
+COMPLETE_INELIGIBLE_RUNTIME_HEADROOM = 'COMPLETE_INELIGIBLE_RUNTIME_HEADROOM'
+
+# Operational canary: sustained generation under the exact canonical config.
+# Not a benchmark task; transport/runtime proof only; no DB row is written.
+# A short natural stop below the token floor is inconclusive, never a pass:
+# the canary must observe sustained generation or fail closed.
+CANARY_PROMPT = (
+    'Explain in detail, in at least 300 words, how a relational database '
+    'uses indexes to speed up queries. Cover B-tree structure, write '
+    'amplification, and when an index hurts performance.'
+)
+CANARY_NUM_PREDICT = 512
+CANARY_MIN_EVAL_TOKENS = 128
 
 # Canonical eligibility probe: diagnostic single token. num_predict=1 keeps
 # it cheap; residency is governed by num_ctx, which always equals the
@@ -149,6 +162,65 @@ class CanonicalEligibility:
     result: EligibilityResult
     effective_options: EffectiveEligibilityOptions
     rendered_prompt_sha256: str
+
+
+@dataclass(frozen=True)
+class CanaryOutcome:
+    passed: bool
+    eval_count: int | None
+    done_reason: str | None
+    failure_kind: str
+    detail: str
+
+
+def run_operational_canary(
+    *,
+    base_url: str,
+    model_identifier: str,
+    effective_options: EffectiveEligibilityOptions,
+    render_prompt: Callable[[str], str],
+    generate_fn: Callable[[str, GenerationRequest], GenerationResult] | None = None,
+    timeout_s: float = 600.0,
+) -> CanaryOutcome:
+    """Sustained-generation canary under the exact canonical config.
+
+    Full residency is necessary but not sufficient: this proves the loaded
+    model can actually sustain canonical inference (Phi Q4 was 100%
+    resident yet aborted streams with 95 MiB free). No DB row is written.
+    done may be stop OR length (surviving the budget is the point); fewer
+    than CANARY_MIN_EVAL_TOKENS observed tokens is inconclusive -> fail.
+    """
+    from inference.ollama_client import OllamaClientError
+
+    options = effective_options
+    prompt_text = (
+        render_prompt(CANARY_PROMPT)
+        if options.mode == 'raw'
+        else CANARY_PROMPT
+    )
+    request = GenerationRequest(
+        model=model_identifier,
+        prompt=prompt_text,
+        temperature=options.temperature,
+        num_ctx=options.num_ctx,
+        num_predict=CANARY_NUM_PREDICT,
+        num_gpu=options.num_gpu,
+        raw=(options.mode == 'raw'),
+    )
+    generate_call = generate_fn or (lambda url, req: _live_generate(url, req, timeout_s))
+    try:
+        result = generate_call(base_url, request)
+    except OllamaClientError as exc:
+        return CanaryOutcome(False, None, None, type(exc).__name__, str(exc)[:300])
+    except Exception as exc:
+        return CanaryOutcome(False, None, None, type(exc).__name__, str(exc)[:300])
+    eval_count = result.eval_count
+    if eval_count is not None and eval_count >= CANARY_MIN_EVAL_TOKENS:
+        return CanaryOutcome(True, eval_count, result.done_reason, '', '')
+    return CanaryOutcome(
+        False, eval_count, result.done_reason, 'insufficient_output',
+        f'only {eval_count} tokens observed (floor {CANARY_MIN_EVAL_TOKENS})',
+    )
 
 
 def run_canonical_eligibility(

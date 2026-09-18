@@ -13,6 +13,7 @@ from inference.eligibility import (
     INELIGIBLE_GPU_ONLY,
     UNMEASURABLE_FAIL_CLOSED,
     CanonicalEligibility,
+    CanaryOutcome,
     EffectiveEligibilityOptions,
     ProbeConfigMismatchError,
     effective_options_for,
@@ -172,6 +173,60 @@ class CanonicalProbeTests(unittest.TestCase):
         self.assertEqual(options.num_ctx, 4096)
         self.assertEqual(options.num_predict, 1)
         self.assertEqual(options.num_gpu, 99)
+
+
+class OperationalCanaryTests(unittest.TestCase):
+    def _canary(self, text_result: GenerationResult | None,
+                error: BaseException | None = None) -> CanaryOutcome:
+        from inference.eligibility import run_operational_canary
+
+        def fake_generate(url: str, request: GenerationRequest) -> GenerationResult:
+            self.captured = request
+            if error is not None:
+                raise error
+            assert text_result is not None
+            return text_result
+
+        return run_operational_canary(
+            base_url='http://x', model_identifier=QWEN_ID,
+            effective_options=_canonical_options(),
+            render_prompt=lambda prompt: prompt,
+            generate_fn=fake_generate,
+        )
+
+    def _ok_result(self, eval_count: int | None) -> GenerationResult:
+        return GenerationResult(
+            text='x ' * 300, thinking='', done_reason='stop',
+            eval_count=eval_count, request_start_ns=0, first_token_ns=1,
+            request_end_ns=2,
+        )
+
+    def test_canary_passes_on_sustained_output(self) -> None:
+        outcome = self._canary(self._ok_result(300))
+        self.assertTrue(outcome.passed)
+        request = self.captured
+        self.assertEqual(request.num_ctx, 4096)
+        self.assertEqual(request.num_predict, 512)
+        self.assertEqual(request.num_gpu, 99)
+        self.assertTrue(request.raw)
+
+    def test_canary_fails_on_truncation(self) -> None:
+        from inference.ollama_client import TruncatedStreamError
+
+        outcome = self._canary(None, TruncatedStreamError('cut'))
+        self.assertFalse(outcome.passed)
+        self.assertIn('Truncated', outcome.failure_kind)
+
+    def test_canary_fails_on_short_output(self) -> None:
+        outcome = self._canary(self._ok_result(3))
+        self.assertFalse(outcome.passed)
+        self.assertEqual(outcome.failure_kind, 'insufficient_output')
+
+    def test_canary_accepts_budget_length_stop(self) -> None:
+        result = self._ok_result(512)
+        result.done_reason = 'length'
+        outcome = self._canary(result)
+        self.assertTrue(outcome.passed)
 
 
 if __name__ == '__main__':
