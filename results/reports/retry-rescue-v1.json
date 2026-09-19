@@ -1,0 +1,38 @@
+{
+  "title": "Retry-Rescue V1: Qwen Q4 contract-aware prompt retry",
+  "experiment": "retry-rescue-v1__qwen3-4b-q4",
+  "base_execution": "full-baseline-v2__qwen3-4b-q4",
+  "baseline_deterministic_trial_accuracy": 0.525,
+  "baseline_passes": 107,
+  "baseline_trials": 204,
+  "populations": {
+    "primary": {
+      "failure_mode": "OUTPUT_CONTRACT",
+      "rows": 39,
+      "recovered": 12,
+      "recovery_rate": 0.3077
+    },
+    "control": {
+      "failure_mode": "MIXED",
+      "rows": 12,
+      "recovered": 0,
+      "recovery_rate": 0.0
+    }
+  },
+  "post_retry": {
+    "post_retry_passes": 119,
+    "post_retry_pass_rate": 0.5833,
+    "absolute_uplift": 0.0583
+  },
+  "content_change": {
+    "recovered_contract_only": 12,
+    "recovered_with_content_change": 0,
+    "unknown": 0
+  },
+  "provenance": {
+    "analysis_code_git_commit": "5b3eb645bc23b17374f15368e06b4c4afe061266",
+    "v2_sealed_commit": "1d63305fadd416387f218ad8ba868e85a1345382",
+    "retry_template_hashes": "frozen in configs/retry-rescue-v1.yaml"
+  },
+  "note": "Baseline rows immutable; control never pooled; single retry per identity"
+}
