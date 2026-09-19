@@ -20,7 +20,7 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping
 
 RUN_KINDS = frozenset(
-    {'WARMUP', 'BASELINE', 'TEMPERATURE', 'RELIABILITY', 'LONG_CONTEXT', 'JUDGE'}
+    {'WARMUP', 'BASELINE', 'TEMPERATURE', 'RELIABILITY', 'LONG_CONTEXT', 'JUDGE', 'RETRY_RESCUE'}
 )
 
 SCHEMA_SQL = """

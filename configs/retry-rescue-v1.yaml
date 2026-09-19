@@ -1,0 +1,41 @@
+# retry-rescue-v1: contract-aware prompt retry, Qwen Q4 only.
+# Frozen 2026-09-18. Pre-registered hypothesis: of Qwen Q4's 97
+# deterministic FAIL rows, 39 are pure OUTPUT_CONTRACT and are the sole
+# primary recovery population. 12 MIXED rows form a separate mechanism-
+# control cohort, never pooled into the primary denominator.
+#
+# Retry construction rule (treatment purity):
+#   retry_prompt = original_prompt + "\n\n" + Suffix
+# No baseline answer, expected answer, human review, failure-mode text,
+# or extracted asserted value may enter the renderer. Suffix wording below
+# is the treatment itself and is hashed/versioned; changing one sentence
+# changes the intervention.
+experiment: retry-rescue-v1
+base_execution: full-baseline-v2__qwen3-4b-q4
+base_model: qwen3-4b-q4
+temperature: 0
+trials_per_task: 3
+retry_budget: 1
+validator: frozen_eval_v1_grader_exactly
+intervention: CONTRACT_AWARE_PROMPT_RETRY
+populations:
+  primary:
+    failure_mode: OUTPUT_CONTRACT
+    rows: 39
+    source_artifact: results/reports/qwen3-4b-q4-failure-analysis.json
+    source_artifact_sha256: 57343835869b11c474f56f407d3e9d0091ed85feb4089020626c9e8340798c47
+  control:
+    failure_mode: MIXED
+    rows: 12
+    source_artifact: results/reports/qwen3-4b-q4-failure-analysis.json
+suffixes:
+  NUMERIC_ONLY: |
+    Return only the final numeric value required by the task.
+    Do not include explanation, derivation, labels, or surrounding text.
+    Include units only if the task explicitly requires them.
+  EXACT_TEXT_ONLY: |
+    Return only the exact requested text or token.
+    Do not include explanation, prefixes, suffixes, labels, or commentary.
+  STRUCTURED_JSON: |
+    Return only valid JSON matching the required structure for this task.
+    Do not use Markdown code fences or include any text before or after the JSON.
