@@ -1,0 +1,33 @@
+# Frozen pre-run contract: constrained decoding only, no prompt suffix.
+experiment: retry-rescue-v2
+execution_id: retry-rescue-v2__qwen3-4b-q4
+base_execution: full-baseline-v2__qwen3-4b-q4
+retry_execution: retry-rescue-v1__qwen3-4b-q4
+base_model: qwen3-4b-q4
+intervention: CONSTRAINED_DECODING
+retry_budget: 1
+temperature: 0
+num_predict: 2048
+trials_per_task: 3
+validator: frozen_eval_v1_grader_exactly
+capability_matrix: results/reports/retry-rescue-v2-capability-matrix.json
+population_sha256: 6dc50dfd7c0776e336fc1e733da7eaa2ad215bed67044c64e3f92f38ec275690
+format_mapping_sha256: 1503f4ca9711b3084bc5631324a047ff8460d17cad736cc5f838d26cf9089d45
+response_formats:
+  Q016:
+    kind: STRUCTURED_JSON
+    format:
+      type: object
+      required: [benefit_1, benefit_2, risk]
+      properties:
+        benefit_1: {type: string}
+        benefit_2: {type: string}
+        risk: {type: string}
+      additionalProperties: false
+  Q019: {kind: NUMBER, format: {type: number}}
+  Q020: {kind: NUMBER, format: {type: number}}
+  Q021: {kind: NUMBER, format: {type: number}}
+  Q022: {kind: NUMBER, format: {type: number}}
+  Q024: {kind: NUMBER, format: {type: number}}
+  Q026: {kind: NUMBER, format: {type: number}}
+  Q070: {kind: NUMBER, format: {type: number}}

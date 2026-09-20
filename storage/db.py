@@ -190,6 +190,9 @@ class RunRecord:
     eligibility_status: str | None = None
     gpu_residency_ratio: float | None = None
     eligibility_evidence_json: str | None = None
+    original_prompt_sha256: str | None = None
+    response_format_kind: str | None = None
+    response_format_sha256: str | None = None
     ollama_version: str | None = None
     model_digest: str | None = None
 
@@ -205,6 +208,7 @@ _RUN_COLUMNS = (
     'client_overhead_ms ram_baseline_mb ram_peak_mb vram_baseline_mib vram_peak_mib '
     'vram_post_mib vram_total_mib grader_verdict grader_details_json status error '
     'eligibility_status gpu_residency_ratio eligibility_evidence_json '
+    'original_prompt_sha256 response_format_kind response_format_sha256 '
     'started_at_utc ended_at_utc ollama_version model_digest'
 ).split()
 
@@ -217,6 +221,19 @@ def connect(path: str) -> sqlite3.Connection:
 
 def init_schema(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA_SQL)
+    conn.commit()
+
+
+def migrate_v2_run_columns(conn: sqlite3.Connection) -> None:
+    """Add V2 audit columns to the writable C database only."""
+    existing = {
+        str(row[1]) for row in conn.execute('PRAGMA table_info(runs)').fetchall()
+    }
+    for name in (
+        'original_prompt_sha256', 'response_format_kind', 'response_format_sha256',
+    ):
+        if name not in existing:
+            conn.execute(f'ALTER TABLE runs ADD COLUMN {name} TEXT')
     conn.commit()
 
 
@@ -259,12 +276,25 @@ def insert_run(conn: sqlite3.Connection, record: RunRecord) -> int:
         record.vram_total_mib, record.grader_verdict, record.grader_details_json,
         record.status, record.error, record.eligibility_status,
         record.gpu_residency_ratio, record.eligibility_evidence_json,
+        record.original_prompt_sha256, record.response_format_kind,
+        record.response_format_sha256,
         record.started_at_utc, record.ended_at_utc, record.ollama_version,
         record.model_digest,
     )
-    placeholders = ','.join(['?'] * len(_RUN_COLUMNS))
+    # Older sealed databases deliberately are not migrated by general readers.
+    # Filtering here preserves their original schema if another legacy writer
+    # is resumed; V2 explicitly runs its own additive migration on C only.
+    available = {
+        str(row[1]) for row in conn.execute('PRAGMA table_info(runs)').fetchall()
+    }
+    selected = [
+        (column, value) for column, value in zip(_RUN_COLUMNS, values)
+        if column in available
+    ]
+    placeholders = ','.join(['?'] * len(selected))
     cursor = conn.execute(
-        f'INSERT INTO runs({",".join(_RUN_COLUMNS)}) VALUES({placeholders})', values
+        f'INSERT INTO runs({",".join(column for column, _ in selected)}) VALUES({placeholders})',
+        tuple(value for _, value in selected),
     )
     return int(cursor.lastrowid or 0)
 

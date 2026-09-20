@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
+
+import yaml
 
 
 NUMERIC_CONSTRAINT = {'type': 'number'}
@@ -18,10 +22,173 @@ PROBE_COHORTS = {
     'Q026': 'control',
 }
 
+V1_SUFFIX_MARKERS = (
+    'Return only the final numeric value required by the task.',
+    'Return only the exact requested text or token.',
+    'Return only valid JSON matching the required structure for this task.',
+)
+
+
+@dataclass(frozen=True)
+class V2Contract:
+    primary_identities: tuple[tuple[str, int], ...]
+    control_identities: tuple[tuple[str, int], ...]
+    formats: dict[str, tuple[str, dict[str, Any]]]
+    population_sha256: str
+    format_mapping_sha256: str
+
+    def format_for(self, task_id: str) -> dict[str, Any]:
+        return self.formats[task_id][1]
+
+    def format_kind_for(self, task_id: str) -> str:
+        return self.formats[task_id][0]
+
+
+def canonical_format_bytes(response_format: dict[str, Any]) -> bytes:
+    return json.dumps(
+        response_format, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
+    ).encode('utf-8')
+
+
+def canonical_format_mapping(
+    formats: dict[str, tuple[str, dict[str, Any]]],
+) -> bytes:
+    document = [
+        {'task_id': task_id, 'kind': kind, 'format': response_format}
+        for task_id, (kind, response_format) in sorted(formats.items())
+    ]
+    return json.dumps(
+        document, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
+    ).encode('utf-8')
+
+
+def format_mapping_sha256(mapping: bytes | dict[str, tuple[str, dict[str, Any]]]) -> str:
+    raw = canonical_format_mapping(mapping) if isinstance(mapping, dict) else mapping
+    return hashlib.sha256(raw).hexdigest()
+
+
+def reject_retry_suffix(prompt: str) -> None:
+    if any(marker in prompt for marker in V1_SUFFIX_MARKERS):
+        raise ValueError('retry suffix is forbidden in constrained decoding prompt')
+
+
+def v2_run_config_hash(
+    *,
+    model_config_id: str,
+    model_config_sha256: str,
+    temperature: float,
+    num_ctx: int,
+    num_predict: int,
+    template_sha256: str,
+    grader_spec_sha256: str,
+    population_sha256: str,
+    format_mapping_sha256: str,
+) -> str:
+    """Hash the complete V2 intervention identity, not a per-row format."""
+    document = {
+        'model_config_id': model_config_id,
+        'model_config_sha256': model_config_sha256,
+        'temperature': temperature,
+        'num_ctx': num_ctx,
+        'num_predict': num_predict,
+        'template_sha256': template_sha256,
+        'grader_spec_sha256': grader_spec_sha256,
+        'population_sha256': population_sha256,
+        'format_mapping_sha256': format_mapping_sha256,
+        'intervention': 'CONSTRAINED_DECODING',
+        'retry_budget': 1,
+    }
+    return hashlib.sha256(
+        json.dumps(document, sort_keys=True, separators=(',', ':')).encode('utf-8')
+    ).hexdigest()
+
+
+def validate_c_resume(
+    conn: Any,
+    execution_id: str,
+    expected_identities: set[tuple[str, int]],
+    expected_run_config_hash: str,
+    formats: dict[str, tuple[str, dict[str, Any]]],
+) -> set[tuple[str, int]]:
+    """Fail closed if a C database has rows from another frozen contract."""
+    rows = conn.execute(
+        'SELECT task_id, trial, run_config_hash, response_format_kind, '
+        'response_format_sha256, status FROM runs '
+        'WHERE experiment_id=? AND is_warmup=0', (execution_id,),
+    ).fetchall()
+    completed: set[tuple[str, int]] = set()
+    for task_id, trial, config_hash, kind, format_hash, status in rows:
+        identity = (str(task_id), int(trial))
+        if identity not in expected_identities:
+            raise ValueError('unexpected C identity')
+        if config_hash != expected_run_config_hash:
+            raise ValueError('run config hash mismatch')
+        expected_kind, response_format = formats[identity[0]]
+        if kind != expected_kind:
+            raise ValueError('response format kind mismatch')
+        if format_hash != constraint_sha256(response_format):
+            raise ValueError('response format hash mismatch')
+        if status == 'COMPLETE':
+            completed.add(identity)
+        else:
+            raise ValueError('incomplete C row prevents resume')
+    return completed
+
+
+def _identities(rows: Any) -> tuple[tuple[str, int], ...]:
+    if not isinstance(rows, list):
+        raise ValueError('row eligibility must be a list')
+    selected = [
+        (str(row['task_id']), int(row['trial']))
+        for row in rows
+        if isinstance(row, dict) and row.get('eligible') is True
+    ]
+    return tuple(sorted(selected))
+
+
+def load_v2_contract(config_path: str, matrix_path: str) -> V2Contract:
+    """Load the sole V2 mapping authority and verify its frozen population."""
+    config_bytes = Path(config_path).read_bytes()
+    config = yaml.safe_load(config_bytes)
+    if not isinstance(config, dict):
+        raise ValueError('V2 config must be a mapping')
+    matrix_bytes = Path(matrix_path).read_bytes()
+    matrix = json.loads(matrix_bytes)
+    if not isinstance(matrix, dict) or matrix.get('matrix_status') != 'FROZEN':
+        raise ValueError('V2 capability matrix must be FROZEN')
+    population_hash = hashlib.sha256(matrix_bytes).hexdigest()
+    if config.get('population_sha256') != population_hash:
+        raise ValueError('V2 population hash mismatch')
+    primary = _identities(matrix.get('row_eligibility'))
+    control_doc = matrix.get('control_population')
+    if not isinstance(control_doc, dict):
+        raise ValueError('V2 control population missing')
+    control = _identities(control_doc.get('row_eligibility'))
+    if len(primary) != 18 or len(control) != 6:
+        raise ValueError('V2 frozen population must resolve to 18 primary and 6 control rows')
+    mapping_doc = config.get('response_formats')
+    if not isinstance(mapping_doc, dict):
+        raise ValueError('V2 response_formats missing')
+    formats: dict[str, tuple[str, dict[str, Any]]] = {}
+    for task_id, item in mapping_doc.items():
+        if not isinstance(task_id, str) or not isinstance(item, dict):
+            raise ValueError('V2 response format entries must be mappings')
+        kind = item.get('kind')
+        response_format = item.get('format')
+        if kind not in ('NUMBER', 'STRUCTURED_JSON') or not isinstance(response_format, dict):
+            raise ValueError(f'{task_id}: invalid response format entry')
+        formats[task_id] = (kind, response_format)
+    selected_task_ids = {task_id for task_id, _ in primary + control}
+    if set(formats) != selected_task_ids:
+        raise ValueError('V2 response format mapping must cover exactly selected tasks')
+    mapping_hash = format_mapping_sha256(formats)
+    if config.get('format_mapping_sha256') != mapping_hash:
+        raise ValueError('V2 format mapping hash mismatch')
+    return V2Contract(primary, control, formats, population_hash, mapping_hash)
+
 
 def constraint_sha256(constraint: dict[str, Any]) -> str:
-    encoded = json.dumps(constraint, sort_keys=True, separators=(',', ':')).encode('utf-8')
-    return hashlib.sha256(encoded).hexdigest()
+    return hashlib.sha256(canonical_format_bytes(constraint)).hexdigest()
 
 
 def is_bare_json_number(output: str) -> bool:
