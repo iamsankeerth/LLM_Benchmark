@@ -58,11 +58,23 @@ class NumericGraderTests(unittest.TestCase):
 
 
 class TimeGraderTests(unittest.TestCase):
+    def test_exact_precision_match_and_mismatch(self) -> None:
+        grader = {'type': 'time', 'expected': '11:37:12', 'precision': 'exact', 'parsing': ['HH:MM']}
+        self.assertTrue(grade_time('11:37:12', grader).passed)
+        result = grade_time('11:37:13', grader)
+        self.assertFalse(result.passed)
+        self.assertIn('expected', result.detail)
+
     def test_minute_precision_forms(self) -> None:
         grader = {'type': 'time', 'expected': '00:55', 'precision': 'minute', 'parsing': ['HH:MM']}
         self.assertTrue(grade_time('00:55', grader).passed)
         self.assertFalse(grade_time('0:55', grader).passed)
         self.assertFalse(grade_time('12:55 AM', grader).passed)
+
+    def test_minute_precision_ignores_seconds_but_not_minutes(self) -> None:
+        grader = {'type': 'time', 'expected': '11:37:12', 'precision': 'minute', 'parsing': ['HH:MM']}
+        self.assertTrue(grade_time('11:37:59', grader).passed)
+        self.assertFalse(grade_time('11:38:12', grader).passed)
 
     def test_ampm_with_explicit_parsing(self) -> None:
         grader = {'type': 'time', 'expected': '11:37', 'precision': 'minute', 'parsing': ['HH:MM', 'H:MM AM', 'H:MM a.m.']}
@@ -78,6 +90,21 @@ class TimeGraderTests(unittest.TestCase):
 
 
 class StructuredGraderTests(unittest.TestCase):
+    def test_array_matching_is_unordered_and_consumes_matches(self) -> None:
+        base = {
+            'type': 'structured',
+            'expected_output': {'values': ['alpha', 'beta']},
+            'required_fields': ['values'],
+            'allow_extra_fields': False,
+        }
+        self.assertTrue(grade_structured('{"values": ["beta", "alpha"]}', base).passed)
+        duplicate = {
+            **base,
+            'expected_output': {'values': ['alpha', 'alpha']},
+        }
+        self.assertFalse(grade_structured('{"values": ["alpha", "beta"]}', duplicate).passed)
+        self.assertFalse(grade_structured('{"values": ["alpha", "gamma"]}', base).passed)
+
     def test_valid_object(self) -> None:
         grader = {
             'type': 'structured',

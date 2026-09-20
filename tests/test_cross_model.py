@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import unittest
+from hashlib import sha256
 from pathlib import Path
 
 from analysis.cross_model import (
@@ -129,6 +130,42 @@ class ProvenanceSplitTests(unittest.TestCase):
             report['provenance']['analysis_code_git_commit'],
             freeze['analysis_code_git_commit'],
         )
+
+
+class RetryRescueProvenanceTests(unittest.TestCase):
+    def test_report_and_freeze_preserve_separate_lineage(self) -> None:
+        import json
+
+        root = Path(__file__).resolve().parents[1]
+        report = json.loads(
+            (root / 'results/reports/retry-rescue-v1.json').read_text(encoding='utf-8')
+        )
+        freeze = json.loads(
+            (root / 'results/reports/retry-rescue-v1-freeze.json').read_text(encoding='utf-8')
+        )
+        provenance = report['provenance']
+        self.assertNotIn('analysis_code_git_commit', provenance)
+        self.assertEqual(
+            provenance['v2_sealed_commit'],
+            '1d63305fadd416387f218ad8ba868e85a1345382',
+        )
+        self.assertEqual(
+            provenance['retry_sealed_commit'],
+            '589eb43796178c33fc7162a34904d2615612b806',
+        )
+        self.assertEqual(freeze['freeze_id'], 'retry-rescue-v1')
+        self.assertEqual(freeze['v2_sealed_commit'], provenance['v2_sealed_commit'])
+        self.assertEqual(freeze['retry_sealed_commit'], provenance['retry_sealed_commit'])
+        self.assertEqual(
+            freeze['original_artifact_commit'],
+            '41c3256280d6fe54f48c267de90115445d1ef182',
+        )
+        self.assertRegex(freeze['analysis_code_git_commit'], r'^[0-9a-f]{40}$')
+        self.assertEqual(report['baseline_deterministic_trial_accuracy'], 0.5245)
+        self.assertEqual(report['post_retry']['post_retry_pass_rate'], 0.5833)
+        self.assertEqual(report['post_retry']['absolute_uplift'], 0.0588)
+        for path, digest in freeze['artifacts'].items():
+            self.assertEqual(sha256((root / path).read_bytes()).hexdigest(), digest, path)
 
 
 if __name__ == '__main__':

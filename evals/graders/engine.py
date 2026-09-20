@@ -160,6 +160,7 @@ def grade_time(output: str, grader: dict[str, Any]) -> GraderResult:
     if produced is None:
         return GraderResult('time', False, f'could not parse time from {output!r} using accepted forms {parsing}')
     precision = grader.get('precision', 'exact')
+    expected_cmp = expected_parts
     if precision == 'minute':
         produced = (produced[0], produced[1], 0)
         expected_cmp = expected_parts[:2] + (0,)
