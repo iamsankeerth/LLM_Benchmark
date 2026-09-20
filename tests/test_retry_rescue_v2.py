@@ -13,6 +13,7 @@ from analysis.retry_rescue_v2 import (
     freeze_matrix,
     is_bare_json_number,
 )
+from scripts.probe_retry_rescue_v2 import build_cleanup_record
 
 
 def _draft_matrix() -> dict[str, Any]:
@@ -104,6 +105,32 @@ class MatrixResolutionTests(unittest.TestCase):
                 _draft_matrix(), alternate, evidence_path='e', evidence_sha256='a' * 64,
                 probe_code_git_commit='b' * 40,
             )
+
+
+class CleanupRecordTests(unittest.TestCase):
+    def test_missing_baseline_never_claims_disk_reclaim(self) -> None:
+        cleanup = build_cleanup_record(
+            model_loaded_after_run=False,
+            model_installed_after_run=False,
+            free_before_bytes=None,
+            free_after_bytes=123,
+        )
+        self.assertEqual(cleanup['cleanup_status'], 'MODEL_STATE_VERIFIED')
+        self.assertFalse(cleanup['disk_reclaim_verified'])
+        self.assertEqual(
+            cleanup['disk_reclaim_status'],
+            'NOT_VERIFIABLE_PRE_RUN_BASELINE_MISSING',
+        )
+
+    def test_snapshots_measure_reclaim_separately_from_model_state(self) -> None:
+        cleanup = build_cleanup_record(
+            model_loaded_after_run=False,
+            model_installed_after_run=False,
+            free_before_bytes=1000,
+            free_after_bytes=1000,
+        )
+        self.assertEqual(cleanup['disk_reclaim_delta_bytes'], 0)
+        self.assertTrue(cleanup['disk_reclaim_verified'])
 
 
 if __name__ == '__main__':

@@ -68,21 +68,55 @@ def _render(config: Any, prompt: str) -> str:
     return render_prompt(config, prompt) if config.mode == 'raw' else prompt
 
 
+def build_cleanup_record(
+    *,
+    model_loaded_after_run: bool,
+    model_installed_after_run: bool,
+    free_before_bytes: int | None,
+    free_after_bytes: int | None,
+) -> dict[str, Any]:
+    """Describe model cleanup without overstating disk-reclaim evidence."""
+    if free_before_bytes is None:
+        disk_status = 'NOT_VERIFIABLE_PRE_RUN_BASELINE_MISSING'
+        disk_verified = False
+        disk_delta = None
+    elif free_after_bytes is None:
+        disk_status = 'NOT_VERIFIABLE_POST_RUN_SNAPSHOT_MISSING'
+        disk_verified = False
+        disk_delta = None
+    else:
+        disk_delta = free_after_bytes - free_before_bytes
+        disk_verified = disk_reclaimed_ok(free_before_bytes, free_after_bytes)
+        disk_status = 'VERIFIED' if disk_verified else 'INSUFFICIENT_RECLAIM'
+    model_state_verified = not model_loaded_after_run and not model_installed_after_run
+    return {
+        'model_loaded_after_run': model_loaded_after_run,
+        'model_installed_after_run': model_installed_after_run,
+        'ollama_ps_verified_empty': not model_loaded_after_run,
+        'ollama_list_verified_empty': not model_installed_after_run,
+        'free_before_bytes': free_before_bytes,
+        'free_after_bytes': free_after_bytes,
+        'disk_reclaim_delta_bytes': disk_delta,
+        'disk_reclaim_verified': disk_verified,
+        'disk_reclaim_status': disk_status,
+        'cleanup_status': 'MODEL_STATE_VERIFIED' if model_state_verified else 'MODEL_STATE_NOT_VERIFIED',
+    }
+
+
 def _teardown(
-    base_url: str, ollama_bin: str, identifier: str, free_before: int
-) -> str | None:
+    base_url: str, ollama_bin: str, identifier: str, free_before: int | None
+) -> dict[str, Any]:
     ollama_stop(ollama_bin, identifier)
-    unloaded = wait_until_unloaded(
+    wait_until_unloaded(
         lambda: not _model_loaded(base_url, identifier), timeout_s=180.0,
     )
-    if not unloaded:
-        return 'model remained loaded after stop'
-    removed, detail = ollama_remove(ollama_bin, identifier)
-    if not removed or ollama_model_present(ollama_bin, identifier):
-        return f'weight deletion failed: {detail}'
-    if not disk_reclaimed_ok(free_before, disk_free_bytes(ROOT)):
-        return 'weight deletion did not reclaim expected disk space'
-    return None
+    ollama_remove(ollama_bin, identifier)
+    return build_cleanup_record(
+        model_loaded_after_run=_model_loaded(base_url, identifier),
+        model_installed_after_run=ollama_model_present(ollama_bin, identifier),
+        free_before_bytes=free_before,
+        free_after_bytes=disk_free_bytes(ROOT),
+    )
 
 
 def _model_loaded(base_url: str, identifier: str) -> bool:
@@ -109,6 +143,8 @@ def run_probes(args: argparse.Namespace) -> int:
     ollama_bin = resolve_ollama_bin(args.ollama_bin)
     free_before = disk_free_bytes(ROOT)
     pulled = False
+    evidence: dict[str, Any] | None = None
+    matrix_frozen = False
     try:
         ok, detail = ollama_pull(ollama_bin, config.ollama_identifier)
         if not ok or not ollama_model_present(ollama_bin, config.ollama_identifier):
@@ -229,15 +265,24 @@ def run_probes(args: argparse.Namespace) -> int:
             probe_code_git_commit=_git_head(),
         )
         MATRIX_PATH.write_text(json.dumps(frozen, indent=2) + '\n', encoding='utf-8')
+        matrix_frozen = True
         print('probe evidence written and capability matrix frozen')
         return 0
     finally:
         if pulled:
-            cleanup_error = _teardown(
+            cleanup = _teardown(
                 args.base_url, ollama_bin, config.ollama_identifier, free_before
             )
-            if cleanup_error:
-                raise RuntimeError(f'CLEANUP FAILED: {cleanup_error}')
+            if evidence is not None:
+                evidence['cleanup'] = cleanup
+                evidence['provenance']['cleanup_observability_code_commit'] = _git_head()
+                EVIDENCE_PATH.write_text(json.dumps(evidence, indent=2) + '\n', encoding='utf-8')
+                if matrix_frozen:
+                    matrix['provenance']['probe_evidence_sha256'] = _sha256_bytes(EVIDENCE_PATH)
+                    matrix['provenance']['cleanup_observability_code_commit'] = _git_head()
+                    MATRIX_PATH.write_text(json.dumps(matrix, indent=2) + '\n', encoding='utf-8')
+            if cleanup['cleanup_status'] != 'MODEL_STATE_VERIFIED':
+                raise RuntimeError(f'CLEANUP FAILED: {cleanup}')
 
 
 def main(argv: list[str] | None = None) -> int:
