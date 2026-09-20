@@ -1,0 +1,412 @@
+{
+  "experiment_id": "retry-rescue-v2",
+  "source_population_rows": 39,
+  "eligible_rows": 18,
+  "ineligible_rows": 21,
+  "requires_live_verification_rows": 0,
+  "matrix_status": "FROZEN",
+  "pre_registered_numeric_constraint": {
+    "type": "number"
+  },
+  "pre_registration_note": "Single constrained-decoding representation for NUMERIC_ONLY before observing outputs. Alternatives (format:\"json\", no format) diagnostics only, not eligibility.",
+  "task_capabilities": [
+    {
+      "task_id": "Q019",
+      "grader_contract": "numeric expected 136 tolerance 0 bare NUMBER",
+      "constraint_representation": "{\"type\":\"number\"}",
+      "compatible_with_frozen_grader": "REQUIRES_LIVE_VERIFICATION",
+      "rationale": "Top-level JSON number is valid JSON and would be bare bytes if Ollama honors schema; requires live verification bare 136 vs {value:136}"
+    },
+    {
+      "task_id": "Q020",
+      "grader_contract": "numeric expected 66080 tolerance 0 bare NUMBER",
+      "constraint_representation": "{\"type\":\"number\"}",
+      "compatible_with_frozen_grader": "REQUIRES_LIVE_VERIFICATION",
+      "rationale": "Same as Q019 - bare number emission unconfirmed"
+    },
+    {
+      "task_id": "Q021",
+      "grader_contract": "numeric expected 2352 tolerance 0 bare NUMBER",
+      "constraint_representation": "{\"type\":\"number\"}",
+      "compatible_with_frozen_grader": "REQUIRES_LIVE_VERIFICATION",
+      "rationale": "Same - bare number emission unconfirmed"
+    },
+    {
+      "task_id": "Q022",
+      "grader_contract": "numeric expected 218.4 tolerance 0 normalize_trailing_zeros bare NUMBER",
+      "constraint_representation": "{\"type\":\"number\"}",
+      "compatible_with_frozen_grader": "REQUIRES_LIVE_VERIFICATION",
+      "rationale": "Float bare - emission as 218.4 vs 218.40 must still pass bare match"
+    },
+    {
+      "task_id": "Q024",
+      "grader_contract": "numeric expected 978 tolerance 0 bare NUMBER",
+      "constraint_representation": "{\"type\":\"number\"}",
+      "compatible_with_frozen_grader": "REQUIRES_LIVE_VERIFICATION",
+      "rationale": "Same - bare number emission unconfirmed"
+    },
+    {
+      "task_id": "Q070",
+      "grader_contract": "numeric expected 18 tolerance 0 bare NUMBER",
+      "constraint_representation": "{\"type\":\"number\"}",
+      "compatible_with_frozen_grader": "REQUIRES_LIVE_VERIFICATION",
+      "rationale": "Same - bare number emission unconfirmed"
+    },
+    {
+      "task_id": "Q039",
+      "grader_contract": "exact expected CANNOT_DETERMINE bare token",
+      "constraint_representation": "{\"type\":\"string\",\"const\":\"CANNOT_DETERMINE\"}",
+      "compatible_with_frozen_grader": "NO",
+      "rationale": "JSON string necessarily adds quotes - frozen grade_exact requires bare token"
+    },
+    {
+      "task_id": "Q040",
+      "grader_contract": "exact expected NOT_ESTABLISHED bare token",
+      "constraint_representation": "{\"type\":\"string\",\"const\":\"NOT_ESTABLISHED\"}",
+      "compatible_with_frozen_grader": "NO",
+      "rationale": "JSON string quotes break frozen bare-text grader"
+    },
+    {
+      "task_id": "Q045",
+      "grader_contract": "exact expected CACHE bare token",
+      "constraint_representation": "{\"type\":\"string\",\"const\":\"CACHE\"}",
+      "compatible_with_frozen_grader": "NO",
+      "rationale": "JSON string quotes break frozen grader"
+    },
+    {
+      "task_id": "Q054",
+      "grader_contract": "exact expected NO bare token",
+      "constraint_representation": "{\"type\":\"string\",\"const\":\"NO\"}",
+      "compatible_with_frozen_grader": "NO",
+      "rationale": "JSON string quotes break frozen grader"
+    },
+    {
+      "task_id": "Q055",
+      "grader_contract": "exact expected YES bare token",
+      "constraint_representation": "{\"type\":\"string\",\"const\":\"YES\"}",
+      "compatible_with_frozen_grader": "NO",
+      "rationale": "JSON string quotes break frozen grader"
+    },
+    {
+      "task_id": "Q068",
+      "grader_contract": "exact expected 4/15 bare token alternates 4 / 15",
+      "constraint_representation": "{\"type\":\"string\",\"enum\":[\"4/15\",\"4 / 15\"]}",
+      "compatible_with_frozen_grader": "NO",
+      "rationale": "JSON string quotes break frozen grader; alternates do not cover quoted form"
+    },
+    {
+      "task_id": "Q071",
+      "grader_contract": "time expected 00:55 HH:MM minute precision bare HH:MM",
+      "constraint_representation": "{\"type\":\"string\",\"pattern\":\"^(?:[01]\\\\d|2[0-3]):[0-5]\\\\d$\"}",
+      "compatible_with_frozen_grader": "NO",
+      "rationale": "JSON string necessarily quoted - frozen grade_time requires bare HH:MM"
+    }
+  ],
+  "row_eligibility": [
+    {
+      "task_id": "Q019",
+      "trial": 1,
+      "eligible": true
+    },
+    {
+      "task_id": "Q019",
+      "trial": 2,
+      "eligible": true
+    },
+    {
+      "task_id": "Q019",
+      "trial": 3,
+      "eligible": true
+    },
+    {
+      "task_id": "Q020",
+      "trial": 1,
+      "eligible": true
+    },
+    {
+      "task_id": "Q020",
+      "trial": 2,
+      "eligible": true
+    },
+    {
+      "task_id": "Q020",
+      "trial": 3,
+      "eligible": true
+    },
+    {
+      "task_id": "Q021",
+      "trial": 1,
+      "eligible": true
+    },
+    {
+      "task_id": "Q021",
+      "trial": 2,
+      "eligible": true
+    },
+    {
+      "task_id": "Q021",
+      "trial": 3,
+      "eligible": true
+    },
+    {
+      "task_id": "Q022",
+      "trial": 1,
+      "eligible": true
+    },
+    {
+      "task_id": "Q022",
+      "trial": 2,
+      "eligible": true
+    },
+    {
+      "task_id": "Q022",
+      "trial": 3,
+      "eligible": true
+    },
+    {
+      "task_id": "Q024",
+      "trial": 1,
+      "eligible": true
+    },
+    {
+      "task_id": "Q024",
+      "trial": 2,
+      "eligible": true
+    },
+    {
+      "task_id": "Q024",
+      "trial": 3,
+      "eligible": true
+    },
+    {
+      "task_id": "Q070",
+      "trial": 1,
+      "eligible": true
+    },
+    {
+      "task_id": "Q070",
+      "trial": 2,
+      "eligible": true
+    },
+    {
+      "task_id": "Q070",
+      "trial": 3,
+      "eligible": true
+    },
+    {
+      "task_id": "Q039",
+      "trial": 1,
+      "eligible": false
+    },
+    {
+      "task_id": "Q039",
+      "trial": 2,
+      "eligible": false
+    },
+    {
+      "task_id": "Q039",
+      "trial": 3,
+      "eligible": false
+    },
+    {
+      "task_id": "Q040",
+      "trial": 1,
+      "eligible": false
+    },
+    {
+      "task_id": "Q040",
+      "trial": 2,
+      "eligible": false
+    },
+    {
+      "task_id": "Q040",
+      "trial": 3,
+      "eligible": false
+    },
+    {
+      "task_id": "Q045",
+      "trial": 1,
+      "eligible": false
+    },
+    {
+      "task_id": "Q045",
+      "trial": 2,
+      "eligible": false
+    },
+    {
+      "task_id": "Q045",
+      "trial": 3,
+      "eligible": false
+    },
+    {
+      "task_id": "Q054",
+      "trial": 1,
+      "eligible": false
+    },
+    {
+      "task_id": "Q054",
+      "trial": 2,
+      "eligible": false
+    },
+    {
+      "task_id": "Q054",
+      "trial": 3,
+      "eligible": false
+    },
+    {
+      "task_id": "Q055",
+      "trial": 1,
+      "eligible": false
+    },
+    {
+      "task_id": "Q055",
+      "trial": 2,
+      "eligible": false
+    },
+    {
+      "task_id": "Q055",
+      "trial": 3,
+      "eligible": false
+    },
+    {
+      "task_id": "Q068",
+      "trial": 1,
+      "eligible": false
+    },
+    {
+      "task_id": "Q068",
+      "trial": 2,
+      "eligible": false
+    },
+    {
+      "task_id": "Q068",
+      "trial": 3,
+      "eligible": false
+    },
+    {
+      "task_id": "Q071",
+      "trial": 1,
+      "eligible": false
+    },
+    {
+      "task_id": "Q071",
+      "trial": 2,
+      "eligible": false
+    },
+    {
+      "task_id": "Q071",
+      "trial": 3,
+      "eligible": false
+    }
+  ],
+  "control_population": {
+    "source_rows": 12,
+    "eligible_rows": 6,
+    "ineligible_rows": 6,
+    "requires_live_verification_rows": 0,
+    "matrix_status": "FROZEN",
+    "task_capabilities": [
+      {
+        "task_id": "Q016",
+        "grader_contract": "structured JSON object required_fields benefit_1 benefit_2 risk allow_extra false",
+        "constraint_representation": "{\"type\":\"object\",\"required\":[\"benefit_1\",\"benefit_2\",\"risk\"]}",
+        "compatible_with_frozen_grader": true,
+        "rationale": "JSON object enforcement matches frozen structured grader"
+      },
+      {
+        "task_id": "Q023",
+        "grader_contract": "time expected 11:37 HH:MM bare",
+        "constraint_representation": "{\"type\":\"string\",\"pattern\":\"HH:MM\"}",
+        "compatible_with_frozen_grader": false,
+        "rationale": "JSON string quotes break bare time grader"
+      },
+      {
+        "task_id": "Q025",
+        "grader_contract": "time expected 11:36 HH:MM bare",
+        "constraint_representation": "{\"type\":\"string\",\"pattern\":\"HH:MM\"}",
+        "compatible_with_frozen_grader": false,
+        "rationale": "Same - JSON string quotes break bare time grader"
+      },
+      {
+        "task_id": "Q026",
+        "grader_contract": "numeric expected 85.83 bare",
+        "constraint_representation": "{\"type\":\"number\"}",
+        "compatible_with_frozen_grader": "REQUIRES_LIVE_VERIFICATION",
+        "rationale": "Numeric bare emission unconfirmed, same as primary numeric"
+      }
+    ],
+    "row_eligibility": [
+      {
+        "task_id": "Q016",
+        "trial": 1,
+        "eligible": true
+      },
+      {
+        "task_id": "Q016",
+        "trial": 2,
+        "eligible": true
+      },
+      {
+        "task_id": "Q016",
+        "trial": 3,
+        "eligible": true
+      },
+      {
+        "task_id": "Q023",
+        "trial": 1,
+        "eligible": false
+      },
+      {
+        "task_id": "Q023",
+        "trial": 2,
+        "eligible": false
+      },
+      {
+        "task_id": "Q023",
+        "trial": 3,
+        "eligible": false
+      },
+      {
+        "task_id": "Q025",
+        "trial": 1,
+        "eligible": false
+      },
+      {
+        "task_id": "Q025",
+        "trial": 2,
+        "eligible": false
+      },
+      {
+        "task_id": "Q025",
+        "trial": 3,
+        "eligible": false
+      },
+      {
+        "task_id": "Q026",
+        "trial": 1,
+        "eligible": true
+      },
+      {
+        "task_id": "Q026",
+        "trial": 2,
+        "eligible": true
+      },
+      {
+        "task_id": "Q026",
+        "trial": 3,
+        "eligible": true
+      }
+    ]
+  },
+  "provenance": {
+    "grading_spec_hash": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+    "dataset_hash": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
+    "source_artifact": "results/reports/qwen3-4b-q4-failure-analysis.json",
+    "source_artifact_sha256": "57343835869b11c474f56f407d3e9d0091ed85feb4089020626c9e8340798c47",
+    "probe_evidence_path": "results/reports/retry-rescue-v2-probe-evidence.json",
+    "probe_evidence_sha256": "5dbc897f35b5f15ff8045371358c7992d2093cc1f92204fd8684243b7904641f",
+    "probe_constraint_sha256": "cddf8275afa15408533079581ad27f95be579f4eeafbb1fba9fb6f32a4a64387",
+    "probe_code_git_commit": "3b7147537c97b458a544bac3cf90ea9e102c1eb6",
+    "cleanup_observability_code_commit": "dcc676f21608f902221bfc0a725e59a1796232f3"
+  }
+}

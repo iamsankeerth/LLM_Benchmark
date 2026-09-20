@@ -1,0 +1,121 @@
+{
+  "experiment_id": "retry-rescue-v2-representability-probes",
+  "created_at_utc": "2026-09-20T08:18:29+00:00",
+  "model_config_id": "qwen3-4b-q4",
+  "model_identifier": "hf.co/bartowski/Qwen_Qwen3-4B-Instruct-2507-GGUF:Q4_K_M",
+  "model_digest": "5cfd6a526dc35c24a21a8a457db3e8810165e93bbb134dd6a7ac20b34e97b25a",
+  "adapter_template_sha256": "8eb6214486f4b35b6a643afa2065ee6d4d6248dfd277455d0f535ff2429fe985",
+  "constraint": {
+    "type": "number"
+  },
+  "constraint_sha256": "cddf8275afa15408533079581ad27f95be579f4eeafbb1fba9fb6f32a4a64387",
+  "warmup_count": 2,
+  "canary_eval_count": 512,
+  "cleanup": {
+    "model_loaded_after_run": false,
+    "model_installed_after_run": false,
+    "ollama_ps_verified_empty": true,
+    "ollama_list_verified_empty": true,
+    "disk_reclaim_verified": false,
+    "disk_reclaim_status": "NOT_VERIFIABLE_PRE_RUN_BASELINE_MISSING",
+    "cleanup_status": "MODEL_STATE_VERIFIED"
+  },
+  "records": [
+    {
+      "task_id": "Q019",
+      "cohort": "primary",
+      "constraint": {
+        "type": "number"
+      },
+      "constraint_sha256": "cddf8275afa15408533079581ad27f95be579f4eeafbb1fba9fb6f32a4a64387",
+      "raw_output": "1.0000000000000000",
+      "done_reason": "stop",
+      "transport_completed": true,
+      "representation_compatible": true,
+      "frozen_grader_passed": false
+    },
+    {
+      "task_id": "Q020",
+      "cohort": "primary",
+      "constraint": {
+        "type": "number"
+      },
+      "constraint_sha256": "cddf8275afa15408533079581ad27f95be579f4eeafbb1fba9fb6f32a4a64387",
+      "raw_output": "12.505000000000001",
+      "done_reason": "stop",
+      "transport_completed": true,
+      "representation_compatible": true,
+      "frozen_grader_passed": false
+    },
+    {
+      "task_id": "Q021",
+      "cohort": "primary",
+      "constraint": {
+        "type": "number"
+      },
+      "constraint_sha256": "cddf8275afa15408533079581ad27f95be579f4eeafbb1fba9fb6f32a4a64387",
+      "raw_output": "1.1250000000000001",
+      "done_reason": "stop",
+      "transport_completed": true,
+      "representation_compatible": true,
+      "frozen_grader_passed": false
+    },
+    {
+      "task_id": "Q022",
+      "cohort": "primary",
+      "constraint": {
+        "type": "number"
+      },
+      "constraint_sha256": "cddf8275afa15408533079581ad27f95be579f4eeafbb1fba9fb6f32a4a64387",
+      "raw_output": "300",
+      "done_reason": "stop",
+      "transport_completed": true,
+      "representation_compatible": true,
+      "frozen_grader_passed": false
+    },
+    {
+      "task_id": "Q024",
+      "cohort": "primary",
+      "constraint": {
+        "type": "number"
+      },
+      "constraint_sha256": "cddf8275afa15408533079581ad27f95be579f4eeafbb1fba9fb6f32a4a64387",
+      "raw_output": "1.0000000000000000",
+      "done_reason": "stop",
+      "transport_completed": true,
+      "representation_compatible": true,
+      "frozen_grader_passed": false
+    },
+    {
+      "task_id": "Q070",
+      "cohort": "primary",
+      "constraint": {
+        "type": "number"
+      },
+      "constraint_sha256": "cddf8275afa15408533079581ad27f95be579f4eeafbb1fba9fb6f32a4a64387",
+      "raw_output": "1.2500000000000002e+3000000000000000",
+      "done_reason": "stop",
+      "transport_completed": true,
+      "representation_compatible": true,
+      "frozen_grader_passed": false
+    },
+    {
+      "task_id": "Q026",
+      "cohort": "control",
+      "constraint": {
+        "type": "number"
+      },
+      "constraint_sha256": "cddf8275afa15408533079581ad27f95be579f4eeafbb1fba9fb6f32a4a64387",
+      "raw_output": "1.0000000000000000",
+      "done_reason": "stop",
+      "transport_completed": true,
+      "representation_compatible": true,
+      "frozen_grader_passed": false
+    }
+  ],
+  "provenance": {
+    "matrix_draft_sha256": "1f3a83260fee6ca13023a0b579ddef60a9616d3835e0ee8dd72c9458a5a0cb11",
+    "probe_code_git_commit": "3b7147537c97b458a544bac3cf90ea9e102c1eb6",
+    "cleanup_observability_code_commit": "dcc676f21608f902221bfc0a725e59a1796232f3"
+  }
+}
