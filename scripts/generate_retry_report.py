@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 import subprocess
@@ -14,8 +15,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 REPORT_PATH = Path('results/reports/retry-rescue-v1.json')
 MD_PATH = Path('results/reports/retry-rescue-v1.md')
+FREEZE_PATH = Path('results/reports/retry-rescue-v1-freeze.json')
 
 V2_SEALED_COMMIT = '1d63305fadd416387f218ad8ba868e85a1345382'
+RETRY_SEALED_COMMIT = '589eb43796178c33fc7162a34904d2615612b806'
+ORIGINAL_ARTIFACT_COMMIT = '41c3256280d6fe54f48c267de90115445d1ef182'
 
 
 def main() -> int:
@@ -78,8 +82,9 @@ def main() -> int:
     baseline_passes = 107
     baseline_trials = 204
     post_retry_passes = baseline_passes + primary_recovered
-    post_rate = round(post_retry_passes / baseline_trials, 4)
-    uplift = round(post_rate - 0.525, 4)
+    baseline_rate = baseline_passes / baseline_trials
+    post_rate = post_retry_passes / baseline_trials
+    uplift = post_rate - baseline_rate
 
     # Hashes for provenance
     commit = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True, timeout=10).stdout.strip()
@@ -87,7 +92,7 @@ def main() -> int:
         'title': 'Retry-Rescue V1: Qwen Q4 contract-aware prompt retry',
         'experiment': 'retry-rescue-v1__qwen3-4b-q4',
         'base_execution': 'full-baseline-v2__qwen3-4b-q4',
-        'baseline_deterministic_trial_accuracy': 0.525,
+        'baseline_deterministic_trial_accuracy': round(baseline_rate, 4),
         'baseline_passes': baseline_passes,
         'baseline_trials': baseline_trials,
         'populations': {
@@ -96,8 +101,8 @@ def main() -> int:
         },
         'post_retry': {
             'post_retry_passes': post_retry_passes,
-            'post_retry_pass_rate': post_rate,
-            'absolute_uplift': uplift,
+            'post_retry_pass_rate': round(post_rate, 4),
+            'absolute_uplift': round(uplift, 4),
         },
         'content_change': {
             'recovered_contract_only': contract_only,
@@ -105,8 +110,8 @@ def main() -> int:
             'unknown': unknown,
         },
         'provenance': {
-            'analysis_code_git_commit': commit,
             'v2_sealed_commit': V2_SEALED_COMMIT,
+            'retry_sealed_commit': RETRY_SEALED_COMMIT,
             'retry_template_hashes': 'frozen in configs/retry-rescue-v1.yaml',
         },
         'note': 'Baseline rows immutable; control never pooled; single retry per identity',
@@ -117,15 +122,35 @@ def main() -> int:
         '',
         f'Primary recovery: {primary_recovered} / 39 = {round(primary_recovered/39,4):.1%}',
         f'Control recovery: {control_recovered} / 12 = {round(control_recovered/12,4):.1%}' if 12 else 'Control: n/a',
-        f'Post-retry pass rate: {post_retry_passes} / {baseline_trials} = {post_rate:.1%} (baseline 52.5%, uplift {uplift:+.1%})',
+        f'Post-retry pass rate: {post_retry_passes} / {baseline_trials} = {post_rate:.1%} (baseline {baseline_rate:.1%}, uplift {uplift:+.1%})',
         '',
         f'Content-change among recovered: contract_only={contract_only}, with_change={with_change}, unknown={unknown}',
         '',
         'Baseline immutable; single retry per identity; frozen grader exactly.',
     ]
     MD_PATH.write_text('\n'.join(md_lines) + '\n', encoding='utf-8')
+    freeze_paths = [
+        'configs/retry-rescue-v1.yaml',
+        'evals/specs/eval-v1-grading.freeze.json',
+        'results/reports/qwen3-4b-q4-failure-analysis.json',
+        str(REPORT_PATH),
+        str(MD_PATH),
+    ]
+    freeze = {
+        'freeze_id': 'retry-rescue-v1',
+        'v2_sealed_commit': V2_SEALED_COMMIT,
+        'retry_sealed_commit': RETRY_SEALED_COMMIT,
+        'original_artifact_commit': ORIGINAL_ARTIFACT_COMMIT,
+        'analysis_code_git_commit': commit,
+        'artifacts': {
+            path: hashlib.sha256((root / path).read_bytes()).hexdigest()
+            for path in freeze_paths
+        },
+    }
+    FREEZE_PATH.write_text(json.dumps(freeze, indent=2) + '\n', encoding='utf-8')
     print(f'wrote {REPORT_PATH}: primary {primary_recovered}/39 control {control_recovered}/12 post {post_rate}')
     print(f'wrote {MD_PATH}')
+    print(f'wrote {FREEZE_PATH} ({len(freeze["artifacts"])} artifacts)')
     return 0
 
 
