@@ -66,6 +66,9 @@ class GenerationRequest:
     # caller did not configure thinking: model default applies and the
     # run records thinking_source="model_default".
     think: bool | None = None
+    # Optional Ollama structured-output constraint. Omitted by default so
+    # existing benchmark requests retain their exact payloads.
+    format: dict[str, Any] | None = None
 
 
 @dataclass
@@ -125,13 +128,16 @@ def _build_payload(request: GenerationRequest) -> dict[str, Any]:
         options['think'] = request.think
     if request.num_gpu is not None:
         options['num_gpu'] = request.num_gpu
-    return {
+    payload: dict[str, Any] = {
         'model': request.model,
         'prompt': request.prompt,
         'stream': True,
         'raw': request.raw,
         'options': options,
     }
+    if request.format is not None:
+        payload['format'] = request.format
+    return payload
 
 
 def generate(

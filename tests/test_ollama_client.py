@@ -99,6 +99,17 @@ class ClientStreamTests(unittest.TestCase):
         self.assertEqual(body['options']['num_ctx'], 4096)
         self.assertEqual(body['options']['num_predict'], 64)
         self.assertEqual(body['options']['stop'], ['</s>'])
+        self.assertNotIn('format', body)
+
+    def test_request_payload_includes_format_when_requested(self) -> None:
+        scenario = Scenario(chunks=[ScriptedChunk(0, final_chunk())])
+        with FakeOllamaServer(scenario) as server:
+            generate(
+                server.base_url,
+                GenerationRequest(model=MODEL, prompt='Return a number.', format={'type': 'number'}),
+            )
+            body = server.last_request_json
+        self.assertEqual(body['format'], {'type': 'number'})
 
     def test_malformed_line_raises(self) -> None:
         scenario = Scenario(
