@@ -133,8 +133,8 @@ def main() -> int:
         'configs/retry-rescue-v1.yaml',
         'evals/specs/eval-v1-grading.freeze.json',
         'results/reports/qwen3-4b-q4-failure-analysis.json',
-        str(REPORT_PATH),
-        str(MD_PATH),
+        REPORT_PATH.as_posix(),
+        MD_PATH.as_posix(),
     ]
     freeze = {
         'freeze_id': 'retry-rescue-v1',
