@@ -1,0 +1,25 @@
+{
+  "freeze_id": "retry-rescue-v3",
+  "v3_code_git_commit": "15e85b965005193df0d139406afbda426ddf630f",
+  "v3_design_commit": "2a67bbb",
+  "original_artifact_commit": "41c3256280d6fe54f48c267de90115445d1ef182",
+  "retry_v2_artifact_commit": "c972929",
+  "run_kind": "DETERMINISTIC_POST_PROCESSING",
+  "ollama_calls": 0,
+  "summary": {
+    "total": 18,
+    "recovered": 2,
+    "unrenderable": 16,
+    "rendered_but_grader_failed": 0
+  },
+  "artifacts": {
+    "analysis/retry_rescue_v3.py": "9a1d8e87df76295291eb7d05823463d953cdef35e907374bf92b8f214cc84cea",
+    "configs/retry-rescue-v3.yaml": "49f18d7e572a15ae38dccca339b09ea01e8c5d1a3f8848a2280e9b8b6838bc70",
+    "docs/superpowers/specs/2026-09-24-retry-rescue-v3-design.md": "26143da9b4590e1692ca55851faa21d3f830182b3467d1fdb936ed34a325ff1f",
+    "evals/specs/eval-v1-grading.yaml": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+    "results/local/full-baseline-v2__qwen3-4b-q4.db": "3fbf89a955029cbb6b089b2830b7733cea82e6372bc0268215206fa780de16df",
+    "results/reports/retry-rescue-v2-capability-matrix.json": "6dc50dfd7c0776e336fc1e733da7eaa2ad215bed67044c64e3f92f38ec275690",
+    "results/reports/retry-rescue-v3.json": "2641e49df39e9d0ee3002964071bb965fcd0b85d5ee644b268c3a5a8b8d3f16a",
+    "results/reports/retry-rescue-v3.md": "98a85522b8fe08ee15b9d6792f7cb261aa22a071943b0ce8ed32a19811a21b54"
+  }
+}

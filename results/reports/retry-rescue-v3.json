@@ -1,0 +1,183 @@
+{
+  "experiment": "retry-rescue-v3",
+  "provenance": {
+    "baseline_db_sha256": "3fbf89a955029cbb6b089b2830b7733cea82e6372bc0268215206fa780de16df",
+    "baseline_execution": "full-baseline-v2__qwen3-4b-q4",
+    "config_sha256": "49f18d7e572a15ae38dccca339b09ea01e8c5d1a3f8848a2280e9b8b6838bc70",
+    "grading_spec_sha256": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+    "ollama_calls": 0,
+    "population_sha256": "6dc50dfd7c0776e336fc1e733da7eaa2ad215bed67044c64e3f92f38ec275690",
+    "renderer_code_sha256": "9a1d8e87df76295291eb7d05823463d953cdef35e907374bf92b8f214cc84cea",
+    "v3_code_git_commit": "15e85b965005193df0d139406afbda426ddf630f"
+  },
+  "records": [
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "2b8aadaf1f81ca68134f0b9edf91f62748f3443b3947abd105693db9afbe0378",
+      "task_id": "Q019",
+      "trial": 1
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "2b8aadaf1f81ca68134f0b9edf91f62748f3443b3947abd105693db9afbe0378",
+      "task_id": "Q019",
+      "trial": 2
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "2b8aadaf1f81ca68134f0b9edf91f62748f3443b3947abd105693db9afbe0378",
+      "task_id": "Q019",
+      "trial": 3
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "a15245035ec21eb0ead9178d4b624d37038cdd34f2df83c516936758ba0bfbe5",
+      "task_id": "Q020",
+      "trial": 1
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "a15245035ec21eb0ead9178d4b624d37038cdd34f2df83c516936758ba0bfbe5",
+      "task_id": "Q020",
+      "trial": 2
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "a15245035ec21eb0ead9178d4b624d37038cdd34f2df83c516936758ba0bfbe5",
+      "task_id": "Q020",
+      "trial": 3
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "984f67226ff68554a4d4ede6a802ac13c6a3b6628f08435a4e6c19ac8c7f415e",
+      "task_id": "Q021",
+      "trial": 1
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "984f67226ff68554a4d4ede6a802ac13c6a3b6628f08435a4e6c19ac8c7f415e",
+      "task_id": "Q021",
+      "trial": 2
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "984f67226ff68554a4d4ede6a802ac13c6a3b6628f08435a4e6c19ac8c7f415e",
+      "task_id": "Q021",
+      "trial": 3
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "a65fc2b899b98ff9c7164dc82fc3b75b028a23c48d9b80059404cc29eb248426",
+      "task_id": "Q022",
+      "trial": 1
+    },
+    {
+      "grader_details": [
+        {
+          "detail": "218.4 within tolerance 0.0",
+          "grader_type": "numeric",
+          "passed": true,
+          "violations": []
+        }
+      ],
+      "grader_verdict": "PASS",
+      "rendered_output": "218.4",
+      "renderer_status": "RENDERED",
+      "source_raw_output_sha256": "67793f5deb7bf700ca3599d1c61cd333420751792eb56c162a5af9d53566ae74",
+      "task_id": "Q022",
+      "trial": 2
+    },
+    {
+      "grader_details": [
+        {
+          "detail": "218.4 within tolerance 0.0",
+          "grader_type": "numeric",
+          "passed": true,
+          "violations": []
+        }
+      ],
+      "grader_verdict": "PASS",
+      "rendered_output": "218.4",
+      "renderer_status": "RENDERED",
+      "source_raw_output_sha256": "67793f5deb7bf700ca3599d1c61cd333420751792eb56c162a5af9d53566ae74",
+      "task_id": "Q022",
+      "trial": 3
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "79d4d599b943aba2241f866a0070e029ab8fca93eda21b957cb80aa331c4920b",
+      "task_id": "Q024",
+      "trial": 1
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "79d4d599b943aba2241f866a0070e029ab8fca93eda21b957cb80aa331c4920b",
+      "task_id": "Q024",
+      "trial": 2
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "79d4d599b943aba2241f866a0070e029ab8fca93eda21b957cb80aa331c4920b",
+      "task_id": "Q024",
+      "trial": 3
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "7261b3650d9a8ed716e5569928275874374bffed4c3e13eb769733ec24e48e9d",
+      "task_id": "Q070",
+      "trial": 1
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "8b7625e4169bac6b1aa2f7e906b71d8cd91426cf73d1ebd3a56fece254ae157a",
+      "task_id": "Q070",
+      "trial": 2
+    },
+    {
+      "grader_verdict": "UNRENDERABLE",
+      "rendered_output": null,
+      "renderer_status": "UNRENDERABLE",
+      "source_raw_output_sha256": "8b7625e4169bac6b1aa2f7e906b71d8cd91426cf73d1ebd3a56fece254ae157a",
+      "task_id": "Q070",
+      "trial": 3
+    }
+  ],
+  "scope_note": "Transforms only the sealed 18-row numeric primary intersection; this is not a fresh-generation retry estimate.",
+  "summary": {
+    "recovered": 2,
+    "rendered_but_grader_failed": 0,
+    "total": 18,
+    "unrenderable": 16
+  },
+  "title": "Retry-Rescue V3: deterministic numeric renderer"
+}
