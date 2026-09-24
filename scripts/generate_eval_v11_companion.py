@@ -188,6 +188,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--historical', default='results/reports/sweep-v2-report.json')
     parser.add_argument('--out-json', default='results/reports/eval-v1.1-companion-report.json')
     parser.add_argument('--out-md', default='results/reports/eval-v1.1-companion-report.md')
+    parser.add_argument('--force', action='store_true', help='overwrite existing development outputs')
     args = parser.parse_args(argv)
     report = build_companion_report(
         root=root,
@@ -198,7 +199,7 @@ def main(argv: list[str] | None = None) -> int:
         (root / args.out_json, json.dumps(report, indent=2, sort_keys=True) + '\n'),
         (root / args.out_md, _markdown(report)),
     ):
-        if output.exists():
+        if output.exists() and not args.force:
             print(f'REPORT REFUSED: refusing to overwrite {output}', flush=True)
             return 2
         output.parent.mkdir(parents=True, exist_ok=True)

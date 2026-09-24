@@ -1,0 +1,40 @@
+{
+  "release": "core-v1.1",
+  "release_commit": "5760df8",
+  "status": "CORE_OFFLINE_COMPLETE",
+  "current_grading": {
+    "spec_version": "eval-v1.1",
+    "overlay_sha256": "856855597025df828effe7e19e8b81d2ac31f686aefef7452798958facf113fb",
+    "freeze_sha256": "fa50f4f0e4842fb9514c593adb14f83f470fb1c74b0fbcac24e13a7fd9075301",
+    "deterministic_tasks": 67,
+    "judge_tasks": 5
+  },
+  "quality_gate": {
+    "command": "python scripts/quality_gate.py",
+    "tests_passed": 338,
+    "ruff": "PASS",
+    "mypy": "PASS",
+    "workbook_check": "PASS",
+    "eval_v1_audit": "PASS",
+    "eval_v1_1_audit": "PASS"
+  },
+  "corrected_artifacts": {
+    "regrade_overlay": "results/reports/eval-v1.1-regrade-overlay.json",
+    "regrade_overlay_sha256": "69f3756d3acfb8981455f8793a0ed49d64d0aa1729a8cee2316f94a7cbb3dd515",
+    "companion_json": "results/reports/eval-v1.1-companion-report.json",
+    "companion_json_sha256": "a94e29e750c9ec5e8ea2ef9894b51c12526dfc1e40978eda315a1eb202c83107",
+    "companion_markdown": "results/reports/eval-v1.1-companion-report.md",
+    "companion_markdown_sha256": "ed8ffbfff781cd0881f8420c1d070b16726353f056a7872d2fb05c44cdaedb51"
+  },
+  "tracked_sealed_databases": {
+    "results/local/full-baseline-v2__qwen3-4b-q4.db": "3fbf89a955029cbb6b089b2830b7733cea82e6372bc0268215206fa780de16df",
+    "results/local/retry-rescue-v1__qwen3-4b-q4.db": "1b7bc4700057c95c8d2679fce9d0e20b42f309795898a627325d0f5c1801ae95",
+    "results/local/retry-rescue-v2__qwen3-4b-q4.db": "a2668c4eac97b349ee2f22683388df55bed815bf91328d60c4be0f9f12b4b69e"
+  },
+  "pending_live": {
+    "temperature_study": "awaiting_explicit_live_approval",
+    "judge_suite": "not_started",
+    "long_context_suite": "not_started",
+    "coding_suite": "not_started"
+  }
+}
