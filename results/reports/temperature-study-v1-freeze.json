@@ -1,0 +1,52 @@
+{
+  "schema_version": "temperature-study-freeze-v1",
+  "study": "temperature-study-v1",
+  "status": "SEALED",
+  "run_commit": "d0ae94c",
+  "runner_code_sha256": "50ec76c42b548dc19d5f330a3360864e18dfd8de75b5a10221f287ac080f1a1a",
+  "report_code_sha256": "a84d9a1caaf5ff998a1a13afd337e90b1819c97de9e5c57a5b227bc802be3978",
+  "quality_gate_code_sha256": "daea4ad5c1d983d9090160a6794a5436f2187a423a159513ecef739729bfb222",
+  "grading_spec_version": "eval-v1.1",
+  "grading_freeze_sha256": "fa50f4f0e4842fb9514c593adb14f83f470fb1c74b0fbcac24e13a7fd9075301",
+  "model_digest": "5cfd6a526dc35c24a21a8a457db3e8810165e93bbb134dd6a7ac20b34e97b25a",
+  "budget": {
+    "diagnostic_calls_per_arm": 1,
+    "warmups_per_arm": 2,
+    "measured_rows_per_arm": 75,
+    "total_requests_per_arm": 78,
+    "total_requests": 156,
+    "total_persisted_study_rows": 154,
+    "retries": 0
+  },
+  "results": {
+    "t0": {
+      "execution_id": "temperature-study-v1-t0__qwen3-4b-q4",
+      "database": "results/local/temperature-study-v1-t0__qwen3-4b-q4.db",
+      "database_sha256": "429950a34bbb6c41beecb26b0bde9b1f1e83a41e9b511343f0af6e5ca3737b8b",
+      "manifest_sha256": "1be479d55e3e75fede83d932d941a3b29c7fcaee150f1eda0f8dd985b6ee3c66",
+      "summary_sha256": "e4a16c2583362a34fcd25e484625016dfb219f2e03d08287638e5b85977d946b",
+      "passes": 29,
+      "failures": 46,
+      "errors": 0
+    },
+    "t07": {
+      "execution_id": "temperature-study-v1-t07__qwen3-4b-q4",
+      "database": "results/local/temperature-study-v1-t07__qwen3-4b-q4.db",
+      "database_sha256": "846543af28d2d1c033a9f00b43bcf0391944164de5f8be293aa9f428988748a0",
+      "manifest_sha256": "9b8a06c2fcfd911e58692edf9f592f86d55bbbafbce85934cf2f850155d0a8cb",
+      "summary_sha256": "b8344ae08aab1ab369ea016e2e9784d26391cda3509670c97e75d1508b243041",
+      "passes": 26,
+      "failures": 49,
+      "errors": 0
+    },
+    "paired_report": "results/reports/temperature-study-v1.json",
+    "paired_report_sha256": "c45c7900a89b910b46f6ae518a53ba829414db0a7080019ff7779fc12cdd209a"
+  },
+  "cleanup": {
+    "report": "results/reports/temperature-study-v1-cleanup.json",
+    "report_sha256": "f5f843c948766f7dd842078fab6767b64f964b3addb15bf6637284b02e728df2",
+    "model_removed": true,
+    "ollama_list_empty": true,
+    "ollama_ps_empty": true
+  }
+}

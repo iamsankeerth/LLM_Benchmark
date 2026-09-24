@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sqlite3
 import sys
@@ -68,7 +69,47 @@ def _load_arm(
     expected_pairs: set[tuple[str, int]],
     expected_digest: str,
     meta: dict[str, dict[str, str]],
+    manifest_root: Path,
+    contract_spec_version: str,
+    grading_spec_hash: str,
+    dataset_hash: str,
+    freeze_hash: str,
 ) -> tuple[dict[str, list[ComparisonTrial]], dict[str, Any]]:
+    manifest_path = manifest_root / 'experiment-manifests' / f'{execution_id}.json'
+    if not manifest_path.is_file():
+        raise TemperatureStudyError(f'{execution_id}: missing experiment manifest')
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+    model = get_model_config('qwen3-4b-q4')
+    expected_spec_id = execution_id.split('__', 1)[0]
+    manifest_checks = {
+        'execution_id': execution_id,
+        'experiment_spec_id': expected_spec_id,
+        'model_config_id': 'qwen3-4b-q4',
+        'model_artifact_digest': expected_digest,
+        'contract_spec_version': contract_spec_version,
+        'grading_spec_hash': grading_spec_hash,
+        'dataset_hash': dataset_hash,
+        'eval_freeze_hash': freeze_hash,
+        'eval_freeze_record_sha256': freeze_hash,
+        'template_sha256': model.template_sha256,
+        'temperature': temperature,
+        'num_ctx': model.num_ctx,
+        'num_predict': 2048,
+        'num_gpu': model.num_gpu,
+    }
+    mismatches = [
+        key for key, value in manifest_checks.items()
+        if manifest.get(key) != value
+    ]
+    if tuple(manifest.get('stop_tokens', [])) != tuple(model.stop_tokens):
+        mismatches.append('stop_tokens')
+    if manifest.get('think') != model.think:
+        mismatches.append('think')
+    if mismatches:
+        raise TemperatureStudyError(
+            f'{execution_id}: manifest drift on {sorted(set(mismatches))}'
+        )
+    manifest_sha256 = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     try:
@@ -157,6 +198,8 @@ def _load_arm(
         'rows': evidence_rows,
         'run_config_hashes': sorted(all_hashes),
         'warmup_count': len(warmup_rows),
+        'manifest': manifest,
+        'manifest_sha256': manifest_sha256,
     }
 
 
@@ -167,8 +210,10 @@ def generate_temperature_study_report(
     db_t07: str,
     config_t0: Path,
     config_t07: Path,
+    manifest_root: Path | None = None,
 ) -> dict[str, Any]:
     """Load, validate, and compare exactly the two frozen temperature arms."""
+    manifest_root = manifest_root or (root / 'results')
     contract = load_temperature_study_contract(root, 'temperature-study-v1')
     eval_contract = load_eval_contract(
         root,
@@ -185,12 +230,20 @@ def generate_temperature_study_report(
     base, base_evidence = _load_arm(
         db_t0, execution_id='temperature-study-v1-t0__qwen3-4b-q4',
         temperature=0.0, expected_pairs=expected_pairs, expected_digest=expected_digest,
-        meta=meta,
+        meta=meta, manifest_root=manifest_root,
+        contract_spec_version=eval_contract.spec_version,
+        grading_spec_hash=eval_contract.hashes['spec_sha256'],
+        dataset_hash=eval_contract.hashes['dataset_sha256'],
+        freeze_hash=eval_contract.hashes['freeze_sha256'],
     )
     candidate, candidate_evidence = _load_arm(
         db_t07, execution_id='temperature-study-v1-t07__qwen3-4b-q4',
         temperature=0.7, expected_pairs=expected_pairs, expected_digest=expected_digest,
-        meta=meta,
+        meta=meta, manifest_root=manifest_root,
+        contract_spec_version=eval_contract.spec_version,
+        grading_spec_hash=eval_contract.hashes['spec_sha256'],
+        dataset_hash=eval_contract.hashes['dataset_sha256'],
+        freeze_hash=eval_contract.hashes['freeze_sha256'],
     )
     shared_keys = (
         'rendered_prompt_sha256', 'template_sha256', 'num_predict', 'num_ctx',
@@ -202,6 +255,20 @@ def generate_temperature_study_report(
             raise TemperatureStudyError(f'{pair}: non-temperature configuration drift')
     if base_evidence['run_config_hashes'] == candidate_evidence['run_config_hashes']:
         raise TemperatureStudyError('arms have identical run-config hashes; temperature was not isolated')
+    shared_manifest_keys = (
+        'app_git_commit', 'model_config_id', 'model_config_hash',
+        'model_artifact_digest', 'model_identifier', 'quantization',
+        'template_sha256', 'num_ctx', 'num_predict', 'num_gpu', 'stop_tokens',
+        'think', 'grading_spec_hash', 'dataset_hash', 'eval_freeze_hash',
+        'eval_freeze_record_sha256', 'ollama_version', 'python_version',
+        'hardware_id', 'power_mode',
+    )
+    manifest_drift = [
+        key for key in shared_manifest_keys
+        if base_evidence['manifest'].get(key) != candidate_evidence['manifest'].get(key)
+    ]
+    if manifest_drift:
+        raise TemperatureStudyError(f'manifest configuration drift: {manifest_drift}')
     report = compare_executions(
         experiment_spec_id='temperature-study-v1',
         base_execution_id='temperature-study-v1-t0__qwen3-4b-q4',
@@ -227,6 +294,8 @@ def generate_temperature_study_report(
             'grading_spec_hash': eval_contract.hashes['spec_sha256'],
             'dataset_hash': eval_contract.hashes['dataset_sha256'],
             'grading_freeze_hash': eval_contract.hashes['freeze_sha256'],
+            't0_manifest_sha256': base_evidence['manifest_sha256'],
+            't07_manifest_sha256': candidate_evidence['manifest_sha256'],
         },
         'population': {'task_ids': task_ids, 'trials_per_task': 5, 'measured_rows_per_arm': 75},
         'arms': {
@@ -249,6 +318,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--config-t0', default='configs/temperature-study-v1-t0.yaml')
     parser.add_argument('--config-t07', default='configs/temperature-study-v1-t07.yaml')
     parser.add_argument('--out', default='results/reports/temperature-study-v1.json')
+    parser.add_argument('--force', action='store_true', help='overwrite an existing report')
     args = parser.parse_args(argv)
     root = Path(__file__).resolve().parent.parent
     try:
@@ -260,6 +330,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f'TEMPERATURE STUDY REFUSED: {exc}', flush=True)
         return 2
     out = root / args.out
+    if out.exists() and not args.force:
+        print(f'TEMPERATURE STUDY REFUSED: report exists: {out}', flush=True)
+        return 2
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=2, sort_keys=True) + '\n', encoding='utf-8')
     print(f'report: {out}')

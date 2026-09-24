@@ -1,0 +1,12 @@
+{
+  "schema_version": "temperature-study-cleanup-v1",
+  "study": "temperature-study-v1",
+  "run_commit": "d0ae94c",
+  "model_identifier": "hf.co/bartowski/Qwen_Qwen3-4B-Instruct-2507-GGUF:Q4_K_M",
+  "model_digest": "5cfd6a526dc35c24a21a8a457db3e8810165e93bbb134dd6a7ac20b34e97b25a",
+  "stopped": true,
+  "removed": true,
+  "ollama_list_after": [],
+  "ollama_ps_after": [],
+  "verified_at_utc": "2026-09-24T18:05:01Z"
+}

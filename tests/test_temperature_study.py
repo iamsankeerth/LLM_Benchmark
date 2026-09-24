@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 import unittest
 from pathlib import Path
@@ -10,6 +11,7 @@ from tempfile import TemporaryDirectory
 import yaml
 
 from analysis.temperature_study import TemperatureStudyError, validate_temperature_study_run
+from evals.contract import load_eval_contract
 from inference.adapters import get_model_config
 from scripts.generate_temperature_study_report import generate_temperature_study_report
 from storage.db import RunRecord, create_experiment, init_schema, insert_run
@@ -78,6 +80,42 @@ def _populate_arm(path: Path, *, arm: str, temperature: float, omit_last: bool =
         ))
     conn.commit()
     conn.close()
+    contract = load_eval_contract(
+        ROOT,
+        'evals/specs/eval-v1.1-grading.yaml',
+        freeze_path='evals/specs/eval-v1.1-grading.freeze.json',
+    )
+    manifest_dir = path.parent / 'experiment-manifests'
+    manifest_dir.mkdir(parents=True, exist_ok=True)
+    manifest = {
+        'app_git_commit': 'test-commit',
+        'execution_id': execution_id,
+        'experiment_spec_id': f'temperature-study-v1-{arm}',
+        'model_config_id': 'qwen3-4b-q4',
+        'model_config_hash': 'model-config-hash',
+        'model_artifact_digest': config.ollama_model_digest,
+        'model_identifier': config.ollama_identifier,
+        'quantization': config.quantization,
+        'template_sha256': config.template_sha256,
+        'temperature': temperature,
+        'num_ctx': config.num_ctx,
+        'num_predict': 2048,
+        'num_gpu': config.num_gpu,
+        'stop_tokens': list(config.stop_tokens),
+        'think': config.think,
+        'contract_spec_version': contract.spec_version,
+        'grading_spec_hash': contract.hashes['spec_sha256'],
+        'dataset_hash': contract.hashes['dataset_sha256'],
+        'eval_freeze_hash': contract.hashes['freeze_sha256'],
+        'eval_freeze_record_sha256': contract.hashes['freeze_sha256'],
+        'ollama_version': 'test-ollama',
+        'python_version': 'test-python',
+        'hardware_id': 'test-hardware',
+        'power_mode': 'test-power',
+    }
+    (manifest_dir / f'{execution_id}.json').write_text(
+        json.dumps(manifest), encoding='utf-8'
+    )
 
 
 class TemperatureStudyContractTests(unittest.TestCase):
@@ -120,6 +158,7 @@ class TemperatureStudyReportTests(unittest.TestCase):
                 root=ROOT, db_t0=str(base), db_t07=str(candidate),
                 config_t0=ROOT / 'configs/temperature-study-v1-t0.yaml',
                 config_t07=ROOT / 'configs/temperature-study-v1-t07.yaml',
+                manifest_root=Path(tmp),
             )
             self.assertEqual(report['population']['measured_rows_per_arm'], 75)
             self.assertEqual(sum(len(rows) for rows in report['trial_transitions'].values()), 75)
@@ -135,6 +174,7 @@ class TemperatureStudyReportTests(unittest.TestCase):
                     root=ROOT, db_t0=str(base), db_t07=str(candidate),
                     config_t0=ROOT / 'configs/temperature-study-v1-t0.yaml',
                     config_t07=ROOT / 'configs/temperature-study-v1-t07.yaml',
+                    manifest_root=Path(tmp),
                 )
 
     def test_report_refuses_non_temperature_row_drift(self) -> None:
@@ -152,4 +192,5 @@ class TemperatureStudyReportTests(unittest.TestCase):
                     root=ROOT, db_t0=str(base), db_t07=str(candidate),
                     config_t0=ROOT / 'configs/temperature-study-v1-t0.yaml',
                     config_t07=ROOT / 'configs/temperature-study-v1-t07.yaml',
+                    manifest_root=Path(tmp),
                 )

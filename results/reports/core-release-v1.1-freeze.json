@@ -1,7 +1,7 @@
 {
   "release": "core-v1.1",
   "release_commit": "5760df8",
-  "status": "CORE_OFFLINE_COMPLETE",
+  "status": "CORE_AND_TEMPERATURE_SEALED",
   "current_grading": {
     "spec_version": "eval-v1.1",
     "overlay_sha256": "856855597025df828effe7e19e8b81d2ac31f686aefef7452798958facf113fb",
@@ -31,8 +31,18 @@
     "results/local/retry-rescue-v1__qwen3-4b-q4.db": "1b7bc4700057c95c8d2679fce9d0e20b42f309795898a627325d0f5c1801ae95",
     "results/local/retry-rescue-v2__qwen3-4b-q4.db": "a2668c4eac97b349ee2f22683388df55bed815bf91328d60c4be0f9f12b4b69e"
   },
+  "temperature_study": {
+    "status": "SEALED",
+    "freeze": "results/reports/temperature-study-v1-freeze.json",
+    "report": "results/reports/temperature-study-v1.json",
+    "t0_database_sha256": "429950a34bbb6c41beecb26b0bde9b1f1e83a41e9b511343f0af6e5ca3737b8b",
+    "t07_database_sha256": "846543af28d2d1c033a9f00b43bcf0391944164de5f8be293aa9f428988748a0",
+    "t0_passes": 29,
+    "t07_passes": 26,
+    "successful_requests": 156,
+    "cleanup_verified": true
+  },
   "pending_live": {
-    "temperature_study": "awaiting_explicit_live_approval",
     "judge_suite": "not_started",
     "long_context_suite": "not_started",
     "coding_suite": "not_started"

@@ -1,0 +1,390 @@
+{
+  "arms": {
+    "successful_requests_per_arm": 78,
+    "successful_requests_total": 156,
+    "t07_temperature": 0.7,
+    "t0_temperature": 0.0,
+    "warmups_per_arm": 2
+  },
+  "comparison": {
+    "all_pass_delta": 0,
+    "any_pass_delta": 0,
+    "base": {
+      "decode": {
+        "mean": 38.859554703770726,
+        "median": 37.34110028219203,
+        "n": 75,
+        "p25": 36.9507873286001,
+        "p75": 37.68828742247628,
+        "p95": 54.633862067709565
+      },
+      "decode_by_token_bucket": {
+        "1-4": {
+          "mean": 53.28292278275993,
+          "median": 54.749520941691756,
+          "n": 5,
+          "p25": 50.65742211778719,
+          "p75": 55.17512436826677,
+          "p95": 55.273048861375194
+        },
+        "129+": {
+          "mean": 36.78573925716077,
+          "median": 36.78676317922966,
+          "n": 20,
+          "p25": 36.63470194579754,
+          "p75": 36.92661039444241,
+          "p95": 36.99241586005543
+        },
+        "33-128": {
+          "mean": 37.34006833296939,
+          "median": 37.355854366575784,
+          "n": 40,
+          "p25": 37.2190392279514,
+          "p75": 37.50414065669224,
+          "p95": 37.68910690587653
+        },
+        "5-32": {
+          "mean": 41.87344704070136,
+          "median": 40.263177146078036,
+          "n": 10,
+          "p25": 38.6669741233541,
+          "p75": 46.08937537671282,
+          "p95": 46.23892577727634
+        }
+      },
+      "deterministic_tasks": 15,
+      "deterministic_trials": 75,
+      "display_id": "temperature-study-v1-t0__qwen3-4b-q4",
+      "execution_id": "temperature-study-v1-t0__qwen3-4b-q4",
+      "flips": [
+        "Q011"
+      ],
+      "model_artifact_digest": "5cfd6a526dc35c24a21a8a457db3e8810165e93bbb134dd6a7ac20b34e97b25a",
+      "model_size_bytes": null,
+      "passes": 29,
+      "peak_vram_mib": null,
+      "tasks_all_pass": 5,
+      "tasks_any_pass": 6,
+      "trial_accuracy": 0.38666666666666666,
+      "ttft": {
+        "mean": 74.05877466666666,
+        "median": 56.1054,
+        "n": 75,
+        "p25": 48.3948,
+        "p75": 95.8004,
+        "p95": 136.681
+      }
+    },
+    "base_execution_id": "temperature-study-v1-t0__qwen3-4b-q4",
+    "candidate": {
+      "decode": {
+        "mean": 38.6465168325314,
+        "median": 37.40824327925786,
+        "n": 75,
+        "p25": 36.94734066148621,
+        "p75": 37.76236413978009,
+        "p95": 55.17342847684555
+      },
+      "decode_by_token_bucket": {
+        "1-4": {
+          "mean": 52.843922447566094,
+          "median": 55.32707522637995,
+          "n": 5,
+          "p25": 48.73313203524799,
+          "p75": 55.71313647047727,
+          "p95": 55.91902924565229
+        },
+        "129+": {
+          "mean": 36.346794874262244,
+          "median": 36.74425444789914,
+          "n": 20,
+          "p25": 35.966899434479686,
+          "p75": 36.91833730954188,
+          "p95": 37.242066425834636
+        },
+        "33-128": {
+          "mean": 37.38209342619735,
+          "median": 37.44409200714557,
+          "n": 40,
+          "p25": 37.31267999680985,
+          "p75": 37.579726574254394,
+          "p95": 37.76828597027077
+        },
+        "5-32": {
+          "mean": 41.20495156688854,
+          "median": 38.890524474558916,
+          "n": 10,
+          "p25": 38.127647351097885,
+          "p75": 45.41568754096521,
+          "p95": 45.88460938432031
+        }
+      },
+      "deterministic_tasks": 15,
+      "deterministic_trials": 75,
+      "display_id": "temperature-study-v1-t07__qwen3-4b-q4",
+      "execution_id": "temperature-study-v1-t07__qwen3-4b-q4",
+      "flips": [
+        "Q011"
+      ],
+      "model_artifact_digest": "5cfd6a526dc35c24a21a8a457db3e8810165e93bbb134dd6a7ac20b34e97b25a",
+      "model_size_bytes": null,
+      "passes": 26,
+      "peak_vram_mib": null,
+      "tasks_all_pass": 5,
+      "tasks_any_pass": 6,
+      "trial_accuracy": 0.3466666666666667,
+      "ttft": {
+        "mean": 94.874976,
+        "median": 68.2885,
+        "n": 75,
+        "p25": 49.0165,
+        "p75": 113.9819,
+        "p95": 199.7804
+      }
+    },
+    "candidate_execution_id": "temperature-study-v1-t07__qwen3-4b-q4",
+    "difficulty_deltas": {
+      "easy": {
+        "base_rate": 0.7,
+        "candidate_rate": 0.55,
+        "delta": -0.1499999999999999
+      },
+      "hard": {
+        "base_rate": 0.14285714285714285,
+        "candidate_rate": 0.14285714285714285,
+        "delta": 0.0
+      },
+      "medium": {
+        "base_rate": 0.5,
+        "candidate_rate": 0.5,
+        "delta": 0.0
+      }
+    },
+    "experiment_spec_id": "temperature-study-v1",
+    "grader_family": {
+      "DETERMINISTIC_CONSTRAINT": {
+        "base_rate": 0.45,
+        "base_trials": 20,
+        "candidate_rate": 0.3,
+        "candidate_trials": 20,
+        "delta": -0.15000000000000002,
+        "note": "overlapping denominators by design; not a class split"
+      },
+      "DETERMINISTIC_EXACT": {
+        "base_rate": 0.5,
+        "base_trials": 20,
+        "candidate_rate": 0.5,
+        "candidate_trials": 20,
+        "delta": 0.0,
+        "note": "overlapping denominators by design; not a class split"
+      },
+      "DETERMINISTIC_NUMERIC": {
+        "base_rate": 0.0,
+        "base_trials": 15,
+        "candidate_rate": 0.0,
+        "candidate_trials": 15,
+        "delta": 0.0,
+        "note": "overlapping denominators by design; not a class split"
+      },
+      "DETERMINISTIC_STRUCTURED": {
+        "base_rate": 0.5,
+        "base_trials": 20,
+        "candidate_rate": 0.5,
+        "candidate_trials": 20,
+        "delta": 0.0,
+        "note": "overlapping denominators by design; not a class split"
+      }
+    },
+    "mcnemar_b": 0,
+    "mcnemar_c": 0,
+    "mcnemar_exact_p": 1.0,
+    "mcnemar_n": 0,
+    "mean_unique_normalized_outputs_base": 1.4666666666666666,
+    "mean_unique_normalized_outputs_candidate": 3.4,
+    "suite_deltas": {
+      "core-v1": {
+        "base_rate": 0.4,
+        "candidate_rate": 0.35,
+        "delta": -0.050000000000000044
+      },
+      "stress-v1": {
+        "base_rate": 0.3333333333333333,
+        "candidate_rate": 0.3333333333333333,
+        "delta": 0.0
+      }
+    },
+    "systematic_fail_both": [
+      "Q003",
+      "Q015",
+      "Q017",
+      "Q019",
+      "Q023",
+      "Q026",
+      "Q039",
+      "Q066",
+      "Q071"
+    ],
+    "transitions_any_pass": {
+      "fail_to_fail": [
+        "Q003",
+        "Q015",
+        "Q017",
+        "Q019",
+        "Q023",
+        "Q026",
+        "Q039",
+        "Q066",
+        "Q071"
+      ],
+      "fail_to_pass": [],
+      "pass_to_fail": [],
+      "pass_to_pass": [
+        "Q001",
+        "Q011",
+        "Q013",
+        "Q035",
+        "Q042",
+        "Q062"
+      ]
+    },
+    "transitions_strict": {
+      "fail_to_fail": [
+        "Q003",
+        "Q011",
+        "Q015",
+        "Q017",
+        "Q019",
+        "Q023",
+        "Q026",
+        "Q039",
+        "Q066",
+        "Q071"
+      ],
+      "fail_to_pass": [],
+      "pass_to_fail": [],
+      "pass_to_pass": [
+        "Q001",
+        "Q013",
+        "Q035",
+        "Q042",
+        "Q062"
+      ]
+    },
+    "trial_accuracy_delta": -0.03999999999999998
+  },
+  "latency_note": "Latency metrics are descriptive only, not causal accuracy evidence.",
+  "population": {
+    "measured_rows_per_arm": 75,
+    "task_ids": [
+      "Q001",
+      "Q003",
+      "Q062",
+      "Q066",
+      "Q011",
+      "Q013",
+      "Q015",
+      "Q017",
+      "Q019",
+      "Q023",
+      "Q026",
+      "Q035",
+      "Q039",
+      "Q042",
+      "Q071"
+    ],
+    "trials_per_task": 5
+  },
+  "provenance": {
+    "dataset_hash": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
+    "grading_freeze_hash": "fa50f4f0e4842fb9514c593adb14f83f470fb1c74b0fbcac24e13a7fd9075301",
+    "grading_spec_hash": "856855597025df828effe7e19e8b81d2ac31f686aefef7452798958facf113fb",
+    "grading_spec_version": "eval-v1.1",
+    "t07_manifest_sha256": "9b8a06c2fcfd911e58692edf9f592f86d55bbbafbce85934cf2f850155d0a8cb",
+    "t0_manifest_sha256": "1be479d55e3e75fede83d932d941a3b29c7fcaee150f1eda0f8dd985b6ee3c66"
+  },
+  "study": "temperature-study-v1",
+  "trial_transitions": {
+    "fail_to_fail": [
+      "Q003#1",
+      "Q003#2",
+      "Q003#3",
+      "Q003#4",
+      "Q003#5",
+      "Q011#1",
+      "Q015#1",
+      "Q015#2",
+      "Q015#3",
+      "Q015#4",
+      "Q015#5",
+      "Q017#1",
+      "Q017#2",
+      "Q017#3",
+      "Q017#4",
+      "Q017#5",
+      "Q019#1",
+      "Q019#2",
+      "Q019#3",
+      "Q019#4",
+      "Q019#5",
+      "Q023#1",
+      "Q023#2",
+      "Q023#3",
+      "Q023#4",
+      "Q023#5",
+      "Q026#1",
+      "Q026#2",
+      "Q026#3",
+      "Q026#4",
+      "Q026#5",
+      "Q039#1",
+      "Q039#2",
+      "Q039#3",
+      "Q039#4",
+      "Q039#5",
+      "Q066#1",
+      "Q066#2",
+      "Q066#3",
+      "Q066#4",
+      "Q066#5",
+      "Q071#1",
+      "Q071#2",
+      "Q071#3",
+      "Q071#4",
+      "Q071#5"
+    ],
+    "fail_to_pass": [],
+    "pass_to_fail": [
+      "Q011#2",
+      "Q011#3",
+      "Q011#5"
+    ],
+    "pass_to_pass": [
+      "Q001#1",
+      "Q001#2",
+      "Q001#3",
+      "Q001#4",
+      "Q001#5",
+      "Q011#4",
+      "Q013#1",
+      "Q013#2",
+      "Q013#3",
+      "Q013#4",
+      "Q013#5",
+      "Q035#1",
+      "Q035#2",
+      "Q035#3",
+      "Q035#4",
+      "Q035#5",
+      "Q042#1",
+      "Q042#2",
+      "Q042#3",
+      "Q042#4",
+      "Q042#5",
+      "Q062#1",
+      "Q062#2",
+      "Q062#3",
+      "Q062#4",
+      "Q062#5"
+    ]
+  }
+}

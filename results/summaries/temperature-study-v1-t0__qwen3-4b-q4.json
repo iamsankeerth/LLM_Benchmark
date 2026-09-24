@@ -1,0 +1,25 @@
+{
+  "experiment_spec_id": "temperature-study-v1-t0",
+  "execution_id": "temperature-study-v1-t0__qwen3-4b-q4",
+  "model_config_id": "qwen3-4b-q4",
+  "run_kind": "TEMPERATURE",
+  "ran_this_invocation": 75,
+  "fixed_budget": true,
+  "request_budget": {
+    "diagnostic_calls": 1,
+    "warmup_calls": 2,
+    "measured_calls": 75,
+    "total_calls": 78
+  },
+  "skipped_resume": 0,
+  "measured_rows": 75,
+  "verdicts": {
+    "PASS": 29,
+    "FAIL": 46
+  },
+  "transient_retries": {
+    "events": 0,
+    "by_error": {},
+    "log": "C:\\Users\\lenovo\\Desktop\\San\\Fun_Projects\\LLM_Benchmark\\results\\logs\\transient-retries-temperature-study-v1-t0.jsonl"
+  }
+}
