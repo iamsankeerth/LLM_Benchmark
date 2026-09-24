@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Long-context-v1 grading contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_version", "status", "suite_id", "task_count", "trials", "temperature", "num_predict", "context_window", "lengths", "archetypes", "claims"],
+  "properties": {
+    "spec_version": {"const": "long-context-v1"},
+    "status": {"const": "FROZEN"},
+    "suite_id": {"const": "long-context-v1"},
+    "description": {"type": "string"},
+    "task_count": {"const": 21},
+    "trials": {"const": 3},
+    "temperature": {"const": 0.0},
+    "num_predict": {"const": 256},
+    "context_window": {"const": 4096},
+    "lengths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["S", "M", "L"],
+      "properties": {"S": {"const": 350}, "M": {"const": 700}, "L": {"const": 1400}}
+    },
+    "archetypes": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": {"enum": ["start_needle", "middle_needle", "end_needle", "multi_needle", "state_recency", "global_aggregate", "grounded_abstention"]}
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["measures_configured_window", "native_context_claim", "retrieval_or_rag"],
+      "properties": {
+        "measures_configured_window": {"const": true},
+        "native_context_claim": {"const": false},
+        "retrieval_or_rag": {"const": false}
+      }
+    }
+  }
+}

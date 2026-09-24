@@ -1,0 +1,15 @@
+spec_version: long-context-v1
+status: FROZEN
+suite_id: long-context-v1
+description: Full-context window stress evaluation using original deterministic synthetic documents.
+task_count: 21
+trials: 3
+temperature: 0.0
+num_predict: 256
+context_window: 4096
+lengths: {S: 350, M: 700, L: 1400}
+archetypes: [start_needle, middle_needle, end_needle, multi_needle, state_recency, global_aggregate, grounded_abstention]
+claims:
+  measures_configured_window: true
+  native_context_claim: false
+  retrieval_or_rag: false

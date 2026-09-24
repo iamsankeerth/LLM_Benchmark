@@ -1,0 +1,14 @@
+study: long-context-v1
+status: FROZEN
+task_count: 21
+dataset: evals/datasets/long-context-v1
+grading_spec: evals/specs/long-context-v1-grading.yaml
+model_registry: configs/models-v2.yaml
+run_kind: LONG_CONTEXT
+temperature: 0.0
+num_predict: 256
+trials: 3
+pilot_models: [qwen3-4b-q4, llama3.2-3b-q6, gemma-3n-e2b-q4, smolm2-1.7b-q4]
+full_models: [qwen3-4b-q4, qwen3-4b-q5, llama3.2-3b-q4, llama3.2-3b-q5, llama3.2-3b-q6, gemma-3n-e2b-q4, gemma-3n-e2b-q5, smolm2-1.7b-q4, smolm2-1.7b-q5, smolm2-1.7b-q6, smolm2-1.7b-q8]
+context_window: 4096
+output_cap: 256

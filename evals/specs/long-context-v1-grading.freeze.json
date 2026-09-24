@@ -1,0 +1,17 @@
+{
+  "record_type": "suite-freeze",
+  "suite": "long-context-v1",
+  "frozen_at": "2026-09-24",
+  "status": "FROZEN",
+  "artifacts": {
+    "tasks.jsonl": "5975af7d024d96f9344070f9553332bb7575a7ca447cc7aa816dfbe4835ca518",
+    "dataset-manifest.json": "ef90c2ed9e055a2d8db098e888b651cb2b499e44d9f89887ce928f408b5df95b",
+    "long-context-v1-grading.yaml": "c93e0a598a16862ff1b4c1f66768e6980dbceae5161e722458fcb06de967cdfb",
+    "long-context-v1.schema.json": "750f053dca2829a03a977ecd94cb88578765e1e1a5986291dfbc8475beb62214",
+    "long-context-v1.yaml": "782d171544840dd309123c5e874387e0fd1b8ede9947ac5afde83b170c606fed",
+    "generate_long_context_dataset.py": "39a33857d4fa6e1a03edec9ad68fb5b9debb105dcf97cafa4984dae5dce24b29",
+    "audit_long_context.py": "7d71a29acfe9877b1b6fcaa5843ad03ec25c0b8713d5b3c2b53090cee4cc29b2",
+    "run_long_context.py": "f042b3ee0357d371cbf2bafe40d29f94b31d2a8f7f5541ca30993a923c8de679"
+  },
+  "claim_scope": "Configured 4096-token full-context window; no native 8K/32K claim; no RAG."
+}

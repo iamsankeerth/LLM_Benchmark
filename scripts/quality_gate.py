@@ -25,6 +25,7 @@ def main() -> int:
             '--freeze', 'evals/specs/eval-v1.1-grading.freeze.json',
             '--json',
         ],
+        [sys.executable, 'scripts/audit_long_context.py', '--json'],
     ]
     for command in commands:
         print(f'QUALITY GATE: {" ".join(command)}', flush=True)
