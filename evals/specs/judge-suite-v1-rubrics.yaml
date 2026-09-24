@@ -1,0 +1,79 @@
+protocol_version: judge-rubric-v1
+rubrics:
+  Q014:
+    analogy_present:
+      definition: The response uses one understandable analogy to explain recursion.
+      positive_anchor: A single analogy maps recursive calls to a repeatable process.
+      negative_anchor: No analogy, or multiple unrelated analogies replace the explanation.
+      desired: true
+      critical: true
+    explanation_meaningful:
+      definition: The explanation is technically relevant to recursion and understandable to a beginner.
+      positive_anchor: The response explains recursive calls and base cases without irrelevant claims.
+      negative_anchor: The response is technically empty, contradictory, or unrelated to recursion.
+      desired: true
+      critical: true
+  Q047:
+    unsupported_claims:
+      definition: The summary adds no claim absent from the source notice.
+      positive_anchor: Every factual statement is supported by the notice.
+      negative_anchor: The response invents eligibility, deadlines, fees, submission rules, or other facts.
+      desired: false
+      critical: true
+  Q051:
+    exceptions_preserved:
+      definition: The summary preserves all policy exceptions and conditions.
+      positive_anchor: Manager approval, first-30-day onsite rule, HR exception, restricted-data rule, holiday exclusion, and no carry-forward are all represented or accurately compressed.
+      negative_anchor: A material exception or condition is omitted or contradicted.
+      desired: true
+      critical: true
+    concise:
+      definition: The response is one concise paragraph within the task's word limit.
+      positive_anchor: The response is at most 80 words and remains readable as one paragraph.
+      negative_anchor: The response is fragmented, padded, or exceeds the limit without preserving meaning.
+      desired: true
+      critical: false
+    unsupported_claims:
+      definition: The response adds no policy claim absent from the source.
+      positive_anchor: Every policy statement is grounded in the supplied policy.
+      negative_anchor: The response invents permissions, penalties, or exceptions.
+      desired: false
+      critical: true
+  Q059:
+    technically_sound:
+      definition: The troubleshooting response identifies technically plausible causes for nondeterministic JSON fields.
+      positive_anchor: The response addresses sampling or temperature, schema or format settings, validation, and prompt or runtime differences.
+      negative_anchor: The response gives technically irrelevant or incorrect causes.
+      desired: true
+      critical: true
+    prioritized:
+      definition: The response presents fixes in a useful order rather than an unordered list.
+      positive_anchor: The response gives a clear sequence from likely or foundational causes to verification.
+      negative_anchor: The response has no actionable ordering or buries the primary fix.
+      desired: true
+      critical: true
+    actionable:
+      definition: The response tells the user what to change or check.
+      positive_anchor: The response contains concrete checks, settings, tests, or follow-up actions.
+      negative_anchor: The response only describes the symptom or offers generic encouragement.
+      desired: true
+      critical: true
+  Q060:
+    tradeoff_framing:
+      definition: The response explains the decision as a tradeoff between accuracy, speed, memory, and structured-output reliability.
+      positive_anchor: The response explicitly connects model choice to task requirements and measurable tradeoffs.
+      negative_anchor: The response ignores a stated tradeoff or treats one metric as universally decisive.
+      desired: true
+      critical: true
+    no_universal_winner:
+      definition: The response avoids declaring one model universally best without task context.
+      positive_anchor: The response conditions its recommendation on workload, thresholds, or user needs.
+      negative_anchor: The response declares a universal winner without evidence or context.
+      desired: true
+      critical: true
+    test_suite_mentioned:
+      definition: The response recommends a representative test or evaluation suite for the decision.
+      positive_anchor: The response names tests, benchmarks, or acceptance criteria to compare models.
+      negative_anchor: The response provides no empirical validation plan.
+      desired: true
+      critical: false

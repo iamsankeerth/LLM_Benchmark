@@ -1,0 +1,33 @@
+{
+  "bias_pairs": {
+    "controlled_per_task": 8,
+    "orientations": 2,
+    "real_stratified_per_task": 10
+  },
+  "dataset_sha256": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
+  "eval_spec_sha256": "856855597025df828effe7e19e8b81d2ac31f686aefef7452798958facf113fb",
+  "human_adjudication": {
+    "calibration_cases_per_task": 15,
+    "disagreement_resolution": "third_rater",
+    "real_spot_check_rows": 50,
+    "required": true
+  },
+  "human_queue_path": "results/local/judge-suite-v1-human-queue.json",
+  "local_panel": [
+    "qwen3-4b-q5",
+    "llama3.2-3b-q6"
+  ],
+  "model_calls": 0,
+  "precheck_counts": {
+    "JUDGE_PENDING": 43,
+    "PRECHECK_FAIL": 122
+  },
+  "protocol_version": "judge-rubric-v1",
+  "raw_text_in_public_report": false,
+  "rubric_sha256": "2553b6649e59973d20b415bc414cbbe49e57a6e713875a698e04f7ba144378cc",
+  "schema_version": "judge-suite-report-v1",
+  "source_items": 165,
+  "source_population_hash": "c5bb44c5976c2a0f2b273882b3f57dd841d0e599674bd30c592631375072d9da",
+  "status": "PREPARED_PENDING_HUMAN_CALIBRATION",
+  "study": "judge-suite-v1"
+}

@@ -1,0 +1,28 @@
+study: judge-suite-v1
+protocol_version: judge-rubric-v1
+status: DRAFT_PENDING_HUMAN_CALIBRATION
+eval_spec: evals/specs/eval-v1.1-grading.yaml
+eval_freeze: evals/specs/eval-v1.1-grading.freeze.json
+rubrics: evals/specs/judge-suite-v1-rubrics.yaml
+source_experiment: full-baseline-v2
+source_task_ids: [Q014, Q047, Q051, Q059, Q060]
+source_trials: 3
+local_panel:
+  - qwen3-4b-q5
+  - llama3.2-3b-q6
+bias_pairs:
+  controlled_per_task: 8
+  real_stratified_per_task: 10
+  orientations: 2
+privacy:
+  api_allowed: false
+  raw_text_in_public_reports: false
+human_adjudication:
+  required: true
+  calibration_cases_per_task: 15
+  real_spot_check_rows: 50
+  disagreement_resolution: third_rater
+storage:
+  kind: sqlite
+  path: results/local/judge-suite-v1.db
+  public_reports: results/reports/judge-suite-v1.json
