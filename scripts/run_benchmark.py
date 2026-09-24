@@ -21,6 +21,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from evals.contract import EvalContract, EvalContractError, load_eval_contract
 from evals.graders.engine import GraderResult, grade_output
 from evals.verdicts import ERROR, REFUSED_NOT_EXECUTABLE, reduce_verdict
 from inference.adapters import (
@@ -108,10 +109,16 @@ def load_executable_tasks(path: Path) -> dict[str, str]:
     return tasks
 
 
-def load_spec_entries(path: Path) -> dict[str, dict[str, Any]]:
-    spec: Any = yaml.safe_load(open(path, encoding='utf-8'))
+def load_spec_entries(
+    path: Path, contract: EvalContract | None = None
+) -> dict[str, dict[str, Any]]:
+    if contract is not None:
+        source = contract.grader_entries()
+    else:
+        spec: Any = yaml.safe_load(open(path, encoding='utf-8'))
+        source = spec['tasks']
     entries: dict[str, dict[str, Any]] = {}
-    for task_id, entry in spec['tasks'].items():
+    for task_id, entry in source.items():
         entries[str(task_id)] = {
             'grading_status': str(entry['grading_status']),
             'graders': list(entry.get('graders') or []),
@@ -251,6 +258,93 @@ def _load_probe(base_url: str, model_identifier: str) -> None:
         ),
         timeout_s=300.0,
     )
+
+
+def _canonical_load_probe(
+    *,
+    base_url: str,
+    config: ModelConfig,
+    temperature: float,
+    timeout_s: float,
+) -> GenerationResult:
+    """Load the model once with the exact active arm request options."""
+    prompt = render_prompt(config, 'OK')
+    return generate(
+        base_url,
+        GenerationRequest(
+            model=config.ollama_identifier,
+            prompt=prompt,
+            temperature=temperature,
+            num_ctx=config.num_ctx,
+            num_predict=1,
+            num_gpu=config.num_gpu,
+            stop=config.stop_tokens,
+            raw=(config.mode == 'raw'),
+            think=config.think,
+        ),
+        timeout_s=timeout_s,
+    )
+
+
+def _generate_once(
+    *,
+    base_url: str,
+    request: GenerationRequest,
+    timeout_s: float,
+) -> tuple[GenerationResult, SystemSample, float | None]:
+    with SystemSampler() as sampler:
+        result = generate(base_url, request, timeout_s=timeout_s)
+    sample = sampler.sample()
+    post, _ = sample_vram_once()
+    return result, sample, post
+
+
+def _fixed_budget_failure(
+    *,
+    root: Path,
+    execution_id: str,
+    phase: str,
+    reason: str,
+    ollama_bin: str,
+    model_identifier: str,
+    base_url: str,
+    completed_warmups: int,
+    completed_measured: int,
+    task_id: str | None = None,
+    trial: int | None = None,
+    error_type: str = 'MeasurementFailure',
+) -> int:
+    unload_status = 'not_attempted'
+    try:
+        stopped, detail = ollama_stop(ollama_bin, model_identifier)
+        unload_status = f'{stopped}:{detail}'
+        if stopped:
+            wait_until_unloaded(
+                lambda: _ps_absent(base_url, model_identifier), timeout_s=180.0
+            )
+    except Exception as exc:
+        unload_status = f'error:{type(exc).__name__}:{exc}'
+    sidecar = results_path(
+        root, 'summaries', f'{execution_id}-fixed-budget-failure.json'
+    )
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_text(json.dumps({
+        'schema_version': 'temperature-study-failure-v1',
+        'execution_id': execution_id,
+        'phase': phase,
+        'status': 'PARTIAL_FAILURE',
+        'reason': reason,
+        'error_type': error_type,
+        'task_id': task_id,
+        'trial': trial,
+        'completed_warmups': completed_warmups,
+        'completed_measured_rows': completed_measured,
+        'expected_measured_rows': 75,
+        'unload_status': unload_status,
+    }, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+    print(f'FIXED-BUDGET FAILURE: {phase}: {reason}', flush=True)
+    print(f'failure sidecar: {sidecar}', flush=True)
+    return MEASUREMENT_FAILED_EXIT
 
 
 def _run_warmup_trial(
@@ -530,6 +624,18 @@ def _pause_if_requested(
     return True
 
 
+def _execution_exists(conn: sqlite3.Connection, execution_id: str) -> bool:
+    row = conn.execute(
+        'SELECT 1 FROM experiments WHERE experiment_id=?', (execution_id,)
+    ).fetchone()
+    if row is not None:
+        return True
+    row = conn.execute(
+        'SELECT 1 FROM execution_provenance WHERE execution_id=?', (execution_id,)
+    ).fetchone()
+    return row is not None
+
+
 def run_experiment(args: argparse.Namespace) -> int:
     root = Path(__file__).resolve().parent.parent
     run_config = yaml.safe_load(open(args.config, encoding='utf-8'))
@@ -548,24 +654,56 @@ def run_experiment(args: argparse.Namespace) -> int:
     trials: int = int(run_config.get('trials', 1))
     # Canonical ceiling lives in the frozen contract; CLI overrides explicitly.
     cli_predict = getattr(args, 'num_predict', None)
+    fixed_budget = bool(run_config.get('fixed_budget', False))
+    if fixed_budget:
+        if bool(getattr(args, 'resume', False)):
+            print('FIXED-BUDGET REFUSED: --resume is not allowed', flush=True)
+            return 2
+        if getattr(args, 'max_tasks', None) is not None:
+            print('FIXED-BUDGET REFUSED: --max-tasks is not allowed', flush=True)
+            return 2
+        if cli_predict is not None:
+            print('FIXED-BUDGET REFUSED: --num-predict is not allowed', flush=True)
+            return 2
+        canonical_execution_id = derive_execution_id(experiment_spec_id, model_config_id)
+        explicit_execution_id = getattr(args, 'execution_id', None)
+        if explicit_execution_id not in (None, canonical_execution_id):
+            print('FIXED-BUDGET REFUSED: noncanonical --execution-id', flush=True)
+            return 2
     num_predict: int = (
         int(cli_predict) if cli_predict is not None
         else int(run_config.get('num_predict', 512))
     )
+    grading_spec_path = str(
+        run_config.get('grading_spec', 'evals/specs/eval-v1-grading.yaml')
+    )
+    grading_freeze_path = str(
+        run_config.get('grading_freeze', 'evals/specs/eval-v1-grading.freeze.json')
+    )
+    dataset_path = str(
+        run_config.get('dataset_path', 'evals/datasets/eval-v1/executable-v1.jsonl')
+    )
+    try:
+        contract = load_eval_contract(
+            root,
+            grading_spec_path,
+            freeze_path=grading_freeze_path,
+            dataset_path=dataset_path,
+        )
+    except EvalContractError as exc:
+        print(f'EVAL CONTRACT REFUSED: {exc}', flush=True)
+        return 2
     task_ids: list[str] = [str(t) for t in run_config['task_ids']]
     if args.max_tasks is not None:
         task_ids = task_ids[: args.max_tasks]
 
     config = get_model_config(args.model)
-    tasks = load_executable_tasks(root / 'evals/datasets/eval-v1/executable-v1.jsonl')
-    spec_entries = load_spec_entries(root / 'evals/specs/eval-v1-grading.yaml')
+    tasks = load_executable_tasks(contract.dataset_path)
+    spec_entries = load_spec_entries(contract.spec_path, contract)
     validate_temperature_study_run(
         run_config, root=root, model_config_id=args.model, task_ids=task_ids,
         temperature=temperature, trials=trials, num_predict=num_predict,
-        grading_statuses={
-            task_id: str(entry['grading_status'])
-            for task_id, entry in spec_entries.items()
-        },
+        grading_statuses=contract.statuses,
     )
 
     effective = effective_generation_config(
@@ -592,15 +730,68 @@ def run_experiment(args: argparse.Namespace) -> int:
         'config_file': Path(args.config).name,
         'experiment_spec_id': experiment_spec_id,
         'run_kind': run_kind,
+        'temperature': temperature,
         'trials': trials,
+        'num_predict': num_predict,
         'task_ids': task_ids,
+        'contract_spec_version': contract.spec_version,
+        'grading_spec_hash': contract.hashes['spec_sha256'],
+        'dataset_hash': contract.hashes['dataset_sha256'],
+        'grading_freeze_hash': contract.hashes['freeze_sha256'],
     }
     experiment_config_hash = hash_experiment_config(experiment_config)
     declared_config_hash = model_config_hash(config)
 
+    ollama_bin = resolve_ollama_bin(getattr(args, 'ollama_bin', None))
+    if fixed_budget and _execution_exists(conn, execution_id):
+        print('FIXED-BUDGET REFUSED: execution already exists; resume is forbidden', flush=True)
+        conn.close()
+        return 2
+
     # Load probe (unrecorded): the artifact digest must be observed BEFORE
     # any write, so a weights change under the same tag fails closed here.
-    _load_probe(args.base_url, config.ollama_identifier)
+    try:
+        if fixed_budget:
+            stopped, detail = ollama_stop(ollama_bin, config.ollama_identifier)
+            if not stopped:
+                conn.close()
+                return _fixed_budget_failure(
+                    root=root, execution_id=execution_id, phase='initial_stop',
+                    reason=f'model unload failed: {detail}', ollama_bin=ollama_bin,
+                    model_identifier=config.ollama_identifier, base_url=args.base_url,
+                    completed_warmups=0, completed_measured=0,
+                )
+            if not wait_until_unloaded(
+                lambda: _ps_absent(args.base_url, config.ollama_identifier),
+                timeout_s=180.0,
+            ):
+                conn.close()
+                return _fixed_budget_failure(
+                    root=root, execution_id=execution_id, phase='initial_stop',
+                    reason='model remained loaded after stop', ollama_bin=ollama_bin,
+                    model_identifier=config.ollama_identifier, base_url=args.base_url,
+                    completed_warmups=0, completed_measured=0,
+                )
+            _canonical_load_probe(
+                base_url=args.base_url, config=config, temperature=temperature,
+                timeout_s=args.timeout_s,
+            )
+        else:
+            _canonical_load_probe(
+                base_url=args.base_url, config=config, temperature=temperature,
+                timeout_s=args.timeout_s,
+            )
+    except Exception as exc:
+        if not fixed_budget:
+            raise
+        conn.close()
+        return _fixed_budget_failure(
+            root=root, execution_id=execution_id, phase='initial_probe',
+            reason=str(exc), ollama_bin=ollama_bin,
+            model_identifier=config.ollama_identifier, base_url=args.base_url,
+            completed_warmups=0, completed_measured=0,
+            error_type=type(exc).__name__,
+        )
     probe_eligibility = check_eligibility(
         args.base_url, config.ollama_identifier,
         expected_digest=config.ollama_model_digest,
@@ -653,13 +844,25 @@ def run_experiment(args: argparse.Namespace) -> int:
     # used only for trial numbering, never as proof of warmth.
     fresh_warmups = 0
     for warmup_prompt in WARMUP_PROMPTS:
-        _run_warmup_trial(
-            conn, experiment_id=experiment_id, config=config,
-            config_hash=config_hash, temperature=temperature,
-            num_predict=num_predict, warmup_prompt=warmup_prompt,
-            base_url=args.base_url, timeout_s=args.timeout_s,
-            ollama_ver=ollama_ver,
-        )
+        try:
+            _run_warmup_trial(
+                conn, experiment_id=experiment_id, config=config,
+                config_hash=config_hash, temperature=temperature,
+                num_predict=num_predict, warmup_prompt=warmup_prompt,
+                base_url=args.base_url, timeout_s=args.timeout_s,
+                ollama_ver=ollama_ver,
+            )
+        except Exception as exc:
+            if not fixed_budget:
+                raise
+            conn.close()
+            return _fixed_budget_failure(
+                root=root, execution_id=execution_id, phase='warmup',
+                reason=str(exc), ollama_bin=ollama_bin,
+                model_identifier=config.ollama_identifier, base_url=args.base_url,
+                completed_warmups=fresh_warmups, completed_measured=0,
+                error_type=type(exc).__name__,
+            )
         fresh_warmups += 1
     if fresh_warmups != len(WARMUP_PROMPTS):
         raise RuntimeError(
@@ -675,16 +878,16 @@ def run_experiment(args: argparse.Namespace) -> int:
           f'(residency={eligibility.gpu_residency_ratio})', flush=True)
     if not eligibility.eligible:
         print('GPU-only rule: refusing to benchmark', flush=True)
+        conn.close()
+        if fixed_budget:
+            ollama_stop(ollama_bin, config.ollama_identifier)
         return 3
 
-    freeze = yaml.safe_load(
-        open(root / 'evals/specs/eval-v1-grading.freeze.json', encoding='utf-8')
-    )
     manifest = build_manifest(
         app_git_commit=git_commit(str(root)),
-        eval_freeze_hash=str(freeze['artifacts']['eval-v1-grading.yaml']),
-        grading_spec_hash=str(freeze['artifacts']['eval-v1-grading.yaml']),
-        dataset_hash=str(freeze['artifacts']['executable-v1.jsonl']),
+        eval_freeze_hash=contract.hashes['freeze_sha256'],
+        grading_spec_hash=contract.hashes['spec_sha256'],
+        dataset_hash=contract.hashes['dataset_sha256'],
         experiment_spec_id=experiment_spec_id,
         execution_id=execution_id,
         model_config_id=model_config_id,
@@ -702,6 +905,8 @@ def run_experiment(args: argparse.Namespace) -> int:
         reload_evidence_load_duration_ms=RELOAD_EVIDENCE_LOAD_DURATION_MS,
         live=collect_live_environment(
             ollama_version=ollama_ver, started_at_utc=utcnow()),
+        eval_freeze_record_sha256=contract.hashes['freeze_sha256'],
+        contract_spec_version=contract.spec_version,
     )
     manifest_path = results_path(root, 'experiment-manifests', f'{experiment_id}.json')
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -715,7 +920,6 @@ def run_experiment(args: argparse.Namespace) -> int:
         root, 'logs', f'transient-retries-{experiment_spec_id}.jsonl'
     )
     retry_events: list[dict[str, Any]] = []
-    ollama_bin = resolve_ollama_bin(getattr(args, 'ollama_bin', None))
 
     def _log_retry(event: dict[str, Any]) -> None:
         record = {
@@ -812,31 +1016,58 @@ def run_experiment(args: argparse.Namespace) -> int:
                 continue
             base['started_at_utc'] = utcnow()
             try:
-                result, sampler, post = _generate_with_recovery(
-                    make_request=lambda: build_request(
-                        args.model, rendered, temperature, num_predict
-                    ),
-                    task_id=task_id,
-                    trial=trial,
-                    base_url=args.base_url,
-                    timeout_s=args.timeout_s,
-                    ollama_bin=ollama_bin,
-                    model_identifier=config.ollama_identifier,
-                    config=config,
-                    temperature=temperature,
-                    rewarm=_rewarm_now,
-                    log_event=_log_retry,
-                )
+                if fixed_budget:
+                    result, sampler, post = _generate_once(
+                        base_url=args.base_url,
+                        request=build_request(
+                            args.model, rendered, temperature, num_predict
+                        ),
+                        timeout_s=args.timeout_s,
+                    )
+                else:
+                    result, sampler, post = _generate_with_recovery(
+                        make_request=lambda: build_request(
+                            args.model, rendered, temperature, num_predict
+                        ),
+                        task_id=task_id,
+                        trial=trial,
+                        base_url=args.base_url,
+                        timeout_s=args.timeout_s,
+                        ollama_bin=ollama_bin,
+                        model_identifier=config.ollama_identifier,
+                        config=config,
+                        temperature=temperature,
+                        rewarm=_rewarm_now,
+                        log_event=_log_retry,
+                    )
                 sample = sampler
             except MeasurementFailed as exc:
-                # Persistent measurement failure: NO row is written (the
-                # contract forbids synthetic ERROR rows), weights are kept,
-                # and the sweep must STOP. Exit code 6 signals this path.
+                if fixed_budget:
+                    conn.close()
+                    return _fixed_budget_failure(
+                        root=root, execution_id=execution_id, phase='measured',
+                        reason=exc.reason, ollama_bin=ollama_bin,
+                        model_identifier=config.ollama_identifier,
+                        base_url=args.base_url, completed_warmups=fresh_warmups,
+                        completed_measured=ran, task_id=task_id, trial=trial,
+                    )
                 print(f'{task_id} t{trial}: MEASUREMENT_FAILED {exc.reason}',
                       flush=True)
                 conn.close()
                 return MEASUREMENT_FAILED_EXIT
-            except OllamaClientError as exc:
+            except Exception as exc:
+                if fixed_budget:
+                    conn.close()
+                    return _fixed_budget_failure(
+                        root=root, execution_id=execution_id, phase='measured',
+                        reason=str(exc), ollama_bin=ollama_bin,
+                        model_identifier=config.ollama_identifier,
+                        base_url=args.base_url, completed_warmups=fresh_warmups,
+                        completed_measured=ran, task_id=task_id, trial=trial,
+                        error_type=type(exc).__name__,
+                    )
+                if not isinstance(exc, OllamaClientError):
+                    raise
                 base['ended_at_utc'] = utcnow()
                 empty = ProfiledMetrics(
                     ttft_ms=None, client_e2e_ms=0.0,
@@ -869,14 +1100,32 @@ def run_experiment(args: argparse.Namespace) -> int:
                 continue
             base['ended_at_utc'] = utcnow()
             metrics = derive_metrics(result)
+            if fixed_budget and (
+                metrics.server_load_duration_ms is None
+                or needs_rewarm(metrics.server_load_duration_ms)
+            ):
+                conn.close()
+                return _fixed_budget_failure(
+                    root=root, execution_id=execution_id, phase='measured',
+                    reason='reload evidence or missing load-duration counter',
+                    ollama_bin=ollama_bin, model_identifier=config.ollama_identifier,
+                    base_url=args.base_url, completed_warmups=fresh_warmups,
+                    completed_measured=ran, task_id=task_id, trial=trial,
+                )
             try:
                 details = grade_output(result.text, entry['graders'])
                 verdict = reduce_verdict(status, details)
             except Exception as exc:
-                # Grading must never kill an experiment: record the failure
-                # as an ERROR row (retried on resume) and keep going. Any
-                # ERROR verdict demands investigation before interpreting
-                # results.
+                if fixed_budget:
+                    conn.close()
+                    return _fixed_budget_failure(
+                        root=root, execution_id=execution_id, phase='grading',
+                        reason=str(exc), ollama_bin=ollama_bin,
+                        model_identifier=config.ollama_identifier,
+                        base_url=args.base_url, completed_warmups=fresh_warmups,
+                        completed_measured=ran, task_id=task_id, trial=trial,
+                        error_type=type(exc).__name__,
+                    )
                 insert_measured_row(
                     conn, base=base, text=result.text,
                     thinking=result.thinking,
@@ -941,6 +1190,25 @@ def run_experiment(args: argparse.Namespace) -> int:
                     )
                     fresh_warmups += 1
 
+    if fixed_budget:
+        measured_count = int(conn.execute(
+            'SELECT COUNT(*) FROM runs WHERE experiment_id=? AND is_warmup=0',
+            (execution_id,),
+        ).fetchone()[0])
+        warmup_count = int(conn.execute(
+            'SELECT COUNT(*) FROM runs WHERE experiment_id=? AND run_kind=\'WARMUP\'',
+            (execution_id,),
+        ).fetchone()[0])
+        if measured_count != 75 or warmup_count != len(WARMUP_PROMPTS):
+            conn.close()
+            return _fixed_budget_failure(
+                root=root, execution_id=execution_id, phase='completion',
+                reason=f'expected 2 warmups/75 measured rows, got {warmup_count}/{measured_count}',
+                ollama_bin=ollama_bin, model_identifier=config.ollama_identifier,
+                base_url=args.base_url, completed_warmups=warmup_count,
+                completed_measured=measured_count,
+            )
+
     measured = fetch_measured(conn, experiment_id)
     verdicts: dict[str, int] = {}
     for row in measured:
@@ -954,6 +1222,13 @@ def run_experiment(args: argparse.Namespace) -> int:
         'execution_id': execution_id,
         'model_config_id': args.model,
         'run_kind': run_kind, 'ran_this_invocation': ran,
+        'fixed_budget': fixed_budget,
+        'request_budget': {
+            'diagnostic_calls': 1 if fixed_budget else 0,
+            'warmup_calls': len(WARMUP_PROMPTS) if fixed_budget else None,
+            'measured_calls': 75 if fixed_budget else None,
+            'total_calls': 78 if fixed_budget else None,
+        },
         'skipped_resume': skipped, 'measured_rows': len(measured),
         'verdicts': verdicts,
         'transient_retries': {

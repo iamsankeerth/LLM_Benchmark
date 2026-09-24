@@ -62,6 +62,8 @@ class EffectiveEligibilityOptions:
     num_gpu: int | None
     temperature: float
     template_sha256: str
+    stop_tokens: tuple[str, ...] = ()
+    think: bool | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -74,6 +76,8 @@ def effective_options_for(
     num_gpu: int | None,
     temperature: float,
     template_sha256: str,
+    stop_tokens: tuple[str, ...] = (),
+    think: bool | None = None,
 ) -> EffectiveEligibilityOptions:
     return EffectiveEligibilityOptions(
         mode=mode,
@@ -82,6 +86,8 @@ def effective_options_for(
         num_gpu=num_gpu,
         temperature=temperature,
         template_sha256=template_sha256,
+        stop_tokens=stop_tokens,
+        think=think,
     )
 
 
@@ -264,7 +270,9 @@ def run_canonical_eligibility(
         num_ctx=options.num_ctx,
         num_predict=options.num_predict,
         num_gpu=options.num_gpu,
+        stop=options.stop_tokens,
         raw=is_raw,
+        think=options.think,
     )
     generate_call = generate_fn or (lambda url, req: _live_generate(url, req, timeout_s))
     generate_call(base_url, request)

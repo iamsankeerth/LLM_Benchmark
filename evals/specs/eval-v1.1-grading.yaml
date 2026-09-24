@@ -1,0 +1,59 @@
+%YAML 1.2
+---
+spec_version: eval-v1.1
+status: FROZEN
+base_spec: eval-v1
+base_freeze: eval-v1-grading.freeze.json
+overrides:
+  Q016:
+    primary_class: DETERMINISTIC_STRUCTURED
+    grading_status: READY_DETERMINISTIC
+    graders:
+      - type: structured
+        expected_output: {}
+        required_fields: [benefit_1, benefit_2, risk]
+        allow_extra_fields: false
+        open_values:
+          - field: benefit_1
+            word_range: {min: 6, max: 10}
+          - field: benefit_2
+            word_range: {min: 6, max: 10}
+          - field: risk
+            word_range: {min: 6, max: 10}
+            required_terms: [stale]
+      - type: constraints
+        constraints:
+          - kind: forbidden_terms
+            terms: [fast, faster, speed, performance]
+          - kind: term_occurrence
+            term: latency
+            occurrence: across_values
+            count: 1
+            match: word
+  Q047:
+    primary_class: JUDGE_REQUIRED
+    grading_status: READY_JUDGE
+    graders:
+      - type: fact_check
+        required_fact_groups:
+          - any_of: [currently enrolled undergraduate, currently enrolled, enrolled undergraduate]
+          - any_of: [30 September 2026, 30 Sept 2026, September 30 2026, 30 Sep 2026]
+          - any_of: ['5:00 PM', '5 PM', '17:00']
+          - any_of: [₹250, 'Rs 250', '250 rupees']
+          - any_of: [non-refundable, nonrefundable, not refundable, cannot be refunded]
+          - any_of: [institute portal, portal submission, submit through the portal]
+          - any_of: [email not accepted, email submissions are not accepted, no email submissions, portal only, do not submit by email]
+        word_limit:
+          max: 45
+      - type: rubric_judge
+        rubric_required: true
+        criteria:
+          unsupported_claims:
+            type: boolean
+            desired: false
+provenance:
+  base_spec_sha256: d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f
+  reason: >-
+    Q016 had placeholder values that were compared as fixed answers. Q047 was
+    marked deterministic while carrying a required-style rubric. The overlay
+    makes both tasks satisfiable and honest without changing Eval-v1.

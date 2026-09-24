@@ -1,7 +1,10 @@
 # Frozen authority for the Qwen Q4 two-arm temperature study.
 study: temperature-study-v1
 model_config_id: qwen3-4b-q4
+fixed_budget: true
 run_kind: TEMPERATURE
+grading_spec: evals/specs/eval-v1.1-grading.yaml
+grading_freeze: evals/specs/eval-v1.1-grading.freeze.json
 trials: 5
 num_predict: 2048
 task_ids: [Q001, Q003, Q062, Q066, Q011, Q013, Q015, Q017, Q019, Q023, Q026, Q035, Q039, Q042, Q071]

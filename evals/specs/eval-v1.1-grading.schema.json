@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Eval-v1.1 grading overlay",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_version", "status", "base_spec", "base_freeze", "overrides", "provenance"],
+  "properties": {
+    "spec_version": {"const": "eval-v1.1"},
+    "status": {"const": "FROZEN"},
+    "base_spec": {"const": "eval-v1"},
+    "base_freeze": {"type": "string", "minLength": 1},
+    "overrides": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/task"}
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_spec_sha256", "reason"],
+      "properties": {
+        "base_spec_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "$defs": {
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_class", "grading_status", "graders"],
+      "properties": {
+        "primary_class": {"enum": ["DETERMINISTIC_EXACT", "DETERMINISTIC_NUMERIC", "DETERMINISTIC_STRUCTURED", "DETERMINISTIC_CONSTRAINT", "DETERMINISTIC_REFUSAL", "JUDGE_REQUIRED", "HUMAN_REQUIRED"]},
+        "grading_status": {"enum": ["READY_DETERMINISTIC", "READY_JUDGE", "READY_HUMAN"]},
+        "graders": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/grader"}}
+      }
+    },
+    "grader": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {"type": {"enum": ["structured", "constraints", "fact_check", "rubric_judge"]}}
+    }
+  }
+}

@@ -29,6 +29,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from evals.contract import EvalContractError, load_eval_contract
 from evals.graders.engine import normalize_text
 from storage.manifest import hash_experiment_config
 
@@ -137,6 +138,8 @@ class SummaryProvenance:
     experiment_config_hash: str
     analysis_code_git_commit: str | None
     analysis_worktree_dirty: bool
+    eval_freeze_hash: str | None = None
+    contract_spec_version: str | None = None
 
 
 def _sha(text: str) -> str:
@@ -220,11 +223,16 @@ def collect_provenance(
     experiment_config: Mapping[str, Any],
     *,
     allow_dirty: bool = False,
+    spec_path: str | Path = 'evals/specs/eval-v1-grading.yaml',
+    freeze_path: str | Path = 'evals/specs/eval-v1-grading.freeze.json',
 ) -> SummaryProvenance:
-    """Build the summary provenance block; fail closed on a dirty worktree
-    unless the development-only allow_dirty override is set (stamped true)."""
-    freeze_path = Path(repo_dir) / 'evals/specs/eval-v1-grading.freeze.json'
-    freeze = json.loads(freeze_path.read_text(encoding='utf-8'))
+    """Build provenance from actual selected contract bytes and fail closed."""
+    try:
+        contract = load_eval_contract(
+            Path(repo_dir), spec_path, freeze_path=freeze_path
+        )
+    except EvalContractError as exc:
+        raise ValueError(f'evaluation contract provenance failed: {exc}') from exc
     commit, dirty = git_worktree_status(repo_dir)
     if dirty and not allow_dirty:
         raise DirtyWorktreeError(
@@ -232,11 +240,13 @@ def collect_provenance(
             '(use --allow-dirty for development-only output)'
         )
     return SummaryProvenance(
-        grading_spec_hash=str(freeze['artifacts']['eval-v1-grading.yaml']),
-        dataset_hash=str(freeze['artifacts']['executable-v1.jsonl']),
+        grading_spec_hash=contract.hashes['spec_sha256'],
+        dataset_hash=contract.hashes['dataset_sha256'],
         experiment_config_hash=hash_experiment_config(dict(experiment_config)),
         analysis_code_git_commit=commit,
         analysis_worktree_dirty=dirty,
+        eval_freeze_hash=contract.hashes.get('freeze_sha256'),
+        contract_spec_version=contract.spec_version,
     )
 
 

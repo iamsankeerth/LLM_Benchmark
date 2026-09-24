@@ -181,9 +181,12 @@ def run_v2(args: argparse.Namespace) -> int:
         if not ok or not ollama_model_present(ollama_bin, config.ollama_identifier):
             raise RuntimeError(f'pull failed: {detail}')
         pulled = True
-        options = effective_options_for(mode=config.mode, num_ctx=config.num_ctx,
-                                        num_gpu=config.num_gpu, temperature=0.0,
-                                        template_sha256=config.template_sha256)
+        options = effective_options_for(
+            mode=config.mode, num_ctx=config.num_ctx,
+            num_gpu=config.num_gpu, temperature=0.0,
+            template_sha256=config.template_sha256,
+            stop_tokens=tuple(config.stop_tokens), think=config.think,
+        )
         eligibility = run_canonical_eligibility(
             base_url=args.base_url, model_identifier=config.ollama_identifier,
             expected_digest=config.ollama_model_digest, effective_options=options,

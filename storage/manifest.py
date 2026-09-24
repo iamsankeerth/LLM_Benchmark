@@ -57,6 +57,8 @@ class ExperimentManifest:
     # the load-duration threshold whose breach triggers automatic re-warm.
     reload_evidence_load_duration_ms: float
     started_at_utc: str
+    eval_freeze_record_sha256: str | None = None
+    contract_spec_version: str | None = None
 
     def to_json(self) -> str:
         document = asdict(self)
@@ -134,6 +136,8 @@ def build_manifest(
     experiment_config_hash: str,
     reload_evidence_load_duration_ms: float,
     live: LiveEnvironment,
+    eval_freeze_record_sha256: str | None = None,
+    contract_spec_version: str | None = None,
 ) -> ExperimentManifest:
     return ExperimentManifest(
         app_git_commit=app_git_commit,
@@ -163,4 +167,6 @@ def build_manifest(
         experiment_config_hash=experiment_config_hash,
         reload_evidence_load_duration_ms=reload_evidence_load_duration_ms,
         started_at_utc=live.started_at_utc,
+        eval_freeze_record_sha256=eval_freeze_record_sha256,
+        contract_spec_version=contract_spec_version,
     )

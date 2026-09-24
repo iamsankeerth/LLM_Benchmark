@@ -313,6 +313,14 @@ def grade_tool_call(output: str, grader: dict[str, Any]) -> GraderResult:
     return GraderResult('tool_call', not violations, 'tool call matches' if not violations else 'violations', violations)
 
 
+def _term_matches(text: str, term: str, *, match: str = 'substring') -> bool:
+    if match == 'word':
+        return re.search(rf'(?<!\w){re.escape(term)}(?!\w)', text, re.IGNORECASE) is not None
+    if match == 'substring':
+        return re.search(re.escape(term), text, re.IGNORECASE) is not None
+    raise ValueError(f'unknown term match mode: {match!r}')
+
+
 def grade_constraints(output: str, grader: dict[str, Any]) -> GraderResult:
     text = normalize_text(output)
     violations: list[str] = []
@@ -344,10 +352,8 @@ def grade_constraints(output: str, grader: dict[str, Any]) -> GraderResult:
             term = constraint['term']
             occurrence = constraint.get('occurrence', 'exactly')
             expected_count = constraint['count']
+            match_mode = constraint.get('match', 'substring')
             if occurrence == 'across_values':
-                # Occurrence counted across JSON string values (e.g. Q016:
-                # exactly one value may contain the word). Unparseable
-                # output cannot satisfy a values-scoped assertion.
                 try:
                     parsed = _extract_json(text)
                 except ValueError:
@@ -361,7 +367,7 @@ def grade_constraints(output: str, grader: dict[str, Any]) -> GraderResult:
                         1
                         for value in parsed.values()
                         if isinstance(value, str)
-                        and re.search(re.escape(term), value, re.IGNORECASE)
+                        and _term_matches(value, term, match=match_mode)
                     )
                     if hits != expected_count:
                         violations.append(
@@ -376,9 +382,6 @@ def grade_constraints(output: str, grader: dict[str, Any]) -> GraderResult:
                 if re.search(re.escape(term), text, re.IGNORECASE):
                     violations.append(f'forbidden_terms: found {term!r}')
         elif kind == 'allowed_punctuation':
-            # Only line-initial markers (e.g. Q015 "A.".."F.") may carry
-            # punctuation: strip ^[A-F]. markers, then any surviving
-            # punctuation character is a violation.
             stripped = re.sub(r'(?m)^[A-F]\.', '', text)
             bad = sorted({c for c in stripped if not c.isalnum() and not c.isspace()})
             if bad:
@@ -429,8 +432,6 @@ def grade_constraints(output: str, grader: dict[str, Any]) -> GraderResult:
             items = re.findall(r'^\s*\d+\.\s+(.*)$', text, re.MULTILINE)
             required = int(constraint['value'])
             if 'index' not in constraint:
-                # No index (e.g. Q017 "each step must be one sentence"):
-                # every numbered item must hold exactly `value` sentences.
                 if not items:
                     violations.append('item_sentence_count: no numbered items found')
                 for position, item in enumerate(items, 1):
@@ -459,7 +460,10 @@ def grade_constraints(output: str, grader: dict[str, Any]) -> GraderResult:
                 terms.append(constraint['term'])
             if constraint.get('all_sentences'):
                 term = terms[0] if terms else ''
-                missing = [i + 1 for i, s in enumerate(sentences) if term.lower() not in s.lower()]
+                missing = [
+                    position + 1 for position, sentence in enumerate(sentences)
+                    if term.lower() not in sentence.lower()
+                ]
                 if missing:
                     violations.append(f'sentence_contains: sentences {missing} missing {term!r}')
             elif index:
@@ -477,11 +481,15 @@ def grade_constraints(output: str, grader: dict[str, Any]) -> GraderResult:
             else:
                 numbers = re.findall(r'\d+(?:\.\d+)?', sentences[index - 1])
                 if not (constraint['min'] <= len(numbers) <= constraint['max']):
-                    violations.append(f'sentence_numeric_tokens: sentence {index} has {len(numbers)} numeric tokens, allowed {constraint["min"]}-{constraint["max"]}')
+                    violations.append(
+                        f'sentence_numeric_tokens: sentence {index} has '
+                        f'{len(numbers)} numeric tokens, allowed '
+                        f'{constraint["min"]}-{constraint["max"]}'
+                    )
         elif kind == 'sentence_is_question':
             sentences = [s for s in re.split(r'(?<=[.!?])\s+', text) if s.strip()]
             index = constraint['index']
-            if len(sentences) < index or not sentences[index - 1].rstrip().endswith('?'):
+            if index > len(sentences) or not sentences[index - 1].rstrip().endswith('?'):
                 violations.append(f'sentence_is_question: sentence {index} must end with ?')
         elif kind == 'markdown_table_shape':
             rows = [line for line in text.split('\n') if line.strip().startswith('|')]
@@ -503,9 +511,9 @@ def grade_constraints(output: str, grader: dict[str, Any]) -> GraderResult:
                 violations.append(f'line_count: expected {value}, got {len(lines)}')
         elif kind == 'line_prefix_sequence':
             lines = [line for line in text.split('\n') if line.strip()]
-            for index, prefix in enumerate(constraint['prefixes']):
-                if index >= len(lines) or not lines[index].lstrip().startswith(prefix):
-                    violations.append(f'line_prefix_sequence: line {index + 1} must start with {prefix!r}')
+            for index, prefix in enumerate(constraint['prefixes'], 1):
+                if index > len(lines) or not lines[index - 1].lstrip().startswith(prefix):
+                    violations.append(f'line_prefix_sequence: line {index} must start with {prefix!r}')
         elif kind == 'line_word_limit':
             lines = [line for line in text.split('\n') if line.strip()]
             for index, line in enumerate(lines, 1):
@@ -522,7 +530,6 @@ def grade_constraints(output: str, grader: dict[str, Any]) -> GraderResult:
             lines = [line for line in text.split('\n') if line.strip()]
             bullets = [line for line in lines if re.match(r'^\s*[-*•]\s+', line)]
             index = constraint['index']
-            # index -1 addresses the last bullet (Q011); positive is 1-based.
             if not bullets:
                 violations.append('bullet_prefix: no bullets found')
                 continue
@@ -536,7 +543,7 @@ def grade_constraints(output: str, grader: dict[str, Any]) -> GraderResult:
             for index, bullet in enumerate(bullets, 1):
                 count = len(words(bullet.lstrip('-*• ')))
                 if count >= constraint['max_words'] + 1:
-                    violations.append(f'bullet_word_limit: bullet {index} has {count} words, max {constraint["max_words"]}')
+                    violations.append(f'bullet_word_limit: bullet {index} has {count} words > {constraint["max_words"]}')
         elif kind == 'ends_with':
             if not text.rstrip().endswith(constraint['suffix']):
                 violations.append(f'ends_with: must end with {constraint["suffix"]!r}')
@@ -555,6 +562,10 @@ def grade_fact_check(output: str, grader: dict[str, Any]) -> GraderResult:
     for fact in grader.get('required_facts', []):
         if fact.lower() not in lower:
             violations.append(f'missing fact: {fact!r}')
+    for group in grader.get('required_fact_groups', []):
+        alternatives = [str(value).lower() for value in group.get('any_of', [])]
+        if not alternatives or not any(value in lower for value in alternatives):
+            violations.append(f'missing fact group: {group.get("any_of", [])}')
     for fact in grader.get('forbidden_facts', []):
         if fact.lower() in lower:
             violations.append(f'forbidden fact present: {fact!r}')

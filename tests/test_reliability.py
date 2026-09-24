@@ -20,6 +20,8 @@ from analysis.reliability import (
     collect_provenance,
 )
 
+from evals.contract import file_sha256
+
 
 def _trial(
     task_id: str,
@@ -287,20 +289,24 @@ class ReliabilityExperimentTests(unittest.TestCase):
 
 
 class ProvenanceTests(unittest.TestCase):
-    def _freeze_doc(self) -> str:
-        return json.dumps(
-            {
-                'artifacts': {
-                    'eval-v1-grading.yaml': 'g' * 64,
-                    'executable-v1.jsonl': 'd' * 64,
-                }
-            }
-        )
-
     def _with_freeze(self, tmp: str) -> None:
-        Path(tmp, 'evals', 'specs').mkdir(parents=True)
-        Path(tmp, 'evals', 'specs', 'eval-v1-grading.freeze.json').write_text(
-            self._freeze_doc(), encoding='utf-8'
+        specs = Path(tmp, 'evals', 'specs')
+        dataset_dir = Path(tmp, 'evals', 'datasets', 'eval-v1')
+        specs.mkdir(parents=True)
+        dataset_dir.mkdir(parents=True)
+        spec_path = specs / 'eval-v1-grading.yaml'
+        dataset_path = dataset_dir / 'executable-v1.jsonl'
+        spec_path.write_text(
+            'spec_version: eval-v1\nstatus: FROZEN\ntasks: {}\n',
+            encoding='utf-8',
+        )
+        dataset_path.write_text('', encoding='utf-8')
+        Path(specs / 'eval-v1-grading.freeze.json').write_text(
+            json.dumps({'artifacts': {
+                'eval-v1-grading.yaml': file_sha256(spec_path),
+                'executable-v1.jsonl': file_sha256(dataset_path),
+            }}),
+            encoding='utf-8',
         )
 
     def test_non_git_dir_fails_closed(self) -> None:
@@ -311,8 +317,14 @@ class ProvenanceTests(unittest.TestCase):
             provenance = collect_provenance(tmp, {'experiment': 'x'}, allow_dirty=True)
             self.assertTrue(provenance.analysis_worktree_dirty)
             self.assertIsNone(provenance.analysis_code_git_commit)
-            self.assertEqual(provenance.grading_spec_hash, 'g' * 64)
-            self.assertEqual(provenance.dataset_hash, 'd' * 64)
+            self.assertEqual(
+                provenance.grading_spec_hash,
+                file_sha256(Path(tmp) / 'evals/specs/eval-v1-grading.yaml'),
+            )
+            self.assertEqual(
+                provenance.dataset_hash,
+                file_sha256(Path(tmp) / 'evals/datasets/eval-v1/executable-v1.jsonl'),
+            )
             self.assertEqual(len(provenance.experiment_config_hash), 64)
 
     def test_untracked_json_does_not_dirty(self) -> None:
@@ -346,8 +358,9 @@ class ProvenanceTests(unittest.TestCase):
             _, dirty = git_worktree_status(tmp)
             self.assertTrue(dirty)
             # Tracked modification: dirty.
-            Path(tmp, 'evals', 'specs', 'eval-v1-grading.freeze.json').write_text(
-                self._freeze_doc() + ' ', encoding='utf-8'
+            freeze_path = Path(tmp, 'evals', 'specs', 'eval-v1-grading.freeze.json')
+            freeze_path.write_text(
+                freeze_path.read_text(encoding='utf-8') + ' ', encoding='utf-8'
             )
             _, dirty = git_worktree_status(tmp)
             self.assertTrue(dirty)

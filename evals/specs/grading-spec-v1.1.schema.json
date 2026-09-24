@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LocalLLM Lab Eval-v1.1 grading spec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_version", "status", "defaults", "tasks"],
+  "properties": {
+    "spec_version": {"const": "eval-v1.1"},
+    "status": {"enum": ["DRAFT", "FROZEN"]},
+    "defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unicode_normalization", "trim_outer_whitespace", "normalize_line_endings", "text", "word_count", "numeric", "time"],
+      "properties": {
+        "unicode_normalization": {"const": "NFC"},
+        "trim_outer_whitespace": {"const": true},
+        "normalize_line_endings": {"const": true},
+        "text": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["case_sensitive"],
+          "properties": {"case_sensitive": {"const": true}}
+        },
+        "word_count": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tokenizer", "definition"],
+          "properties": {
+            "tokenizer": {"const": "unicode_whitespace"},
+            "definition": {"type": "string", "minLength": 1}
+          }
+        },
+        "numeric": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["absolute_tolerance", "relative_tolerance"],
+          "properties": {
+            "absolute_tolerance": {"type": "number", "minimum": 0},
+            "relative_tolerance": {"type": "number", "minimum": 0}
+          }
+        },
+        "time": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["precision"],
+          "properties": {"precision": {"enum": ["exact", "minute"]}}
+        }
+      }
+    },
+    "tasks": {
+      "type": "object",
+      "minProperties": 80,
+      "maxProperties": 80,
+      "propertyNames": {"pattern": "^Q[0-9]{3}$"},
+      "additionalProperties": {"$ref": "#/$defs/task"}
+    }
+  },
+  "$defs": {
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_class", "grading_status", "graders"],
+      "properties": {
+        "primary_class": {
+          "enum": ["DETERMINISTIC_EXACT", "DETERMINISTIC_NUMERIC", "DETERMINISTIC_STRUCTURED", "DETERMINISTIC_CONSTRAINT", "DETERMINISTIC_REFUSAL", "JUDGE_REQUIRED", "HUMAN_REQUIRED", "OPTIONAL_NOT_READY"]
+        },
+        "grading_status": {"enum": ["READY_DETERMINISTIC", "READY_JUDGE", "READY_HUMAN", "PENDING_REVIEW", "PENDING_SPECIFICATION"]},
+        "optional": {"type": "boolean", "const": true},
+        "graders": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/grader"},
+          "minItems": 0
+        },
+        "pending_reason": {"type": "string", "minLength": 1},
+        "provenance": {"$ref": "#/$defs/provenance"},
+        "notes": {"type": "string"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"grading_status": {"enum": ["READY_DETERMINISTIC", "READY_JUDGE"]}}},
+          "then": {"properties": {"graders": {"minItems": 1}, "pending_reason": {"maxProperties": 0}, "provenance": {"type": "object", "properties": {"review_status": {"not": {"const": "REQUIRED"}}}}}}
+        },
+        {
+          "if": {"properties": {"grading_status": {"enum": ["PENDING_REVIEW", "PENDING_SPECIFICATION"]}}},
+          "then": {
+            "properties": {
+              "pending_reason": {"type": "string", "minLength": 1},
+              "provenance": {"type": "object", "properties": {"review_status": {"const": "REQUIRED"}}}
+            },
+            "anyOf": [
+              {"required": ["pending_reason"]},
+              {"required": ["provenance"]}
+            ]
+          }
+        },
+        {
+          "if": {"properties": {"grading_status": {"const": "PENDING_SPECIFICATION"}}},
+          "then": {"required": ["optional", "pending_reason"], "properties": {"graders": {"maxItems": 0}, "optional": {"const": true}}}
+        }
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["review_status"],
+      "properties": {
+        "derived": {"type": "boolean"},
+        "derived_from": {"type": "string", "minLength": 1},
+        "review_status": {"enum": ["REQUIRED", "APPROVED"]},
+        "approved_by": {"type": "string", "minLength": 1},
+        "approved_on": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+        "reason": {"type": "string", "minLength": 1},
+        "decision": {"type": "string", "minLength": 1}
+      }
+    },
+    "wordLimit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max"],
+      "properties": {"max": {"type": "integer", "minimum": 1}}
+    },
+    "wordRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {"min": {"type": "integer"}, "max": {"type": "integer"}}
+    },
+    "grader": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {"enum": ["exact", "numeric", "time", "structured", "tool_call", "constraints", "fact_check", "refusal", "rubric_judge"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"type": {"const": "exact"}}},
+          "then": {"required": ["expected"], "properties": {"type": {"const": "exact"}, "expected": {"type": ["string", "number", "integer", "boolean"]}, "accepted_alternates": {"type": "array", "items": {"type": "string"}}, "case_sensitive": {"type": "boolean"}, "trim_outer_whitespace": {"type": "boolean"}, "numeric_alias_match": {"type": "boolean"}, "notes": {"type": "string"}}}
+        },
+        {
+          "if": {"properties": {"type": {"const": "numeric"}}},
+          "then": {"required": ["expected"], "properties": {"type": {"const": "numeric"}, "expected": {"type": "number"}, "absolute_tolerance": {"type": "number", "minimum": 0}, "relative_tolerance": {"type": "number", "minimum": 0}, "normalize_trailing_zeros": {"type": "boolean"}, "accepted_alternates": {"type": "array", "items": {"type": "string"}}, "numeric_alias_match": {"type": "boolean"}, "notes": {"type": "string"}}}
+        },
+        {
+          "if": {"properties": {"type": {"const": "time"}}},
+          "then": {"required": ["expected", "precision"], "properties": {"type": {"const": "time"}, "expected": {"type": "string", "pattern": "^[0-9]{2}:[0-9]{2}$"}, "precision": {"enum": ["exact", "minute"]}, "parsing": {"type": "array", "items": {"type": "string"}}, "notes": {"type": "string"}}}
+        },
+        {
+          "if": {"properties": {"type": {"const": "structured"}}},
+          "then": {"required": ["expected_output", "required_fields", "allow_extra_fields"], "properties": {"type": {"const": "structured"}, "expected_output": {"type": "object"}, "required_fields": {"type": "array", "items": {"type": "string"}, "minItems": 1}, "allow_extra_fields": {"type": "boolean"}, "normalization": {"type": "object"}, "open_values": {"type": "array", "items": {"type": "object", "required": ["field"], "properties": {"field": {"type": "string"}, "word_range": {"$ref": "#/$defs/wordRange"}, "required_terms": {"type": "array", "items": {"type": "string"}}}, "required": ["field"], "additionalProperties": false}}, "unicode_normalization": {"const": "NFC"}, "numeric_fields": {"type": "object"}, "notes": {"type": "string"}}}
+        },
+        {
+          "if": {"properties": {"type": {"const": "tool_call"}}},
+          "then": {"required": ["expected_output", "required_arguments"], "properties": {"type": {"const": "tool_call"}, "expected_output": {"type": "object"}, "required_arguments": {"type": "object"}, "forbidden_functions": {"type": "array", "items": {"type": "string"}}, "notes": {"type": "string"}}}
+        },
+        {
+          "if": {"properties": {"type": {"const": "constraints"}}},
+          "then": {"required": ["constraints"], "properties": {"type": {"const": "constraints"}, "constraints": {"type": "array", "items": {"type": "object", "required": ["kind"], "properties": {"kind": {"type": "string", "minLength": 1}, "match": {"enum": ["substring", "word"]}}}, "minItems": 1}, "notes": {"type": "string"}}}
+        },
+        {
+          "if": {"properties": {"type": {"const": "fact_check"}}},
+          "then": {"anyOf": [{"required": ["required_facts"]}, {"required": ["required_fact_groups"]}], "properties": {"type": {"const": "fact_check"}, "required_facts": {"type": "array", "items": {"type": "string"}, "minItems": 1}, "required_fact_groups": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["any_of"], "properties": {"any_of": {"type": "array", "items": {"type": "string"}, "minItems": 1}}}}, "facts": {"type": "object"}, "word_limit": {"$ref": "#/$defs/wordLimit"}, "word_range": {"$ref": "#/$defs/wordRange"}, "sentence_count": {"type": "object", "properties": {"value": {"type": "integer", "minimum": 1}}, "required": ["value"], "additionalProperties": false}, "sentence_roles": {"type": "object"}, "forbidden_facts": {"type": "array", "items": {"type": "string"}}, "bullet_count": {"type": "object", "properties": {"value": {"type": "integer"}}, "required": ["value"], "additionalProperties": false}, "bullet_word_limit": {"$ref": "#/$defs/wordLimit"}, "notes": {"type": "string"}}}
+        },
+        {
+          "if": {"properties": {"type": {"const": "refusal"}}},
+          "then": {"required": ["refusal_expected"], "properties": {"type": {"const": "refusal"}, "refusal_expected": {"type": "boolean"}, "notes": {"type": "string"}}}
+        },
+        {
+          "if": {"properties": {"type": {"const": "rubric_judge"}}},
+          "then": {"required": ["criteria"], "properties": {"type": {"const": "rubric_judge"}, "rubric_required": {"type": "boolean"}, "criteria": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "object", "required": ["type"], "properties": {"type": {"const": "boolean"}, "desired": {"type": "boolean"}}}}}}
+        }
+      ]
+    }
+  }
+}

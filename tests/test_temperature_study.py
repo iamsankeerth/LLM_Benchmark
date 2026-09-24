@@ -46,6 +46,19 @@ def _populate_arm(path: Path, *, arm: str, temperature: float, omit_last: bool =
         model_config_hash='m' * 64, model_artifact_digest=config.ollama_model_digest,
         created_at_utc='2026-09-24T00:00:00Z',
     )
+    for trial in (1, 2):
+        insert_run(conn, RunRecord(
+            experiment_id=execution_id, model_config_id='qwen3-4b-q4',
+            task_id=f'WARMUP-{trial}', trial=trial, run_kind='WARMUP',
+            run_config_hash=f'{arm}-config', is_warmup=True, prompt='warmup',
+            rendered_prompt_sha256=f'warmup-{trial}', temperature=temperature,
+            num_ctx=config.num_ctx, num_predict=2048,
+            template_sha256=config.template_sha256, grader_verdict='WARMUP',
+            status='COMPLETE', started_at_utc='2026-09-24T00:00:00Z',
+            ended_at_utc='2026-09-24T00:00:01Z', num_gpu=config.num_gpu,
+            stop_tokens=list(config.stop_tokens), think=repr(config.think),
+            model_digest=config.ollama_model_digest,
+        ))
     pairs = [(task_id, trial) for task_id in TASK_IDS for trial in range(1, 6)]
     if omit_last:
         pairs.pop()

@@ -1,0 +1,23 @@
+{
+  "record_type": "grading-spec-freeze",
+  "frozen_at": "2026-09-24",
+  "spec_version": "eval-v1.1",
+  "spec_status": "FROZEN",
+  "base_spec_version": "eval-v1",
+  "artifacts": {
+    "eval-v1.1-grading.yaml": "856855597025df828effe7e19e8b81d2ac31f686aefef7452798958facf113fb",
+    "eval-v1.1-grading.schema.json": "55e550203e20427cc8bd67eb238e3a498d0ee1d55a3f4bb3970362fe59252714",
+    "eval-v1-grading.yaml": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+    "contract.py": "ca0dc10eb92ad583b9a0665e7b22666f0c3b363edab4428dd95704d908b4bc4a",
+    "engine.py": "03ca34a70ae42dd2a4511c21ad073ac098601249974ecf6dcc3368488c9ebc49",
+    "grading-spec.schema.json": "3f64905f994ad809821ede7b3720b02917ae6470aa6f6199712395aa08f14d37",
+    "grading-spec-v1.1.schema.json": "0758213fc53efae317c305df8bfd7c1a010b8edcdd4357ca641d4cedc0eadfe9",
+    "verdicts.py": "47830332c69ed2537a3fd5ef0b3d652de1fc48decfd3538722cdd53972a9670c",
+    "executable-v1.jsonl": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
+    "manifest.json": "e1fbac4e370b58657b52064f81eee074a7499c2f536def10c5c97added7d3212",
+    "grading-review.json": "7f6161a1c9d27a7cc3190438f05826b5ebfc7020841d59993ad709bdfdd3b001",
+    "LocalLLM_Eval_Questions.xlsx": "64b6ad7937ae60dd281d8e6f0d648915e2f6217f7a746163c5c22aaa99ff85a3"
+  },
+  "source_manifest_sha256_match": true,
+  "overlay_base_hash_verified": true
+}

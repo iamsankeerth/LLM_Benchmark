@@ -1,5 +1,9 @@
 dataset_version: eval-v1
 dataset_path: evals/datasets/eval-v1/executable-v1.jsonl
+dataset_conversion_status: DRAFT
+current_evaluation: eval-v1.1
+current_grading_spec: evals/specs/eval-v1.1-grading.yaml
+current_grading_freeze: evals/specs/eval-v1.1-grading.freeze.json
 baseline:
   suites: [core-v1, stress-v1]
   baseline_repeats: 3

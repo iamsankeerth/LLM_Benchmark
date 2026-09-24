@@ -105,7 +105,7 @@ def _fake_result() -> GenerationResult:
 def _canonical_options() -> EffectiveEligibilityOptions:
     return effective_options_for(
         mode='raw', num_ctx=4096, num_gpu=99, temperature=0.0,
-        template_sha256='t' * 64,
+        template_sha256='t' * 64, stop_tokens=('<|im_end|>',), think=False,
     )
 
 
@@ -138,6 +138,8 @@ class CanonicalProbeTests(unittest.TestCase):
         self.assertEqual(request.num_predict, 1)
         self.assertEqual(request.num_gpu, 99)
         self.assertTrue(request.raw)
+        self.assertEqual(request.stop, ('<|im_end|>',))
+        self.assertFalse(request.think)
 
     def test_partial_residency_ineligible(self) -> None:
         outcome = self._run({'models': [_ps_entry(size_vram=2000000000)]})

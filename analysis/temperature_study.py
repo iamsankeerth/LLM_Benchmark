@@ -55,20 +55,26 @@ def validate_temperature_study_run(
     expected = {
         'experiment': arm.get('experiment'),
         'run_kind': contract.get('run_kind'),
+        'fixed_budget': contract.get('fixed_budget'),
         'model_config_id': contract.get('model_config_id'),
         'temperature': arm.get('temperature'),
         'trials': contract.get('trials'),
         'num_predict': contract.get('num_predict'),
         'task_ids': contract.get('task_ids'),
+        'grading_spec': contract.get('grading_spec'),
+        'grading_freeze': contract.get('grading_freeze'),
     }
     observed = {
         'experiment': run_config.get('experiment'),
         'run_kind': run_config.get('run_kind', 'BASELINE'),
+        'fixed_budget': run_config.get('fixed_budget', False),
         'model_config_id': model_config_id,
         'temperature': temperature,
         'trials': trials,
         'num_predict': num_predict,
         'task_ids': task_ids,
+        'grading_spec': run_config.get('grading_spec'),
+        'grading_freeze': run_config.get('grading_freeze'),
     }
     mismatches = sorted(key for key in expected if observed[key] != expected[key])
     if mismatches:

@@ -13,6 +13,10 @@ from typing import Any, cast
 
 from jsonschema import Draft202012Validator
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from evals.contract import EvalContractError, load_eval_contract, resolve_grading_spec
+
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,14 +38,50 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding='utf-8').splitlines() if line.strip()]
 
 
-def audit(dataset_path: Path = DATASET_PATH, spec_path: Path = SPEC_PATH, schema_path: Path = SCHEMA_PATH, review_path: Path = REVIEW_PATH) -> dict[str, Any]:
+def audit(
+    dataset_path: Path = DATASET_PATH,
+    spec_path: Path = SPEC_PATH,
+    schema_path: Path = SCHEMA_PATH,
+    review_path: Path = REVIEW_PATH,
+    freeze_path: Path | None = None,
+) -> dict[str, Any]:
     dataset = load_jsonl(dataset_path)
-    spec = yaml.safe_load(spec_path.read_text(encoding='utf-8'))
-    schema = load_json(schema_path)
+    selected_spec = spec_path if spec_path.is_absolute() else ROOT / spec_path
+    raw_spec = yaml.safe_load(selected_spec.read_text(encoding='utf-8'))
+    if not isinstance(raw_spec, dict):
+        raise ValueError(f'grading spec is not a mapping: {selected_spec}')
+    if 'overrides' in raw_spec:
+        overlay_schema = load_json(schema_path)
+        Draft202012Validator.check_schema(overlay_schema)
+        overlay_errors = [
+            f'{list(error.absolute_path)}: {error.message}'
+            for error in Draft202012Validator(overlay_schema).iter_errors(raw_spec)
+        ]
+        if overlay_errors:
+            raise ValueError(f'Grading overlay violates its schema: {overlay_errors[:5]}')
+        effective_schema = load_json(ROOT / 'evals/specs/grading-spec-v1.1.schema.json')
+    else:
+        effective_schema = load_json(schema_path)
+    try:
+        if freeze_path is not None:
+            contract = load_eval_contract(
+                ROOT,
+                selected_spec,
+                freeze_path=freeze_path,
+                dataset_path=dataset_path,
+            )
+            spec = contract.spec
+        else:
+            spec, _ = resolve_grading_spec(selected_spec)
+    except EvalContractError as exc:
+        raise ValueError(str(exc)) from exc
     review = {entry['id']: entry for entry in load_json(review_path)}
 
-    Draft202012Validator.check_schema(schema)
-    schema_errors = [f'{list(e.absolute_path)}: {e.message}' for e in Draft202012Validator(schema).iter_errors(spec)]
+    Draft202012Validator.check_schema(effective_schema)
+    schema_errors = [
+        f'{list(error.absolute_path)}: {error.message}'
+        for error in Draft202012Validator(effective_schema).iter_errors(spec)
+    ]
     if schema_errors:
         raise ValueError(f'Grading spec violates its schema: {schema_errors[:5]}')
 
@@ -103,12 +143,19 @@ def audit(dataset_path: Path = DATASET_PATH, spec_path: Path = SPEC_PATH, schema
     }
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description='Audit grading spec readiness')
     parser.add_argument('--json', action='store_true', help='emit machine-readable JSON')
-    args = parser.parse_args()
+    parser.add_argument('--spec', default=str(SPEC_PATH), help='full spec or versioned overlay')
+    parser.add_argument('--schema', default=str(SCHEMA_PATH), help='schema for the selected spec')
+    parser.add_argument('--freeze', default=None, help='optional contract freeze to verify')
+    args = parser.parse_args(argv)
 
-    result = audit()
+    result = audit(
+        spec_path=Path(args.spec),
+        schema_path=Path(args.schema),
+        freeze_path=Path(args.freeze) if args.freeze else None,
+    )
 
     if not args.json:
         print('Grading Specification Audit')

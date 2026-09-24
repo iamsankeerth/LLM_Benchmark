@@ -22,11 +22,11 @@ from analysis.reliability import (
     UnknownStatusError,
     analyze_grouped,
     collect_provenance,
-    load_spec_statuses,
     load_trials,
     report_to_json,
     summarize_console,
 )
+from evals.contract import EvalContractError, load_eval_contract
 from storage.db import connect
 
 # Tasks whose outputs are JSON: canonical-JSON variation counting applies.
@@ -64,6 +64,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--out', default=None)
     parser.add_argument('--config', default=None,
                         help='experiment spec YAML (default: configs/<spec>.yaml)')
+    parser.add_argument('--spec', default='evals/specs/eval-v1-grading.yaml')
+    parser.add_argument('--freeze', default='evals/specs/eval-v1-grading.freeze.json')
     parser.add_argument('--allow-dirty', action='store_true',
                         help='development-only: stamp dirty worktree instead of refusing')
     args = parser.parse_args(argv)
@@ -74,7 +76,14 @@ def main(argv: list[str] | None = None) -> int:
     if not grouped:
         print(f'no measured rows for experiment {args.experiment}')
         return 2
-    statuses = load_spec_statuses(str(root / 'evals/specs/eval-v1-grading.yaml'))
+    try:
+        contract = load_eval_contract(
+            root, args.spec, freeze_path=args.freeze
+        )
+    except EvalContractError as exc:
+        print(f'CONTRACT REFUSED: {exc}')
+        return 2
+    statuses = dict(contract.statuses)
     try:
         report = analyze_grouped(
             args.experiment, grouped, statuses, json_tasks=JSON_TASKS
@@ -85,7 +94,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         provenance = collect_provenance(
             str(root), load_experiment_config(root, args.experiment, config_override=args.config),
-            allow_dirty=args.allow_dirty,
+            allow_dirty=args.allow_dirty, spec_path=args.spec, freeze_path=args.freeze,
         )
     except DirtyWorktreeError as exc:
         print(f'PROVENANCE REFUSED: {exc}')

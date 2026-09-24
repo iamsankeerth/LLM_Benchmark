@@ -163,6 +163,8 @@ def run_probes(args: argparse.Namespace) -> int:
             num_gpu=config.num_gpu,
             temperature=0.0,
             template_sha256=config.template_sha256,
+            stop_tokens=tuple(config.stop_tokens),
+            think=config.think,
         )
         canonical = run_canonical_eligibility(
             base_url=args.base_url,

@@ -4,3 +4,4 @@
 evals/datasets/** text eol=lf
 evals/specs/** text eol=lf
 *.xlsx binary
+*.db binary

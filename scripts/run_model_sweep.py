@@ -502,6 +502,8 @@ def run_one_model(args: argparse.Namespace, entry: dict[str, Any]) -> str:
                 num_gpu=config.num_gpu,
                 temperature=0.0,
                 template_sha256=config.template_sha256,
+                stop_tokens=tuple(config.stop_tokens),
+                think=config.think,
             ),
             render_prompt=lambda prompt: render_prompt(config, prompt),
         )

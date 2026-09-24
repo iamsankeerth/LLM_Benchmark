@@ -7,13 +7,14 @@ import json
 import sqlite3
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from analysis.comparison import ComparisonTrial, compare_executions, comparison_to_json
+from evals.contract import load_eval_contract
 from analysis.temperature_study import (
     TemperatureStudyError,
     load_temperature_study_contract,
@@ -22,10 +23,7 @@ from analysis.temperature_study import (
 from inference.adapters import get_model_config
 
 
-def _task_meta(root: Path) -> dict[str, dict[str, str]]:
-    spec = yaml.safe_load(
-        (root / 'evals/specs/eval-v1-grading.yaml').read_text(encoding='utf-8')
-    )
+def _task_meta(root: Path, spec: dict[str, Any]) -> dict[str, dict[str, str]]:
     meta = {
         str(task_id): {
             'grading_status': str(entry['grading_status']),
@@ -44,7 +42,7 @@ def _task_meta(root: Path) -> dict[str, dict[str, str]]:
 
 
 def _validate_arm_config(
-    root: Path, path: Path, *, arm: str, statuses: dict[str, str]
+    root: Path, path: Path, *, arm: str, statuses: Mapping[str, str]
 ) -> dict[str, Any]:
     config = yaml.safe_load(path.read_text(encoding='utf-8'))
     if not isinstance(config, dict):
@@ -96,8 +94,27 @@ def _load_arm(
             ' WHERE experiment_id=? AND is_warmup=0 ORDER BY task_id, trial',
             (execution_id,),
         ).fetchall()
+        warmup_rows = conn.execute(
+            'SELECT task_id, trial, run_kind, status, temperature, model_digest,'
+            ' num_predict, run_config_hash FROM runs'
+            ' WHERE experiment_id=? AND run_kind=\'WARMUP\' ORDER BY trial',
+            (execution_id,),
+        ).fetchall()
     finally:
         conn.close()
+    if [
+        (str(row['task_id']), int(row['trial'])) for row in warmup_rows
+    ] != [('WARMUP-1', 1), ('WARMUP-2', 2)]:
+        raise TemperatureStudyError(f'{execution_id}: expected exactly warmups 1 and 2')
+    if any(
+        str(row['task_id']) not in {'WARMUP-1', 'WARMUP-2'}
+        or str(row['status']) != 'COMPLETE'
+        or float(row['temperature']) != temperature
+        or int(row['num_predict']) != 2048
+        or str(row['model_digest'] or '') != expected_digest
+        for row in warmup_rows
+    ):
+        raise TemperatureStudyError(f'{execution_id}: warmup identity drift')
     pairs = [(str(row['task_id']), int(row['trial'])) for row in rows]
     if len(pairs) != len(set(pairs)) or set(pairs) != expected_pairs:
         raise TemperatureStudyError(
@@ -131,9 +148,16 @@ def _load_arm(
                 'num_gpu', 'stop_tokens_json', 'think', 'run_config_hash',
             )
         }
-    return grouped, {'rows': evidence_rows, 'run_config_hashes': sorted({
-        str(row['run_config_hash']) for row in rows
-    })}
+    all_hashes = {
+        str(row['run_config_hash']) for row in [*rows, *warmup_rows]
+    }
+    if len(all_hashes) != 1:
+        raise TemperatureStudyError(f'{execution_id}: mixed run-config hashes')
+    return grouped, {
+        'rows': evidence_rows,
+        'run_config_hashes': sorted(all_hashes),
+        'warmup_count': len(warmup_rows),
+    }
 
 
 def generate_temperature_study_report(
@@ -146,8 +170,13 @@ def generate_temperature_study_report(
 ) -> dict[str, Any]:
     """Load, validate, and compare exactly the two frozen temperature arms."""
     contract = load_temperature_study_contract(root, 'temperature-study-v1')
-    meta = _task_meta(root)
-    statuses = {task_id: item['grading_status'] for task_id, item in meta.items()}
+    eval_contract = load_eval_contract(
+        root,
+        str(contract['grading_spec']),
+        freeze_path=str(contract['grading_freeze']),
+    )
+    meta = _task_meta(root, eval_contract.spec)
+    statuses = eval_contract.statuses
     _validate_arm_config(root, config_t0, arm='t0', statuses=statuses)
     _validate_arm_config(root, config_t07, arm='t07', statuses=statuses)
     task_ids = [str(task_id) for task_id in contract['task_ids']]
@@ -193,8 +222,20 @@ def generate_temperature_study_report(
         ].append(label)
     return {
         'study': 'temperature-study-v1',
+        'provenance': {
+            'grading_spec_version': eval_contract.spec_version,
+            'grading_spec_hash': eval_contract.hashes['spec_sha256'],
+            'dataset_hash': eval_contract.hashes['dataset_sha256'],
+            'grading_freeze_hash': eval_contract.hashes['freeze_sha256'],
+        },
         'population': {'task_ids': task_ids, 'trials_per_task': 5, 'measured_rows_per_arm': 75},
-        'arms': {'t0_temperature': 0.0, 't07_temperature': 0.7},
+        'arms': {
+            't0_temperature': 0.0,
+            't07_temperature': 0.7,
+            'warmups_per_arm': 2,
+            'successful_requests_per_arm': 78,
+            'successful_requests_total': 156,
+        },
         'comparison': json.loads(comparison_to_json(report)),
         'trial_transitions': trial_transitions,
         'latency_note': 'Latency metrics are descriptive only, not causal accuracy evidence.',

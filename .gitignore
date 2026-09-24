@@ -9,9 +9,12 @@ venv/
 .mypy_cache/
 .ruff_cache/
 
-# Benchmark outputs: raw generations, checkpoints and local DBs are
-# reproducible from code + frozen eval layer, so they stay out of git.
-results/local/
+# Benchmark outputs: ordinary local DBs stay out of git. Three sealed
+# evidence DBs are explicitly tracked as release artifacts.
+results/local/*
+!results/local/full-baseline-v2__qwen3-4b-q4.db
+!results/local/retry-rescue-v1__qwen3-4b-q4.db
+!results/local/retry-rescue-v2__qwen3-4b-q4.db
 results/raw/
 results/checkpoints/
 results/logs/
