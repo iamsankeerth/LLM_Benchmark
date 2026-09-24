@@ -1,0 +1,18 @@
+{
+  "schema_version": "long-context-pilot-freeze-v1",
+  "suite": "long-context-v1",
+  "status": "PILOT_SEALED",
+  "runner_code_sha256": "c8f15e989286acd4261254b105ac5d2e298d2befd916c2e26abe1d27d995048e",
+  "claim_scope": "Four-model pilot of the configured 4096-token full-context window; no native 8K/32K claim; no RAG.",
+  "models": {
+    "qwen3-4b-q4": {"database_sha256": "e6311f8b61405d3619a97a1aad1160eb322467343dd17129b457650faa513dc3", "report_sha256": "1e5504fae93bd46709c26f10573be5b7ebe7da6f67f4f9014399c96440c83b14"},
+    "llama3.2-3b-q6": {"database_sha256": "6db36a614a822996b5853e20bfda89900f96029ef89a462579dd5a18f70065df", "report_sha256": "e509c28722bd70cb30eb843405b28eb59d188427ea219eef444f5de08f736475"},
+    "gemma-3n-e2b-q4": {"database_sha256": "c9781a1faaf23a5bf97ce15e26af1406acd9e53ee4325d20fa42742cf4237c16", "report_sha256": "5bb2f6375e4372dc737a5a18a429d9a8405f057d29c18e278bd772714e01ed23"},
+    "smolm2-1.7b-q4": {"database_sha256": "81ec8272e965f9601e278ac029c9016982c629d0c057183d972a2ed9ec62fe28", "report_sha256": "e7b52a034c07dbb5bcfdae2e993f59117a316e12f6327cec7ab6ff26946367f7"}
+  },
+  "pilot_report_sha256": "a69cf7167c80be19ac5084fc1b2949b798fb47b171ed5246353f1a1fe10f1747",
+  "cleanup_sha256": "47fd8385c2bf42718003938db87352a5e4f64780ad83ae4308b0d79958d007ce",
+  "dataset_sha256": "5975af7d024d96f9344070f9553332bb7575a7ca447cc7aa816dfbe4835ca518",
+  "model_calls_per_model": 87,
+  "measured_trials_per_model": 63
+}

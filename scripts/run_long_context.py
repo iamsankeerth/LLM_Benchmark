@@ -17,7 +17,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from analysis.long_context import load_long_context_tasks, summarize_long_context
 from evals.graders.engine import grade_output
 from evals.verdicts import reduce_verdict
-from inference.adapters import get_model_config, render_prompt, rendered_prompt_sha256
+from inference.adapters import (
+    get_model_config,
+    load_overlays_from_dir,
+    render_prompt,
+    rendered_prompt_sha256,
+)
 from inference.ollama_client import GenerationRequest, GenerationResult, OllamaClientError, generate
 from inference.profiler import ProfiledMetrics, derive_metrics
 from storage.db import (
@@ -148,6 +153,7 @@ def run_model(
     tasks = load_long_context_tasks(root)
     if len(tasks) != int(config_document['task_count']):
         raise LongContextError('task count does not match frozen config')
+    load_overlays_from_dir(root / 'configs/adapters')
     model = get_model_config(model_id)
     execution_id = f'long-context-v1__{model_id}'
     conn = connect(str(db_path))
@@ -292,6 +298,7 @@ def run_model(
         raise
     finally:
         conn.close()
+        ollama_stop(ollama_bin, model.ollama_identifier)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -301,6 +308,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--db', required=True)
     parser.add_argument('--base-url', default='http://127.0.0.1:11434')
     parser.add_argument('--timeout-s', type=float, default=300.0)
+    parser.add_argument('--out', default=None, help='optional summary JSON output')
+    parser.add_argument('--force', action='store_true')
     args = parser.parse_args(argv)
     try:
         result = run_model(
@@ -311,6 +320,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f'LONG-CONTEXT REFUSED: {exc}', flush=True)
         return 2
     print(json.dumps(result, indent=2, sort_keys=True))
+    if args.out:
+        output = Path(args.out)
+        if not output.is_absolute():
+            output = root / output
+        if output.exists() and not args.force:
+            print(f'LONG-CONTEXT REFUSED: output exists {output}', flush=True)
+            return 2
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(result, indent=2, sort_keys=True) + '\n', encoding='utf-8')
     return 0
 
 

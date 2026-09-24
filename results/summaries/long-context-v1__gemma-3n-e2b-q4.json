@@ -1,0 +1,199 @@
+{
+  "by_archetype": {
+    "end_needle": {
+      "accuracy": 0.0,
+      "passes": 0,
+      "trials": 9
+    },
+    "global_aggregate": {
+      "accuracy": 0.3333333333333333,
+      "passes": 3,
+      "trials": 9
+    },
+    "grounded_abstention": {
+      "accuracy": 0.3333333333333333,
+      "passes": 3,
+      "trials": 9
+    },
+    "middle_needle": {
+      "accuracy": 0.0,
+      "passes": 0,
+      "trials": 9
+    },
+    "multi_needle": {
+      "accuracy": 0.3333333333333333,
+      "passes": 3,
+      "trials": 9
+    },
+    "start_needle": {
+      "accuracy": 0.0,
+      "passes": 0,
+      "trials": 9
+    },
+    "state_recency": {
+      "accuracy": 0.3333333333333333,
+      "passes": 3,
+      "trials": 9
+    }
+  },
+  "by_length": {
+    "L": {
+      "accuracy": 0.0,
+      "passes": 0,
+      "trials": 21
+    },
+    "M": {
+      "accuracy": 0.0,
+      "passes": 0,
+      "trials": 21
+    },
+    "S": {
+      "accuracy": 0.5714285714285714,
+      "passes": 12,
+      "trials": 21
+    }
+  },
+  "execution_id": "long-context-v1__gemma-3n-e2b-q4",
+  "model_config_id": "gemma-3n-e2b-q4",
+  "model_digest": "2880ed3fd1ad200cefb415c4377bf1929175885f45f268480d49559030eb8b11",
+  "passes": 12,
+  "request_accounting": {
+    "canonical_probe": 1,
+    "measured": 63,
+    "task_preflight_probes": 21,
+    "total": 87,
+    "warmups": 2
+  },
+  "task_count": 21,
+  "task_id_coverage": true,
+  "tasks": {
+    "LC001": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC002": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC003": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC004": {
+      "all_pass": true,
+      "any_pass": true,
+      "passes": 3,
+      "trials": 3
+    },
+    "LC005": {
+      "all_pass": true,
+      "any_pass": true,
+      "passes": 3,
+      "trials": 3
+    },
+    "LC006": {
+      "all_pass": true,
+      "any_pass": true,
+      "passes": 3,
+      "trials": 3
+    },
+    "LC007": {
+      "all_pass": true,
+      "any_pass": true,
+      "passes": 3,
+      "trials": 3
+    },
+    "LC008": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC009": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC010": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC011": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC012": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC013": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC014": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC015": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC016": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC017": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC018": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC019": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC020": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC021": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    }
+  },
+  "trial_accuracy": 0.19047619047619047,
+  "trial_count": 63
+}

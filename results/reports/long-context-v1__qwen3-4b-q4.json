@@ -1,0 +1,203 @@
+{
+  "by_archetype": {
+    "end_needle": {
+      "accuracy": 0.3333333333333333,
+      "passes": 3,
+      "trials": 9
+    },
+    "global_aggregate": {
+      "accuracy": 0.3333333333333333,
+      "passes": 3,
+      "trials": 9
+    },
+    "grounded_abstention": {
+      "accuracy": 0.3333333333333333,
+      "passes": 3,
+      "trials": 9
+    },
+    "middle_needle": {
+      "accuracy": 0.3333333333333333,
+      "passes": 3,
+      "trials": 9
+    },
+    "multi_needle": {
+      "accuracy": 0.3333333333333333,
+      "passes": 3,
+      "trials": 9
+    },
+    "start_needle": {
+      "accuracy": 0.3333333333333333,
+      "passes": 3,
+      "trials": 9
+    },
+    "state_recency": {
+      "accuracy": 0.3333333333333333,
+      "passes": 3,
+      "trials": 9
+    }
+  },
+  "by_length": {
+    "L": {
+      "accuracy": 0.0,
+      "passes": 0,
+      "trials": 21
+    },
+    "M": {
+      "accuracy": 0.0,
+      "passes": 0,
+      "trials": 21
+    },
+    "S": {
+      "accuracy": 1.0,
+      "passes": 21,
+      "trials": 21
+    }
+  },
+  "claim_scope": "configured 4096-token window; no native 8K/32K claim",
+  "dataset_sha256": "5975af7d024d96f9344070f9553332bb7575a7ca447cc7aa816dfbe4835ca518",
+  "execution_id": "long-context-v1__qwen3-4b-q4",
+  "grading_spec_sha256": "c93e0a598a16862ff1b4c1f66768e6980dbceae5161e722458fcb06de967cdfb",
+  "model_config_id": "qwen3-4b-q4",
+  "passes": 21,
+  "request_accounting": {
+    "canonical_probe": 1,
+    "measured": 63,
+    "task_preflight_probes": 21,
+    "total": 87,
+    "warmups": 2
+  },
+  "schema_version": "long-context-report-v1",
+  "study": "long-context-v1",
+  "task_count": 21,
+  "task_id_coverage": true,
+  "tasks": {
+    "LC001": {
+      "all_pass": true,
+      "any_pass": true,
+      "passes": 3,
+      "trials": 3
+    },
+    "LC002": {
+      "all_pass": true,
+      "any_pass": true,
+      "passes": 3,
+      "trials": 3
+    },
+    "LC003": {
+      "all_pass": true,
+      "any_pass": true,
+      "passes": 3,
+      "trials": 3
+    },
+    "LC004": {
+      "all_pass": true,
+      "any_pass": true,
+      "passes": 3,
+      "trials": 3
+    },
+    "LC005": {
+      "all_pass": true,
+      "any_pass": true,
+      "passes": 3,
+      "trials": 3
+    },
+    "LC006": {
+      "all_pass": true,
+      "any_pass": true,
+      "passes": 3,
+      "trials": 3
+    },
+    "LC007": {
+      "all_pass": true,
+      "any_pass": true,
+      "passes": 3,
+      "trials": 3
+    },
+    "LC008": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC009": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC010": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC011": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC012": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC013": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC014": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC015": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC016": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC017": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC018": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC019": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC020": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    },
+    "LC021": {
+      "all_pass": false,
+      "any_pass": false,
+      "passes": 0,
+      "trials": 3
+    }
+  },
+  "trial_accuracy": 0.3333333333333333,
+  "trial_count": 63
+}

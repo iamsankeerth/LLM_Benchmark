@@ -1,7 +1,7 @@
 {
   "release": "core-v1.1",
   "release_commit": "5760df8",
-  "status": "CORE_AND_TEMPERATURE_SEALED",
+  "status": "CORE_TEMPERATURE_LONG_CONTEXT_PILOT_SEALED",
   "current_grading": {
     "spec_version": "eval-v1.1",
     "overlay_sha256": "856855597025df828effe7e19e8b81d2ac31f686aefef7452798958facf113fb",
@@ -42,9 +42,17 @@
     "successful_requests": 156,
     "cleanup_verified": true
   },
+  "long_context_pilot": {
+    "status": "PILOT_SEALED",
+    "freeze": "results/reports/long-context-v1-pilot-freeze.json",
+    "report": "results/reports/long-context-v1-pilot.json",
+    "cleanup": "results/reports/long-context-v1-pilot-cleanup.json",
+    "models": 4,
+    "measured_trials": 252,
+    "configured_window": 4096
+  },
   "pending_live": {
-    "judge_suite": "not_started",
-    "long_context_suite": "not_started",
-    "coding_suite": "not_started"
+    "judge_suite": "prepared_pending_human_calibration",
+    "coding_suite": "offline_frozen_docker_daemon_unavailable"
   }
 }

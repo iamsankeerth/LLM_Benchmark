@@ -1,0 +1,100 @@
+{
+  "claim_scope": "Four-model pilot of the configured 4096-token full-context window; no native 8K/32K claim.",
+  "model_count": 4,
+  "models": [
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 0.5714285714285714,
+          "passes": 12,
+          "trials": 21
+        }
+      },
+      "model_config_id": "gemma-3n-e2b-q4",
+      "passes": 12,
+      "trial_accuracy": 0.19047619047619047
+    },
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.42857142857142855,
+          "passes": 9,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 0.42857142857142855,
+          "passes": 9,
+          "trials": 21
+        }
+      },
+      "model_config_id": "llama3.2-3b-q6",
+      "passes": 18,
+      "trial_accuracy": 0.2857142857142857
+    },
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 1.0,
+          "passes": 21,
+          "trials": 21
+        }
+      },
+      "model_config_id": "qwen3-4b-q4",
+      "passes": 21,
+      "trial_accuracy": 0.3333333333333333
+    },
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 0.23809523809523808,
+          "passes": 5,
+          "trials": 21
+        }
+      },
+      "model_config_id": "smolm2-1.7b-q4",
+      "passes": 5,
+      "trial_accuracy": 0.07936507936507936
+    }
+  ],
+  "requests_per_model": 87,
+  "schema_version": "long-context-pilot-v1",
+  "status": "PILOT_COMPLETE",
+  "suite": "long-context-v1",
+  "task_count": 21,
+  "trials_per_model": 63
+}
