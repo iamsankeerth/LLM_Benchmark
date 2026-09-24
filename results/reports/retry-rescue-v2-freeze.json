@@ -1,0 +1,29 @@
+{
+  "freeze_id": "retry-rescue-v2",
+  "v2_code_git_commit": "567e61e15b913c1e3f0c2e8d19ef6a45bc7da9fd",
+  "original_artifact_commit": "41c3256280d6fe54f48c267de90115445d1ef182",
+  "retry_artifact_commit": "2276935",
+  "capability_matrix_artifact_commit": "47e632a",
+  "run_config_hash": "a7cc7a943ac897e7cca8779d4e834ed61772d4a5f0f13fc7ff78698788eb6614",
+  "population_sha256": "6dc50dfd7c0776e336fc1e733da7eaa2ad215bed67044c64e3f92f38ec275690",
+  "format_mapping_sha256": "1503f4ca9711b3084bc5631324a047ff8460d17cad736cc5f838d26cf9089d45",
+  "grading_spec_sha256": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f",
+  "execution": {
+    "warmup_calls": 2,
+    "measured_primary_rows": 18,
+    "measured_control_rows": 6,
+    "measured_rows": 24,
+    "model_digest": "5cfd6a526dc35c24a21a8a457db3e8810165e93bbb134dd6a7ac20b34e97b25a",
+    "ollama_version": "0.34.4"
+  },
+  "artifacts": {
+    "configs/retry-rescue-v2.yaml": "6ccc7ff510f8f39c262840ccc0464b75c73511150f35f36d4552eedd3371bf45",
+    "results/local/full-baseline-v2__qwen3-4b-q4.db": "3fbf89a955029cbb6b089b2830b7733cea82e6372bc0268215206fa780de16df",
+    "results/local/retry-rescue-v1__qwen3-4b-q4.db": "1b7bc4700057c95c8d2679fce9d0e20b42f309795898a627325d0f5c1801ae95",
+    "results/local/retry-rescue-v2__qwen3-4b-q4.db": "a2668c4eac97b349ee2f22683388df55bed815bf91328d60c4be0f9f12b4b69e",
+    "results/reports/retry-rescue-v2-capability-matrix.json": "6dc50dfd7c0776e336fc1e733da7eaa2ad215bed67044c64e3f92f38ec275690",
+    "results/reports/retry-rescue-v2.json": "d6283d28ea0334c3c18a90e908493df5654a38b2306103ec674389ad02e0d4c5",
+    "results/reports/retry-rescue-v2.md": "89fba5dc5994ae667981c9adfc68b078ca1ce2b3f524d159fed3c753cc46a206",
+    "results/reports/retry-rescue-v2-cleanup.json": "c12becdfdff2dbc11db3ba775f6e4c1d564b66e81c0a2c5d7c436fc3b4c78480"
+  }
+}

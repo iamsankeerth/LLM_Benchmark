@@ -1,0 +1,315 @@
+{
+  "title": "Retry-Rescue V2: constrained decoding",
+  "experiment": "retry-rescue-v2__qwen3-4b-q4",
+  "primary_scope_note": "Results apply to the 18 of 39 OUTPUT_CONTRACT rows whose frozen output contracts are representable by the tested constrained-decoding mechanism.",
+  "result": {
+    "primary": {
+      "A": {
+        "recovered": 0,
+        "total": 18,
+        "performance": {
+          "decode_tok_s": {
+            "n": 18,
+            "median": 37.216887141768105,
+            "p25": 37.1619899080502,
+            "p75": 37.49262237826406,
+            "p95": 37.743130268873585,
+            "mean": 37.30714494348225
+          },
+          "ttft_ms": {
+            "n": 18,
+            "median": 77.4493,
+            "p25": 59.59315,
+            "p75": 82.516075,
+            "p95": 87.7359,
+            "mean": 70.63853888888889
+          },
+          "decode_by_token_bucket": {
+            "1-4": {
+              "n": 0,
+              "median": null,
+              "p25": null,
+              "p75": null,
+              "p95": null,
+              "mean": null
+            },
+            "5-32": {
+              "n": 0,
+              "median": null,
+              "p25": null,
+              "p75": null,
+              "p95": null,
+              "mean": null
+            },
+            "33-128": {
+              "n": 0,
+              "median": null,
+              "p25": null,
+              "p75": null,
+              "p95": null,
+              "mean": null
+            },
+            "129+": {
+              "n": 18,
+              "median": 37.216887141768105,
+              "p25": 37.1619899080502,
+              "p75": 37.49262237826406,
+              "p95": 37.743130268873585,
+              "mean": 37.30714494348225
+            }
+          },
+          "peak_vram_mib": 3251.50390625
+        }
+      },
+      "B": {
+        "recovered": 0,
+        "total": 18,
+        "performance": {
+          "decode_tok_s": {
+            "n": 18,
+            "median": 44.95356446108953,
+            "p25": 41.74038005167511,
+            "p75": 48.60904846945518,
+            "p95": 49.009998039600084,
+            "mean": 44.852788832854145
+          },
+          "ttft_ms": {
+            "n": 18,
+            "median": 52.5462,
+            "p25": 49.12135,
+            "p75": 117.19987499999999,
+            "p95": 134.1256,
+            "mean": 74.09697777777778
+          },
+          "decode_by_token_bucket": {
+            "1-4": {
+              "n": 12,
+              "median": 48.34551979596229,
+              "p25": 41.84812696243691,
+              "p75": 48.82097907146997,
+              "p95": 49.009998039600084,
+              "mean": 45.81734869770147
+            },
+            "5-32": {
+              "n": 6,
+              "median": 43.92577317556082,
+              "p25": 40.53484524621773,
+              "p75": 44.900720232840975,
+              "p95": 45.059252917586626,
+              "mean": 42.92366910315949
+            },
+            "33-128": {
+              "n": 0,
+              "median": null,
+              "p25": null,
+              "p75": null,
+              "p95": null,
+              "mean": null
+            },
+            "129+": {
+              "n": 0,
+              "median": null,
+              "p25": null,
+              "p75": null,
+              "p95": null,
+              "mean": null
+            }
+          },
+          "peak_vram_mib": 3249.50390625
+        }
+      },
+      "C": {
+        "recovered": 0,
+        "total": 18,
+        "performance": {
+          "decode_tok_s": {
+            "n": 18,
+            "median": 20.756066787377325,
+            "p25": 19.063828798927116,
+            "p75": 22.292623366161504,
+            "p95": 23.703067925507497,
+            "mean": 19.521581636480942
+          },
+          "ttft_ms": {
+            "n": 18,
+            "median": 207.702,
+            "p25": 194.54967499999998,
+            "p75": 260.4058,
+            "p95": 374.9286,
+            "mean": 230.08717777777778
+          },
+          "decode_by_token_bucket": {
+            "1-4": {
+              "n": 3,
+              "median": 11.549377921631695,
+              "p25": null,
+              "p75": null,
+              "p95": 12.255164786009503,
+              "mean": 11.574582924056083
+            },
+            "5-32": {
+              "n": 12,
+              "median": 21.847516632734546,
+              "p25": 20.430789703565317,
+              "p75": 22.45279742606948,
+              "p95": 23.703067925507497,
+              "mean": 21.34373318274649
+            },
+            "33-128": {
+              "n": 3,
+              "median": 20.07276104625741,
+              "p25": null,
+              "p75": null,
+              "p95": 20.595201318092883,
+              "mean": 20.17997416384361
+            },
+            "129+": {
+              "n": 0,
+              "median": null,
+              "p25": null,
+              "p75": null,
+              "p95": null,
+              "mean": null
+            }
+          },
+          "peak_vram_mib": 3247.50390625
+        }
+      },
+      "paired_B_C": {
+        "both_PASS": 0,
+        "B_only_PASS": 0,
+        "C_only_PASS": 0,
+        "neither_PASS": 18,
+        "mcnemar_exact_p": 1.0
+      },
+      "content_change": {
+        "contract_only": 0,
+        "recovered_with_content_change": 0,
+        "unknown": 0
+      }
+    },
+    "controls": {
+      "B": {
+        "recovered": 0,
+        "total": 6,
+        "performance": {
+          "decode_tok_s": {
+            "n": 6,
+            "median": 38.126164273726474,
+            "p25": 36.62633736106197,
+            "p75": 42.90448558385965,
+            "p95": 43.91036430965588,
+            "mean": 39.11375526355365
+          },
+          "ttft_ms": {
+            "n": 6,
+            "median": 63.0762,
+            "p25": 46.416275,
+            "p75": 128.91742499999998,
+            "p95": 142.4796,
+            "mean": 80.94913333333334
+          },
+          "decode_by_token_bucket": {
+            "1-4": {
+              "n": 0,
+              "median": null,
+              "p25": null,
+              "p75": null,
+              "p95": null,
+              "mean": null
+            },
+            "5-32": {
+              "n": 3,
+              "median": 42.569192675260915,
+              "p25": null,
+              "p75": null,
+              "p95": 43.91036430965588,
+              "mean": 41.79626705761615
+            },
+            "33-128": {
+              "n": 3,
+              "median": 37.27735169764787,
+              "p25": null,
+              "p75": null,
+              "p95": 37.34308435952129,
+              "mean": 36.43124346949114
+            },
+            "129+": {
+              "n": 0,
+              "median": null,
+              "p25": null,
+              "p75": null,
+              "p95": null,
+              "mean": null
+            }
+          },
+          "peak_vram_mib": 3249.50390625
+        }
+      },
+      "C": {
+        "recovered": 0,
+        "total": 6,
+        "performance": {
+          "decode_tok_s": {
+            "n": 6,
+            "median": 29.518199948856054,
+            "p25": 22.27281954315279,
+            "p75": 35.56897935050425,
+            "p95": 35.78405515515701,
+            "mean": 29.135151385814368
+          },
+          "ttft_ms": {
+            "n": 6,
+            "median": 232.31285,
+            "p25": 151.3231,
+            "p75": 296.70130000000006,
+            "p95": 387.0874,
+            "mean": 226.85485000000003
+          },
+          "decode_by_token_bucket": {
+            "1-4": {
+              "n": 0,
+              "median": null,
+              "p25": null,
+              "p75": null,
+              "p95": null,
+              "mean": null
+            },
+            "5-32": {
+              "n": 3,
+              "median": 22.299056163107032,
+              "p25": null,
+              "p75": null,
+              "p95": 24.853235106371848,
+              "mean": 23.11546698425631
+            },
+            "33-128": {
+              "n": 3,
+              "median": 35.497287415619994,
+              "p25": null,
+              "p75": null,
+              "p95": 35.78405515515701,
+              "mean": 35.15483578737243
+            },
+            "129+": {
+              "n": 0,
+              "median": null,
+              "p25": null,
+              "p75": null,
+              "p95": null,
+              "mean": null
+            }
+          },
+          "peak_vram_mib": 3247.50390625
+        }
+      }
+    }
+  },
+  "provenance": {
+    "v2_code_git_commit": "567e61e15b913c1e3f0c2e8d19ef6a45bc7da9fd",
+    "config_sha256": "6ccc7ff510f8f39c262840ccc0464b75c73511150f35f36d4552eedd3371bf45",
+    "population_sha256": "6dc50dfd7c0776e336fc1e733da7eaa2ad215bed67044c64e3f92f38ec275690",
+    "format_mapping_sha256": "1503f4ca9711b3084bc5631324a047ff8460d17cad736cc5f838d26cf9089d45",
+    "grading_spec_sha256": "d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f"
+  }
+}

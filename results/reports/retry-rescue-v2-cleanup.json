@@ -1,0 +1,15 @@
+{
+  "experiment": "retry-rescue-v2__qwen3-4b-q4",
+  "ollama_version": "0.34.4",
+  "model_loaded_after_run": false,
+  "model_installed_after_run": false,
+  "ollama_ps_verified_empty": true,
+  "ollama_list_verified_empty": true,
+  "free_before_bytes": null,
+  "free_after_bytes": 21170180096,
+  "disk_reclaim_delta_bytes": null,
+  "disk_reclaim_verified": false,
+  "disk_reclaim_status": "NOT_VERIFIABLE_PRE_RUN_BASELINE_MISSING",
+  "cleanup_status": "MODEL_STATE_VERIFIED",
+  "note": "The executor verified teardown, but did not persist its pre-run disk snapshot; disk reclamation is therefore not claimed."
+}
