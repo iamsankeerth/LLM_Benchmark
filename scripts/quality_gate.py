@@ -26,6 +26,8 @@ def main() -> int:
             '--json',
         ],
         [sys.executable, 'scripts/audit_long_context.py', '--json'],
+        [sys.executable, 'scripts/audit_coding_suite.py', '--json'],
+        [sys.executable, 'scripts/validate_coding_fixtures.py'],
     ]
     for command in commands:
         print(f'QUALITY GATE: {" ".join(command)}', flush=True)

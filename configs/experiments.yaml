@@ -19,6 +19,7 @@ reliability:
   run_kind: RELIABILITY
 temperature_study:
   enabled: true
+  status: SEALED
   contract: configs/temperature-study-v1.yaml
   task_ids: [Q001, Q003, Q062, Q066, Q011, Q013, Q015, Q017, Q019, Q023, Q026, Q035, Q039, Q042, Q071]
   required_task_count: 15
@@ -26,11 +27,12 @@ temperature_study:
   repetitions: 5
 optional_suites:
   coding-v1:
-    enabled: false
-    requires: executable_test_fixtures
+    enabled: true
+    status: FROZEN_OFFLINE_LIVE_BLOCKED
+    requires: pinned OCI runtime digests
   long-context-v1:
-    enabled: false
-    status: NOT_AUTHORED
+    enabled: true
+    status: FROZEN_OFFLINE
   judge-bias-v1:
-    enabled: false
-    status: NOT_AUTHORED
+    enabled: true
+    status: PREPARED_PENDING_HUMAN_CALIBRATION

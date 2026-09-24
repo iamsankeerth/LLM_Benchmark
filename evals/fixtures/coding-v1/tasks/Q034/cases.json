@@ -1,0 +1,1 @@
+[{"id":"first_attempt","failures":0,"expected_calls":1},{"id":"second_attempt","failures":1,"expected_calls":2},{"id":"third_attempt","failures":2,"expected_calls":3},{"id":"always_fails","failures":3,"expected_calls":3}]

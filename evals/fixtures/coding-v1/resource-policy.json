@@ -1,0 +1,15 @@
+{
+  "schema_version": "coding-resource-policy-v1",
+  "candidate_source_bytes": 65536,
+  "sandbox_startup_seconds": 30,
+  "per_test_wall_seconds": 1,
+  "whole_candidate_wall_seconds": 5,
+  "cpu_seconds": 2,
+  "memory_mib": 256,
+  "processes": 64,
+  "file_descriptors": 32,
+  "output_bytes": 1048576,
+  "tmpfs_mib": 16,
+  "network": false,
+  "host_mounts": false
+}

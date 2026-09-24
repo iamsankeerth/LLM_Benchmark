@@ -1,0 +1,1 @@
+[{"id":"empty","input":[],"expected":[]},{"id":"unsorted_touching","input":[[1,4],[3,6],[8,10]],"expected":[[1,6],[8,10]]},{"id":"nested","input":[[1,10],[2,3]],"expected":[[1,10]]},{"id":"negative","input":[[-5,-2],[-3,0]],"expected":[[-5,0]]}]

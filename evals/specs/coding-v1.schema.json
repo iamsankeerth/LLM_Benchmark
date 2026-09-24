@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Coding v1 grading contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_version", "status", "suite_id", "task_ids", "trials", "temperature", "num_predict", "host_execution_allowed", "oci_worker_required", "runtime_digest_required_for_live"],
+  "properties": {
+    "spec_version": {"const": "coding-v1"},
+    "status": {"enum": ["DRAFT", "FROZEN_OFFLINE"]},
+    "suite_id": {"const": "coding-v1"},
+    "source_experiment": {"const": "full-baseline-v2"},
+    "task_ids": {"type": "array", "minItems": 8, "maxItems": 8, "uniqueItems": true, "items": {"pattern": "^Q0(2[7-9]|3[0-4])$"}},
+    "trials": {"const": 3},
+    "temperature": {"const": 0.0},
+    "num_predict": {"const": 2048},
+    "fixture_manifest": {"type": "string"},
+    "extraction_policy": {"type": "string"},
+    "resource_policy": {"type": "string"},
+    "headline_metric": {"const": "binary_task_success"},
+    "partial_metrics": {"type": "array"},
+    "host_execution_allowed": {"const": false},
+    "oci_worker_required": {"const": true},
+    "runtime_digest_required_for_live": {"const": true}
+  }
+}

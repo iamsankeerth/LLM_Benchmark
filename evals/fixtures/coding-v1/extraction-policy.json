@@ -1,0 +1,8 @@
+{
+  "schema_version": "coding-extraction-v1",
+  "max_source_bytes": 65536,
+  "accepted_forms": ["raw_source", "single_whole_document_fence"],
+  "python_fence_languages": ["python", "py"],
+  "javascript_fence_languages": ["javascript", "js"],
+  "reject": ["empty", "nul_byte", "multiple_fences", "prose_wrapped_fence", "truncated_at_generation_limit"]
+}

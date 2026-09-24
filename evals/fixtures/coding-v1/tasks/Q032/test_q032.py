@@ -1,0 +1,11 @@
+import json
+import unittest
+from pathlib import Path
+from candidate import binary_search
+
+class TestQ032(unittest.TestCase):
+    def test_cases(self):
+        cases=json.loads((Path(__file__).with_name('cases.json')).read_text())
+        for case in cases:
+            with self.subTest(case['id']):
+                self.assertEqual(binary_search(case['input'], case['target']), case['expected'])

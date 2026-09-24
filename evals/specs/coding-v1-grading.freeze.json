@@ -1,0 +1,22 @@
+{
+  "record_type": "suite-freeze",
+  "suite": "coding-v1",
+  "frozen_at": "2026-09-24",
+  "status": "FROZEN_OFFLINE_LIVE_BLOCKED",
+  "task_ids": ["Q027", "Q028", "Q029", "Q030", "Q031", "Q032", "Q033", "Q034"],
+  "artifacts": {
+    "fixture-manifest.json": "ec9b8b5e375a2eb9fa08e61d21384ac528d18d24bf63c53029039f4215a5aa76",
+    "extraction-policy.json": "cb7e5ba157cedc647f3d59b32e9bc3fd94c686d3a072cf5aafadd36e0cf3e471",
+    "resource-policy.json": "ed777f538722c859e0a81d46208d1f971cfab0539ee901571086cf6eb4bc6713",
+    "coding-v1-grading.yaml": "84c3eda152f5badefbed2fc6c1feefe8237f02fc7cc6df6855a66d757226c313",
+    "coding-v1.schema.json": "6a020df0cb209bf6a433c83f96da69ff8cccc7b1f700395afc1ac650aa0b9239",
+    "audit_coding_suite.py": "bdf18482ff7230dd3d353b77cd8d5227d2a0bbcbe6cb8203797647b466594452",
+    "validate_coding_fixtures.py": "51b06f2f4b181bebf42aaf9963824dd2dfb0871fe64ab6f56e46a39983efebed",
+    "run_coding_suite.py": "d45897c7a644c752a8b188a052a2816fa757ac252415897bb6bf304a501c1aff",
+    "generate_coding_report.py": "2722a77ae0dbb3f436a91856e5bc769553730211ed8b545b92bcc3776b4cd198",
+    "analysis/coding.py": "313a1123a34a387a2a36db7cc608562fef527c6726ce2cfc974c5af3aac651e3",
+    "inference/sandbox.py": "b786b8e929fc2cd39b307527159d8020817cbae036e0865b8bf087bd2b49f284",
+    "storage/coding.py": "c25f0d8ca348d1c8d883d91b7f212ee12d18e48b4af5110be65f5534bc7ebb7b"
+  },
+  "live_blocker": "Python and Node OCI image digests are not pinned; host execution remains forbidden."
+}

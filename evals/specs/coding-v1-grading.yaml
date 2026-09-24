@@ -1,0 +1,16 @@
+spec_version: coding-v1
+status: FROZEN_OFFLINE
+suite_id: coding-v1
+source_experiment: full-baseline-v2
+task_ids: [Q027, Q028, Q029, Q030, Q031, Q032, Q033, Q034]
+trials: 3
+temperature: 0.0
+num_predict: 2048
+fixture_manifest: evals/fixtures/coding-v1/fixture-manifest.json
+extraction_policy: evals/fixtures/coding-v1/extraction-policy.json
+resource_policy: evals/fixtures/coding-v1/resource-policy.json
+headline_metric: binary_task_success
+partial_metrics: [test_pass_rate, functional_test_pass_rate, static_assertion_pass_rate]
+host_execution_allowed: false
+oci_worker_required: true
+runtime_digest_required_for_live: true

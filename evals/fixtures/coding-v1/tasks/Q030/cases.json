@@ -1,0 +1,1 @@
+[{"id":"ascii","input":"A man, a plan, a canal: Panama","expected":true},{"id":"digits","input":"12321","expected":true},{"id":"false","input":"12345","expected":false},{"id":"unicode","input":"ΑΒΑ","expected":true}]

@@ -1,0 +1,1 @@
+[{"id":"empty","input":[],"expected":null},{"id":"even","input":[2,4,6],"expected":4},{"id":"negative","input":[-2,2],"expected":0},{"id":"singleton","input":[7],"expected":7}]

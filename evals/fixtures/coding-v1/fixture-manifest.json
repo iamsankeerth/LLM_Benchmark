@@ -1,0 +1,21 @@
+{
+  "schema_version": "coding-fixtures-v1",
+  "suite_id": "coding-v1",
+  "source_experiment": "full-baseline-v2",
+  "source_executable_sha256": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
+  "bundle_sha256": "65e68b8cfbea79fe79ee5685a2ace42a2f5ab9ebca4e9280bb91da666113e9bc",
+  "tasks": {
+    "Q027": {"language": "python", "entrypoint": "dedupe_preserve_order", "fixture_path": "tasks/Q027/cases.json", "test_path": "tasks/Q027/test_q027.py", "static_rules": ["no_set", "no_dict_fromkeys", "no_third_party_imports"]},
+    "Q028": {"language": "python", "entrypoint": "average", "fixture_path": "tasks/Q028/cases.json", "test_path": "tasks/Q028/test_q028.py", "static_rules": ["no_try_except"]},
+    "Q029": {"language": "python", "entrypoint": "merge_intervals", "fixture_path": "tasks/Q029/cases.json", "test_path": "tasks/Q029/test_q029.py", "static_rules": []},
+    "Q030": {"language": "python", "entrypoint": "is_palindrome", "fixture_path": "tasks/Q030/cases.json", "test_path": "tasks/Q030/test_q030.py", "static_rules": ["no_re_import"]},
+    "Q031": {"language": "javascript", "entrypoint": "groupBy", "fixture_path": "tasks/Q031/cases.json", "test_path": "tasks/Q031/test_q031.mjs", "static_rules": []},
+    "Q032": {"language": "python", "entrypoint": "binary_search", "fixture_path": "tasks/Q032/cases.json", "test_path": "tasks/Q032/test_q032.py", "static_rules": []},
+    "Q033": {"language": "python", "entrypoint": "top_k_frequent", "fixture_path": "tasks/Q033/cases.json", "test_path": "tasks/Q033/test_q033.py", "static_rules": []},
+    "Q034": {"language": "python", "entrypoint": "run_with_retry", "fixture_path": "tasks/Q034/cases.json", "test_path": "tasks/Q034/test_q034.py", "static_rules": ["no_sleep"]}
+  },
+  "runtimes": {
+    "python": {"reference": "python:3.12-slim", "digest": null, "status": "NOT_PINNED_FOR_LIVE"},
+    "node": {"reference": "node:22-bookworm-slim", "digest": null, "status": "NOT_PINNED_FOR_LIVE"}
+  }
+}

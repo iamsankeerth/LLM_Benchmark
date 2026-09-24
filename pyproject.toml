@@ -11,6 +11,8 @@ pretty = true
 exclude = [
     "^results/",
     "^evals/datasets/",
+    "^evals/fixtures/",
+    "^tests/fixtures/",
     "^\\.venv/",
     "^venv/"
 ]
