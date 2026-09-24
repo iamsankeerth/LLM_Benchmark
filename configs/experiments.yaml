@@ -14,8 +14,9 @@ reliability:
   temperature: 0
   run_kind: RELIABILITY
 temperature_study:
-  enabled: false
-  task_ids: []
+  enabled: true
+  contract: configs/temperature-study-v1.yaml
+  task_ids: [Q001, Q003, Q062, Q066, Q011, Q013, Q015, Q017, Q019, Q023, Q026, Q035, Q039, Q042, Q071]
   required_task_count: 15
   temperatures: [0, 0.7]
   repetitions: 5

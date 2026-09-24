@@ -154,6 +154,7 @@ class WarmupSessionTests(unittest.TestCase):
                     ):
                         run_benchmark._reload_canonical(
                             ollama_bin='o', base_url='u', config=config,
+                            temperature=0.7,
                             timeout_s=30.0,
                         )
         assert len(seen) == 1
@@ -162,6 +163,7 @@ class WarmupSessionTests(unittest.TestCase):
         from inference.ollama_client import GenerationRequest
 
         assert isinstance(request, GenerationRequest)
+        self.assertEqual(request.temperature, 0.7)
         self.assertTrue(request.raw)
         self.assertEqual(request.num_ctx, 4096)
         self.assertEqual(request.num_predict, 4)

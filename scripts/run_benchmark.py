@@ -80,6 +80,7 @@ from storage.sweep import (
     resolve_ollama_bin,
     wait_until_unloaded,
 )
+from analysis.temperature_study import validate_temperature_study_run
 
 WARMUP_PROMPTS = ('Return only the word OK.', 'Return only the digit 7.')
 WARMUP_VERDICT = 'WARMUP'
@@ -342,6 +343,7 @@ def _reload_canonical(
     ollama_bin: str,
     base_url: str,
     config: ModelConfig,
+    temperature: float,
     timeout_s: float,
 ) -> None:
     """Unload, reload with the EXACT pinned options, re-verify identity.
@@ -369,7 +371,7 @@ def _reload_canonical(
         generate(
             base_url,
             GenerationRequest(
-                model=model_identifier, prompt=probe_prompt, temperature=0.0,
+                model=model_identifier, prompt=probe_prompt, temperature=temperature,
                 num_ctx=config.num_ctx, num_predict=4, num_gpu=config.num_gpu,
                 stop=config.stop_tokens, raw=(config.mode == 'raw'),
                 think=config.think,
@@ -418,6 +420,7 @@ def _generate_with_recovery(
     ollama_bin: str,
     model_identifier: str,
     config: ModelConfig,
+    temperature: float,
     rewarm: Any,
     log_event: Any,
     sleep_fn: Any = None,
@@ -466,7 +469,7 @@ def _generate_with_recovery(
     try:
         _reload_canonical(
             ollama_bin=ollama_bin, base_url=base_url,
-            config=config, timeout_s=timeout_s,
+            config=config, temperature=temperature, timeout_s=timeout_s,
         )
     except MeasurementFailed as exc:
         raise MeasurementFailed(identity, exc.reason) from exc
@@ -556,6 +559,14 @@ def run_experiment(args: argparse.Namespace) -> int:
     config = get_model_config(args.model)
     tasks = load_executable_tasks(root / 'evals/datasets/eval-v1/executable-v1.jsonl')
     spec_entries = load_spec_entries(root / 'evals/specs/eval-v1-grading.yaml')
+    validate_temperature_study_run(
+        run_config, root=root, model_config_id=args.model, task_ids=task_ids,
+        temperature=temperature, trials=trials, num_predict=num_predict,
+        grading_statuses={
+            task_id: str(entry['grading_status'])
+            for task_id, entry in spec_entries.items()
+        },
+    )
 
     effective = effective_generation_config(
         ollama_identifier=config.ollama_identifier,
@@ -812,6 +823,7 @@ def run_experiment(args: argparse.Namespace) -> int:
                     ollama_bin=ollama_bin,
                     model_identifier=config.ollama_identifier,
                     config=config,
+                    temperature=temperature,
                     rewarm=_rewarm_now,
                     log_event=_log_retry,
                 )

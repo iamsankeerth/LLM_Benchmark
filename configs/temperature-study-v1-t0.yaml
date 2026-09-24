@@ -1,0 +1,10 @@
+# Derived scalar arm. configs/temperature-study-v1.yaml is authoritative.
+experiment: temperature-study-v1-t0
+run_kind: TEMPERATURE
+temperature: 0.0
+trials: 5
+num_predict: 2048
+task_ids: [Q001, Q003, Q062, Q066, Q011, Q013, Q015, Q017, Q019, Q023, Q026, Q035, Q039, Q042, Q071]
+temperature_study:
+  contract: temperature-study-v1
+  arm: t0
