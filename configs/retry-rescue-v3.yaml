@@ -1,0 +1,31 @@
+# Frozen pre-run V3 contract. This transformation makes zero model calls.
+experiment: retry-rescue-v3
+intervention: DETERMINISTIC_NUMERIC_RENDERER
+source:
+  baseline_db: results/local/full-baseline-v2__qwen3-4b-q4.db
+  baseline_execution: full-baseline-v2__qwen3-4b-q4
+  grading_spec: evals/specs/eval-v1-grading.yaml
+  population_matrix: results/reports/retry-rescue-v2-capability-matrix.json
+baseline_db_sha256: 3fbf89a955029cbb6b089b2830b7733cea82e6372bc0268215206fa780de16df
+grading_spec_sha256: d1cff373d5216f9d1d86d863bd4d86468d05d1f6a43a4e2cab839e257947718f
+population_sha256: 6dc50dfd7c0776e336fc1e733da7eaa2ad215bed67044c64e3f92f38ec275690
+renderer_code_sha256: 9a1d8e87df76295291eb7d05823463d953cdef35e907374bf92b8f214cc84cea
+identities:
+  - {task_id: Q019, trial: 1}
+  - {task_id: Q019, trial: 2}
+  - {task_id: Q019, trial: 3}
+  - {task_id: Q020, trial: 1}
+  - {task_id: Q020, trial: 2}
+  - {task_id: Q020, trial: 3}
+  - {task_id: Q021, trial: 1}
+  - {task_id: Q021, trial: 2}
+  - {task_id: Q021, trial: 3}
+  - {task_id: Q022, trial: 1}
+  - {task_id: Q022, trial: 2}
+  - {task_id: Q022, trial: 3}
+  - {task_id: Q024, trial: 1}
+  - {task_id: Q024, trial: 2}
+  - {task_id: Q024, trial: 3}
+  - {task_id: Q070, trial: 1}
+  - {task_id: Q070, trial: 2}
+  - {task_id: Q070, trial: 3}
