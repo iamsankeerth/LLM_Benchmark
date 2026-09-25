@@ -23,10 +23,11 @@ precheck failure becomes `PRECHECK_FAIL` and receives no judge request. A
 precheck pass becomes `JUDGE_PENDING` and is eligible for rubric evaluation.
 
 The active protocol uses one external OpenAI-compatible judge pinned to
-`stealth/space-bunny-alpha`, with local judges disabled. Candidate model
-identity, family, quantization, trial, source verdict, answer key, and prior
-judgment are hidden from the judge. No human adjudication is part of this
-protocol.
+`stealth/space-bunny-alpha`, with local judges disabled. The runtime endpoint is
+OpenRouter (`https://openrouter.ai/api/v1`) and credentials are supplied only
+through environment variables. Candidate model identity, family, quantization,
+trial, source verdict, answer key, and prior judgment are hidden from the judge.
+No human adjudication is part of this protocol.
 
 ## Rubric And Pair Protocols
 
@@ -43,7 +44,7 @@ Malformed output is a parse failure, never a negative judgment.
 
 Before the full external run, execute a canary against the frozen population,
 prompts, schemas, and source hashes. The canary verifies the pinned model ID,
-JSON parsing, evidence validation, call accounting, retry behavior, and budget
+JSON parsing, evidence validation, call accounting, retry behavior, and call-cap
 refusal. A successful canary is required before the full capped run. Low
 confidence and abstentions are recorded as forced-label signals; they do not
 create a human queue.
@@ -77,8 +78,10 @@ Offline tests cover schema validation, evidence quotes, precheck exclusion,
 blinding, deterministic pair IDs, A/B inverse mapping, abstention, invalid
 responses, disagreement states, source immutability, and metric denominators.
 Live judge calls require runtime endpoint and credential configuration plus an
-approved call and cost budget after the frozen population, prompts, schemas,
-and source hashes pass the gate.
+approved call cap after the frozen population, prompts, schemas, and source
+hashes pass the gate. Space Bunny Alpha is currently free, so the active
+protocol has no monetary cutoff; provider-reported usage cost is retained as
+telemetry when available, and unknown cost remains unknown.
 
 ## Completion
 

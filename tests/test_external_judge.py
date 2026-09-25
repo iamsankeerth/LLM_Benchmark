@@ -2,22 +2,30 @@
 
 from __future__ import annotations
 
+import os
 import unittest
 from typing import Any
+from unittest.mock import patch
 
 from inference.external_judge import ExternalJudgeClient, ExternalJudgeConfig, ExternalJudgeError
 
 
 class _Response:
-    def __init__(self, status_code: int, content: str) -> None:
+    def __init__(
+        self,
+        status_code: int,
+        content: str,
+        usage: dict[str, Any] | None = None,
+    ) -> None:
         self.status_code = status_code
         self.headers = {'x-request-id': 'req-1'}
         self._content = content
+        self._usage = usage or {'total_tokens': 100}
 
     def json(self) -> dict[str, Any]:
         return {
             'choices': [{'message': {'content': self._content}}],
-            'usage': {'total_tokens': 100},
+            'usage': self._usage,
         }
 
 
@@ -50,6 +58,57 @@ class ExternalJudgeClientTests(unittest.TestCase):
         self.assertEqual(seen[0]['json']['temperature'], 0.0)
         self.assertIn('exact candidate output', seen[0]['json']['messages'][1]['content'])
         self.assertNotIn('secret-key', str(seen[0]['json']))
+
+    def test_environment_does_not_require_a_token_price(self) -> None:
+        document = {
+            'external_judge': {
+                'base_url_env': 'TEST_JUDGE_BASE_URL',
+                'api_key_env': 'TEST_JUDGE_API_KEY',
+                'model_id': 'stealth/space-bunny-alpha',
+                'max_cost_usd': None,
+                'cost_per_1k_tokens_env': None,
+            },
+        }
+        with patch.dict(
+            os.environ,
+            {
+                'TEST_JUDGE_BASE_URL': 'https://openrouter.ai/api/v1',
+                'TEST_JUDGE_API_KEY': 'runtime-key',
+                'SPACE_BUNNY_MODEL_ID': 'stealth/space-bunny-alpha',
+            },
+            clear=False,
+        ):
+            config = ExternalJudgeConfig.from_environment(document)
+        self.assertIsNone(config.cost_per_1k_tokens)
+        self.assertIsNone(config.max_cost_usd)
+
+    def test_provider_reported_cost_is_recorded_without_token_price(self) -> None:
+        client = ExternalJudgeClient(
+            self._config(max_cost_usd=None, cost_per_1k_tokens=None),
+            post_fn=lambda *_args, **_kwargs: _Response(
+                200, '{"ok":true}', {'total_tokens': 100, 'cost': 0.25},
+            ),
+        )
+        result = client.judge('candidate', {'type': 'object'})
+        self.assertEqual(result.estimated_cost_usd, 0.25)
+        self.assertEqual(result.cost_source, 'provider_usage')
+        self.assertEqual(client.total_cost_usd, 0.25)
+        self.assertEqual(client.known_cost_calls, 1)
+        self.assertEqual(client.unknown_cost_calls, 0)
+
+    def test_unknown_cost_stays_unknown_and_call_cap_still_applies(self) -> None:
+        client = ExternalJudgeClient(
+            self._config(max_cost_usd=None, cost_per_1k_tokens=None, max_calls=1),
+            post_fn=lambda *_args, **_kwargs: _Response(200, '{"ok":true}'),
+        )
+        result = client.judge('candidate', {'type': 'object'})
+        self.assertIsNone(result.estimated_cost_usd)
+        self.assertEqual(result.cost_source, 'unavailable')
+        self.assertIsNone(client.total_cost_usd)
+        self.assertEqual(client.known_cost_calls, 0)
+        self.assertEqual(client.unknown_cost_calls, 1)
+        with self.assertRaises(ExternalJudgeError):
+            client.judge('candidate', {'type': 'object'})
 
     def test_transient_retry_is_bounded(self) -> None:
         attempts: list[int] = []

@@ -109,6 +109,8 @@ class JudgeProtocolTests(unittest.TestCase):
                 )
                 self.calls_made = 0
                 self.total_cost_usd = 0.0
+                self.known_cost_calls = 0
+                self.unknown_cost_calls = 0
 
             def judge(self, prompt: str, _schema: Any) -> ExternalJudgeCall:
                 self.calls_made += 1
@@ -170,6 +172,8 @@ class JudgeProtocolTests(unittest.TestCase):
                 )
                 self.calls_made = 0
                 self.total_cost_usd = 0.0
+                self.known_cost_calls = 0
+                self.unknown_cost_calls = 0
 
             def judge(self, prompt: str, _schema: Any) -> ExternalJudgeCall:
                 self.calls_made += 1
@@ -237,6 +241,8 @@ class JudgeProtocolTests(unittest.TestCase):
                 )
                 self.calls_made = 0
                 self.total_cost_usd = 0.0
+                self.known_cost_calls = 0
+                self.unknown_cost_calls = 0
 
             def judge(self, prompt: str, _schema: Any) -> ExternalJudgeCall:
                 self.calls_made += 1

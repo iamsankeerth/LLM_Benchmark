@@ -18,8 +18,8 @@ external_judge:
   temperature: 0.0
   max_output_tokens: 768
   max_calls: 250
-  max_cost_usd: 5.0
-  cost_per_1k_tokens_env: JUDGE_COST_PER_1K_TOKENS
+  max_cost_usd: null
+  cost_per_1k_tokens_env: null
   max_attempts_per_request: 3
   timeout_seconds: 120
   retry_statuses: [429, 500, 502, 503, 504]

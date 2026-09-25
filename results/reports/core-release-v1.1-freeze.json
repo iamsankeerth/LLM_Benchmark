@@ -11,7 +11,7 @@
   },
   "quality_gate": {
     "command": "python scripts/quality_gate.py",
-    "tests_passed": 360,
+    "tests_passed": 363,
     "ruff": "PASS",
     "mypy": "PASS",
     "workbook_check": "PASS",

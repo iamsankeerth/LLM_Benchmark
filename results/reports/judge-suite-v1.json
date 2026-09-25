@@ -9,10 +9,10 @@
   "external_judge": {
     "api_key_env": "JUDGE_API_KEY",
     "base_url_env": "JUDGE_API_BASE_URL",
-    "cost_per_1k_tokens_env": "JUDGE_COST_PER_1K_TOKENS",
+    "cost_per_1k_tokens_env": null,
     "max_attempts_per_request": 3,
     "max_calls": 250,
-    "max_cost_usd": 5.0,
+    "max_cost_usd": null,
     "max_output_tokens": 768,
     "model_id": "stealth/space-bunny-alpha",
     "provider": "openai_compatible",

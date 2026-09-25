@@ -496,6 +496,8 @@ def run_external_judge(
         'precheck_pass_items': len(pending),
         'calls_made': client.calls_made,
         'total_cost_usd': client.total_cost_usd,
+        'cost_known_calls': client.known_cost_calls,
+        'cost_unknown_calls': client.unknown_cost_calls,
         'rubric': rubric_counts,
         'pairs': pair_counts,
         'human_involvement': False,

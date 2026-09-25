@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import time
 from dataclasses import dataclass, field
@@ -44,7 +45,7 @@ class ExternalJudgeConfig:
     max_attempts: int = 3
     retry_statuses: frozenset[int] = frozenset({429, 500, 502, 503, 504})
     max_calls: int = 250
-    max_cost_usd: float = 5.0
+    max_cost_usd: float | None = None
     cost_per_1k_tokens: float | None = None
 
     def __post_init__(self) -> None:
@@ -58,7 +59,7 @@ class ExternalJudgeConfig:
             raise ExternalJudgeError('external judge max_calls cannot be negative')
         if self.max_output_tokens < 1:
             raise ExternalJudgeError('external judge max_output_tokens must be positive')
-        if self.max_cost_usd < 0:
+        if self.max_cost_usd is not None and self.max_cost_usd < 0:
             raise ExternalJudgeError('external judge max_cost_usd cannot be negative')
         if self.cost_per_1k_tokens is not None and self.cost_per_1k_tokens < 0:
             raise ExternalJudgeError('external judge token price cannot be negative')
@@ -82,10 +83,12 @@ class ExternalJudgeConfig:
         runtime_model = os.environ.get('SPACE_BUNNY_MODEL_ID', model_id).strip()
         if runtime_model != model_id:
             raise ExternalJudgeError('SPACE_BUNNY_MODEL_ID does not match the frozen model_id')
-        price_env = str(external.get('cost_per_1k_tokens_env', 'JUDGE_COST_PER_1K_TOKENS'))
-        price_value = os.environ.get(price_env, '').strip()
-        if not price_value:
-            raise ExternalJudgeError(f'{price_env} is not set')
+        price_env_value = external.get('cost_per_1k_tokens_env')
+        price_value = (
+            os.environ.get(str(price_env_value), '').strip()
+            if price_env_value else ''
+        )
+        max_cost_value = external.get('max_cost_usd')
         return cls(
             base_url=base_url.rstrip('/'),
             api_key=api_key,
@@ -98,8 +101,12 @@ class ExternalJudgeConfig:
                 int(value) for value in external.get('retry_statuses', [])
             ),
             max_calls=int(external.get('max_calls', 250)),
-            max_cost_usd=float(external.get('max_cost_usd', 5.0)),
-            cost_per_1k_tokens=float(price_value),
+            max_cost_usd=(
+                None if max_cost_value is None else float(max_cost_value)
+            ),
+            cost_per_1k_tokens=(
+                None if not price_value else float(price_value)
+            ),
         )
 
 
@@ -109,7 +116,8 @@ class ExternalJudgeCall:
     request_id: str | None
     usage: dict[str, Any]
     attempts: int
-    estimated_cost_usd: float
+    estimated_cost_usd: float | None
+    cost_source: str = 'unavailable'
 
 
 @dataclass
@@ -118,12 +126,35 @@ class ExternalJudgeClient:
     post_fn: Callable[..., Any] = requests.post
     sleep_fn: Callable[[float], None] = time.sleep
     calls_made: int = field(default=0, init=False)
-    total_cost_usd: float = field(default=0.0, init=False)
+    total_cost_usd: float | None = field(default=None, init=False)
+    known_cost_calls: int = field(default=0, init=False)
+    unknown_cost_calls: int = field(default=0, init=False)
 
     def _spend_call(self) -> None:
         if self.calls_made >= self.config.max_calls:
             raise ExternalJudgeError('external judge call budget exhausted')
         self.calls_made += 1
+
+    @staticmethod
+    def _provider_cost(usage: Mapping[str, Any]) -> float | None:
+        value = usage.get('cost')
+        if value is None:
+            return None
+        try:
+            cost = float(value)
+        except (TypeError, ValueError):
+            return None
+        if not math.isfinite(cost) or cost < 0:
+            return None
+        return cost
+
+    def _record_cost(self, cost: float | None, source: str) -> str:
+        if cost is None:
+            self.unknown_cost_calls += 1
+            return 'unavailable'
+        self.known_cost_calls += 1
+        self.total_cost_usd = (self.total_cost_usd or 0.0) + cost
+        return source
 
     def judge(self, prompt: str, schema: Mapping[str, Any]) -> ExternalJudgeCall:
         body = {
@@ -200,15 +231,25 @@ class ExternalJudgeClient:
                 raise ExternalJudgeError(
                     'external judge returned negative token usage', attempts=attempt
                 )
-            estimated_cost = (
-                total_tokens / 1000.0 * self.config.cost_per_1k_tokens
-                if self.config.cost_per_1k_tokens is not None else 0.0
-            )
-            self.total_cost_usd += estimated_cost
+            provider_cost = self._provider_cost(usage)
+            if provider_cost is not None:
+                estimated_cost = provider_cost
+                cost_source = 'provider_usage'
+            elif self.config.cost_per_1k_tokens is not None:
+                estimated_cost = total_tokens / 1000.0 * self.config.cost_per_1k_tokens
+                cost_source = 'token_price'
+            else:
+                estimated_cost = None
+                cost_source = 'unavailable'
+            cost_source = self._record_cost(estimated_cost, cost_source)
             headers_response = getattr(response, 'headers', {}) or {}
             request_id = headers_response.get('x-request-id')
             response_sha256 = hashlib.sha256(text.encode('utf-8')).hexdigest()
-            if self.total_cost_usd > self.config.max_cost_usd:
+            if (
+                self.config.max_cost_usd is not None
+                and self.total_cost_usd is not None
+                and self.total_cost_usd > self.config.max_cost_usd
+            ):
                 raise ExternalJudgeError(
                     'external judge cost budget exhausted',
                     request_id=request_id,
@@ -223,5 +264,6 @@ class ExternalJudgeClient:
                 usage=usage,
                 attempts=attempt,
                 estimated_cost_usd=estimated_cost,
+                cost_source=cost_source,
             )
         raise ExternalJudgeError(last_error, attempts=self.config.max_attempts)
