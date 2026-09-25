@@ -1,0 +1,27 @@
+{
+  "calls_made": 3,
+  "cost_known_calls": 3,
+  "cost_unknown_calls": 0,
+  "human_involvement": false,
+  "local_judges_used": false,
+  "model_id": "stealth/space-bunny-alpha",
+  "pairs": {
+    "calls": 0,
+    "errors": 0,
+    "forced": 0,
+    "pairs": 0,
+    "third_calls": 0
+  },
+  "precheck_pass_items": 3,
+  "raw_text_in_public_report": false,
+  "reasoning_enabled": true,
+  "rubric": {
+    "calls": 3,
+    "errors": 0,
+    "forced": 0
+  },
+  "source_items": 165,
+  "status": "CANARY_COMPLETE",
+  "study": "judge-suite-v1",
+  "total_cost_usd": 0.0
+}

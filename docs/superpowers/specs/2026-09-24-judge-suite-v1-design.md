@@ -27,18 +27,24 @@ The active protocol uses one external OpenAI-compatible judge pinned to
 OpenRouter (`https://openrouter.ai/api/v1`) and credentials are supplied only
 through environment variables. Candidate model identity, family, quantization,
 trial, source verdict, answer key, and prior judgment are hidden from the judge.
-No human adjudication is part of this protocol.
+Each independent rubric, pair-orientation, and tie-break request enables OpenRouter
+reasoning with `{"enabled": true}`. Reasoning details are discarded after parsing
+and are never forwarded to another judgment. No human adjudication is part of
+this protocol.
 
 ## Rubric And Pair Protocols
 
 Criterion definitions include desired polarity, positive and negative anchors,
 criticality, and required evidence. A rubric response contains exact criterion
 keys, observed booleans, confidence, evidence quotes, and an abstention flag.
-Evidence quotes must be substrings of the candidate.
+Evidence quotes must be substrings of the candidate. Item and pair identifiers
+are bound to the persisted call by the runner and are not required in model
+output.
 
 Pairwise judging uses opaque candidate IDs, injection-resistant instructions,
 both A/B orientations, and `A`, `B`, `TIE`, `NEITHER`, or `INVALID` outcomes.
-Malformed output is a parse failure, never a negative judgment.
+Malformed output is a parse failure, never a negative judgment. The runner binds
+the pair identity; the model does not need to echo it.
 
 ## External Calibration
 

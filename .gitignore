@@ -19,7 +19,8 @@ results/raw/
 results/checkpoints/
 results/logs/
 
-# OS / editor
+# Local credentials
+API Key.txt
 .DS_Store
 Thumbs.db
 .vscode/

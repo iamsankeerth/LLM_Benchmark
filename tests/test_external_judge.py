@@ -14,17 +14,22 @@ class _Response:
     def __init__(
         self,
         status_code: int,
-        content: str,
+        content: str | None,
         usage: dict[str, Any] | None = None,
+        reasoning_details: list[dict[str, Any]] | None = None,
     ) -> None:
         self.status_code = status_code
         self.headers = {'x-request-id': 'req-1'}
         self._content = content
         self._usage = usage or {'total_tokens': 100}
+        self._reasoning_details = reasoning_details
 
     def json(self) -> dict[str, Any]:
+        message: dict[str, Any] = {'content': self._content}
+        if self._reasoning_details is not None:
+            message['reasoning_details'] = self._reasoning_details
         return {
-            'choices': [{'message': {'content': self._content}}],
+            'choices': [{'message': message}],
             'usage': self._usage,
         }
 
@@ -56,8 +61,34 @@ class ExternalJudgeClientTests(unittest.TestCase):
         self.assertEqual(seen[0]['url'], 'https://api.example.test/v1/chat/completions')
         self.assertEqual(seen[0]['json']['model'], 'stealth/space-bunny-alpha')
         self.assertEqual(seen[0]['json']['temperature'], 0.0)
+        self.assertEqual(seen[0]['json']['reasoning'], {'enabled': True})
         self.assertIn('exact candidate output', seen[0]['json']['messages'][1]['content'])
         self.assertNotIn('secret-key', str(seen[0]['json']))
+
+    def test_reasoning_details_are_not_forwarded_between_independent_calls(self) -> None:
+        seen: list[dict[str, Any]] = []
+
+        def post(_url: str, **kwargs: Any) -> _Response:
+            seen.append(kwargs)
+            return _Response(
+                200,
+                '{"ok":true}',
+                reasoning_details=[{'type': 'reasoning.text', 'text': 'private'}],
+            )
+
+        client = ExternalJudgeClient(
+            self._config(max_calls=2), post_fn=post, sleep_fn=lambda _: None,
+        )
+        client.judge('first independent prompt', {'type': 'object'})
+        client.judge('second independent prompt', {'type': 'object'})
+        self.assertEqual(len(seen), 2)
+        for request in seen:
+            self.assertEqual(request['json']['reasoning'], {'enabled': True})
+            self.assertNotIn('reasoning_details', str(request['json']))
+            self.assertEqual(
+                [message['role'] for message in request['json']['messages']],
+                ['system', 'user'],
+            )
 
     def test_environment_does_not_require_a_token_price(self) -> None:
         document = {
@@ -65,6 +96,7 @@ class ExternalJudgeClientTests(unittest.TestCase):
                 'base_url_env': 'TEST_JUDGE_BASE_URL',
                 'api_key_env': 'TEST_JUDGE_API_KEY',
                 'model_id': 'stealth/space-bunny-alpha',
+                'reasoning_enabled': True,
                 'max_cost_usd': None,
                 'cost_per_1k_tokens_env': None,
             },
@@ -79,8 +111,31 @@ class ExternalJudgeClientTests(unittest.TestCase):
             clear=False,
         ):
             config = ExternalJudgeConfig.from_environment(document)
+        self.assertTrue(config.reasoning_enabled)
         self.assertIsNone(config.cost_per_1k_tokens)
         self.assertIsNone(config.max_cost_usd)
+
+    def test_null_content_is_retried_before_failing(self) -> None:
+        responses = [_Response(200, None), _Response(200, '{"ok":true}')]
+
+        def post(*_args: Any, **_kwargs: Any) -> _Response:
+            return responses.pop(0)
+
+        client = ExternalJudgeClient(
+            self._config(max_attempts=2), post_fn=post, sleep_fn=lambda _: None,
+        )
+        result = client.judge('candidate', {'type': 'object'})
+        self.assertEqual(result.text, '{"ok":true}')
+        self.assertEqual(client.calls_made, 2)
+
+    def test_null_content_is_rejected(self) -> None:
+        client = ExternalJudgeClient(
+            self._config(),
+            post_fn=lambda *_args, **_kwargs: _Response(200, None),
+        )
+        with self.assertRaises(ExternalJudgeError) as context:
+            client.judge('candidate', {'type': 'object'})
+        self.assertIn('no message content', str(context.exception))
 
     def test_provider_reported_cost_is_recorded_without_token_price(self) -> None:
         client = ExternalJudgeClient(

@@ -13,10 +13,11 @@ judge_mode: external_openai_compatible
 external_judge:
   provider: openai_compatible
   model_id: stealth/space-bunny-alpha
+  reasoning_enabled: true
   base_url_env: JUDGE_API_BASE_URL
   api_key_env: JUDGE_API_KEY
   temperature: 0.0
-  max_output_tokens: 768
+  max_output_tokens: 4096
   max_calls: 250
   max_cost_usd: null
   cost_per_1k_tokens_env: null

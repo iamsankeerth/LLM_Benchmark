@@ -19,6 +19,7 @@ from analysis.judge import (
     build_controlled_pairs,
     load_judge_protocol,
     load_source_items,
+    parse_pair_response,
     parse_rubric_response,
     position_flip_rate,
     select_real_pairs,
@@ -66,6 +67,7 @@ class JudgeProtocolTests(unittest.TestCase):
         prompt = build_rubric_prompt(item, rubric)
         self.assertNotIn(item.model_config_id, prompt)
         self.assertIn(item.raw_output, prompt)
+        self.assertIn('never a list', prompt)
         response: dict[str, Any] = {
             'schema_version': 'judge-rubric-v1',
             'item_id': item.source_item_id,
@@ -79,6 +81,7 @@ class JudgeProtocolTests(unittest.TestCase):
             },
             'abstain': False,
         }
+        response['item_id'] = 'caller-binds-this-id'
         parsed = parse_rubric_response(
             json.dumps(response), item_id=item.source_item_id,
             rubric=rubric, candidate=item.raw_output,
@@ -91,11 +94,47 @@ class JudgeProtocolTests(unittest.TestCase):
                 rubric=rubric, candidate=item.raw_output,
             )
 
+    def test_parser_normalizes_common_reasoning_shapes(self) -> None:
+        item = next(item for item in self.items if item.task_id == 'Q059')
+        rubric = {'criteria': self.protocol.rubrics['Q059']}
+        quote = item.raw_output[: min(12, len(item.raw_output))]
+        response: dict[str, Any] = {
+            'schema_version': 'judge-rubric-v1',
+            'criteria': [
+                {
+                    'criterion_id': criterion_id,
+                    'observed': True,
+                    'confidence': 'high',
+                    'evidence': [{'quote': quote}],
+                }
+                for criterion_id in self.protocol.rubrics['Q059']
+            ],
+            'abstain': False,
+        }
+        parsed = parse_rubric_response(
+            json.dumps(response), item_id=item.source_item_id,
+            rubric=rubric, candidate=item.raw_output,
+        )
+        self.assertEqual(set(parsed['criteria']), set(rubric['criteria']))
+        pair = parse_pair_response(
+            json.dumps({
+                'schema_version': 'judge-pair-v1',
+                'decision': 'A',
+                'confidence': 'high',
+                'evidence': {'A': 'alpha'},
+                'abstain': False,
+            }),
+            pair_id='pair',
+            candidates={'A': 'alpha text', 'B': 'beta text'},
+        )
+        self.assertEqual(pair['evidence'], [{'candidate': 'A', 'quote': 'alpha'}])
+
     def test_external_protocol_is_active_and_human_free(self) -> None:
         document = self.protocol.document
         self.assertEqual(document['judge_mode'], 'external_openai_compatible')
         self.assertFalse(document['local_judges_enabled'])
         self.assertEqual(document['external_judge']['model_id'], 'stealth/space-bunny-alpha')
+        self.assertTrue(document['external_judge']['reasoning_enabled'])
         self.assertFalse(document['human_adjudication']['required'])
 
     def test_external_canary_uses_no_local_judges(self) -> None:
@@ -295,6 +334,15 @@ class JudgeProtocolTests(unittest.TestCase):
                 run_local_panel(
                     ROOT, calibration_path=Path(tmp) / 'missing-calibration.json'
                 )
+
+    def test_real_pair_selector_handles_small_eligible_groups(self) -> None:
+        all_items = load_source_items(ROOT, self.protocol)
+        pairs = select_real_pairs(all_items, per_task=10)
+        self.assertEqual(len(pairs), 30)
+        self.assertEqual(
+            {task_id: sum(pair.task_id == task_id for pair in pairs) for task_id in {'Q014', 'Q059', 'Q060'}},
+            {'Q014': 10, 'Q059': 10, 'Q060': 10},
+        )
 
     def test_controlled_pairs_are_deterministic(self) -> None:
         first = build_controlled_pairs(self.items, per_task=8)

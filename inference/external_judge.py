@@ -39,8 +39,9 @@ class ExternalJudgeConfig:
     base_url: str
     api_key: str
     model_id: str
+    reasoning_enabled: bool = True
     temperature: float = 0.0
-    max_output_tokens: int = 768
+    max_output_tokens: int = 4096
     timeout_seconds: float = 120.0
     max_attempts: int = 3
     retry_statuses: frozenset[int] = frozenset({429, 500, 502, 503, 504})
@@ -51,6 +52,8 @@ class ExternalJudgeConfig:
     def __post_init__(self) -> None:
         if not self.base_url or not self.api_key or not self.model_id:
             raise ExternalJudgeError('external judge configuration is incomplete')
+        if not isinstance(self.reasoning_enabled, bool):
+            raise ExternalJudgeError('external judge reasoning_enabled must be boolean')
         if self.timeout_seconds <= 0:
             raise ExternalJudgeError('external judge timeout must be positive')
         if self.max_attempts < 1:
@@ -93,8 +96,9 @@ class ExternalJudgeConfig:
             base_url=base_url.rstrip('/'),
             api_key=api_key,
             model_id=model_id,
+            reasoning_enabled=bool(external.get('reasoning_enabled', True)),
             temperature=float(external.get('temperature', 0.0)),
-            max_output_tokens=int(external.get('max_output_tokens', 768)),
+            max_output_tokens=int(external.get('max_output_tokens', 4096)),
             timeout_seconds=float(external.get('timeout_seconds', 120.0)),
             max_attempts=int(external.get('max_attempts_per_request', 3)),
             retry_statuses=frozenset(
@@ -177,6 +181,8 @@ class ExternalJudgeClient:
                 },
             },
         }
+        if self.config.reasoning_enabled:
+            body['reasoning'] = {'enabled': True}
         headers = {
             'Authorization': f'Bearer {self.config.api_key}',
             'Content-Type': 'application/json',
@@ -213,11 +219,19 @@ class ExternalJudgeClient:
                     'external judge returned invalid JSON', attempts=attempt
                 ) from exc
             try:
-                text = str(document['choices'][0]['message']['content'])
+                message = document['choices'][0]['message']
+                content = message['content']
             except (KeyError, IndexError, TypeError) as exc:
                 raise ExternalJudgeError(
                     'external judge response has no message content', attempts=attempt
                 ) from exc
+            if not isinstance(content, str) or not content.strip():
+                last_error = 'external judge returned no message content'
+                if attempt < self.config.max_attempts:
+                    self.sleep_fn(float(2 ** (attempt - 1)))
+                    continue
+                raise ExternalJudgeError(last_error, attempts=attempt)
+            text = content
             usage = document.get('usage', {}) if isinstance(document, dict) else {}
             if not isinstance(usage, dict):
                 usage = {}

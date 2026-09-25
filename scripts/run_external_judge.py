@@ -47,7 +47,6 @@ def _schema_for_rubric(criteria: Mapping[str, Any]) -> dict[str, Any]:
         'type': 'object',
         'properties': {
             'schema_version': {'const': 'judge-rubric-v1'},
-            'item_id': {'type': 'string'},
             'criteria': {
                 'type': 'object',
                 'properties': {
@@ -66,7 +65,7 @@ def _schema_for_rubric(criteria: Mapping[str, Any]) -> dict[str, Any]:
             },
             'abstain': {'type': 'boolean'},
         },
-        'required': ['schema_version', 'item_id', 'criteria', 'abstain'],
+        'required': ['schema_version', 'criteria', 'abstain'],
     }
 
 
@@ -75,13 +74,12 @@ def _schema_for_pair() -> dict[str, Any]:
         'type': 'object',
         'properties': {
             'schema_version': {'const': 'judge-pair-v1'},
-            'pair_id': {'type': 'string'},
             'decision': {'enum': ['A', 'B', 'TIE', 'NEITHER']},
             'confidence': {'enum': ['low', 'medium', 'high']},
             'evidence': {'type': 'array'},
             'abstain': {'type': 'boolean'},
         },
-        'required': ['schema_version', 'pair_id', 'decision', 'confidence', 'evidence', 'abstain'],
+        'required': ['schema_version', 'decision', 'confidence', 'evidence', 'abstain'],
     }
 
 
@@ -492,6 +490,7 @@ def run_external_judge(
         'status': run_status,
         'study': 'judge-suite-v1',
         'model_id': client.config.model_id,
+        'reasoning_enabled': bool(getattr(client.config, 'reasoning_enabled', False)),
         'source_items': len(items),
         'precheck_pass_items': len(pending),
         'calls_made': client.calls_made,

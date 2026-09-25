@@ -13,9 +13,10 @@
     "max_attempts_per_request": 3,
     "max_calls": 250,
     "max_cost_usd": null,
-    "max_output_tokens": 768,
+    "max_output_tokens": 4096,
     "model_id": "stealth/space-bunny-alpha",
     "provider": "openai_compatible",
+    "reasoning_enabled": true,
     "retry_statuses": [
       429,
       500,
