@@ -11,7 +11,7 @@
   },
   "quality_gate": {
     "command": "python scripts/quality_gate.py",
-    "tests_passed": 338,
+    "tests_passed": 360,
     "ruff": "PASS",
     "mypy": "PASS",
     "workbook_check": "PASS",
@@ -52,7 +52,7 @@
     "configured_window": 4096
   },
   "pending_live": {
-    "judge_suite": "prepared_pending_human_calibration",
+    "judge_suite": "prepared_external_only",
     "coding_suite": "offline_frozen_docker_daemon_unavailable"
   }
 }

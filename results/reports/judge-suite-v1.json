@@ -6,17 +6,36 @@
   },
   "dataset_sha256": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
   "eval_spec_sha256": "856855597025df828effe7e19e8b81d2ac31f686aefef7452798958facf113fb",
-  "human_adjudication": {
-    "calibration_cases_per_task": 15,
-    "disagreement_resolution": "third_rater",
-    "real_spot_check_rows": 50,
-    "required": true
+  "external_judge": {
+    "api_key_env": "JUDGE_API_KEY",
+    "base_url_env": "JUDGE_API_BASE_URL",
+    "cost_per_1k_tokens_env": "JUDGE_COST_PER_1K_TOKENS",
+    "max_attempts_per_request": 3,
+    "max_calls": 250,
+    "max_cost_usd": 5.0,
+    "max_output_tokens": 768,
+    "model_id": "stealth/space-bunny-alpha",
+    "provider": "openai_compatible",
+    "retry_statuses": [
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "send_exact_text": true,
+    "temperature": 0.0,
+    "timeout_seconds": 120
   },
-  "human_queue_path": "results/local/judge-suite-v1-human-queue.json",
-  "local_panel": [
-    "qwen3-4b-q5",
-    "llama3.2-3b-q6"
-  ],
+  "human_adjudication": {
+    "disagreement_resolution": "third_call_majority",
+    "low_confidence": "force_label",
+    "mode": "automated_external_only",
+    "required": false
+  },
+  "human_involvement": false,
+  "judge_mode": "external_openai_compatible",
+  "local_judges_enabled": false,
   "model_calls": 0,
   "precheck_counts": {
     "JUDGE_PENDING": 43,
@@ -28,6 +47,6 @@
   "schema_version": "judge-suite-report-v1",
   "source_items": 165,
   "source_population_hash": "c5bb44c5976c2a0f2b273882b3f57dd841d0e599674bd30c592631375072d9da",
-  "status": "PREPARED_PENDING_HUMAN_CALIBRATION",
+  "status": "PREPARED_EXTERNAL_ONLY",
   "study": "judge-suite-v1"
 }

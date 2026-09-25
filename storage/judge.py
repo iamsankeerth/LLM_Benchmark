@@ -84,6 +84,28 @@ CREATE TABLE IF NOT EXISTS judge_adjudications(
   rationale_sha256 TEXT,
   created_at_utc TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS external_judge_calls(
+  call_id TEXT PRIMARY KEY,
+  protocol_id TEXT NOT NULL,
+  item_id TEXT,
+  pair_id TEXT,
+  provider TEXT NOT NULL,
+  model_id TEXT NOT NULL,
+  base_url_sha256 TEXT NOT NULL,
+  request_id TEXT,
+  request_sha256 TEXT NOT NULL,
+  response_sha256 TEXT,
+  usage_json TEXT,
+  cost_usd REAL,
+  attempts INTEGER NOT NULL,
+  status TEXT NOT NULL,
+  parse_status TEXT NOT NULL,
+  forced_label INTEGER,
+  confidence TEXT,
+  error_json TEXT,
+  started_at_utc TEXT NOT NULL,
+  ended_at_utc TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS judge_failures(
   failure_id TEXT PRIMARY KEY,
   protocol_id TEXT NOT NULL,
@@ -150,6 +172,48 @@ def record_source_item(
             item.model_config_id, item.task_id, item.trial,
             item.raw_output_sha256, item.precheck_status,
             json.dumps(item.precheck_details, sort_keys=True),
+        ),
+    )
+    conn.commit()
+
+
+def record_external_call(
+    conn: sqlite3.Connection,
+    *,
+    call_id: str,
+    protocol_id: str,
+    item_id: str | None,
+    pair_id: str | None,
+    provider: str,
+    model_id: str,
+    base_url_sha256: str,
+    request_id: str | None,
+    request_sha256: str,
+    response_sha256: str | None,
+    usage: dict[str, object],
+    cost_usd: float | None,
+    attempts: int,
+    status: str,
+    parse_status: str,
+    forced_label: bool,
+    confidence: str | None,
+    error: dict[str, object] | None,
+    started_at_utc: str,
+    ended_at_utc: str,
+) -> None:
+    conn.execute(
+        'INSERT OR REPLACE INTO external_judge_calls'
+        '(call_id,protocol_id,item_id,pair_id,provider,model_id,'
+        'base_url_sha256,request_id,request_sha256,response_sha256,usage_json,'
+        'cost_usd,attempts,status,parse_status,forced_label,confidence,error_json,'
+        'started_at_utc,ended_at_utc) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        (
+            call_id, protocol_id, item_id, pair_id, provider, model_id,
+            base_url_sha256, request_id, request_sha256, response_sha256,
+            json.dumps(usage, sort_keys=True), cost_usd, attempts, status,
+            parse_status, int(forced_label), confidence,
+            json.dumps(error, sort_keys=True) if error else None,
+            started_at_utc, ended_at_utc,
         ),
     )
     conn.commit()

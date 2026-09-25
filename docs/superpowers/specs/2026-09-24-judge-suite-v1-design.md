@@ -22,17 +22,11 @@ Corrected Eval-v1.1 deterministic graders run before semantic judging. A hard
 precheck failure becomes `PRECHECK_FAIL` and receives no judge request. A
 precheck pass becomes `JUDGE_PENDING` and is eligible for rubric evaluation.
 
-The canonical local panel is:
-
-- `qwen3-4b-q5`
-- `llama3.2-3b-q6`
-
-Both use pinned digests, templates, context, temperature, output policy, and
-strict JSON response schemas. Candidate model identity, family, quantization,
-trial, source verdict, answer key, and prior judgment are hidden from the judge.
-
-Disagreements, abstentions, low confidence, and position instability require
-blinded human adjudication. API judging is excluded from the canonical release.
+The active protocol uses one external OpenAI-compatible judge pinned to
+`stealth/space-bunny-alpha`, with local judges disabled. Candidate model
+identity, family, quantization, trial, source verdict, answer key, and prior
+judgment are hidden from the judge. No human adjudication is part of this
+protocol.
 
 ## Rubric And Pair Protocols
 
@@ -45,50 +39,50 @@ Pairwise judging uses opaque candidate IDs, injection-resistant instructions,
 both A/B orientations, and `A`, `B`, `TIE`, `NEITHER`, or `INVALID` outcomes.
 Malformed output is a parse failure, never a negative judgment.
 
-## Human Calibration
+## External Calibration
 
-Before judge inference, create a frozen human-labeled set:
-
-- 15 semantic cases per task,
-- pass and hard-fail precheck fixtures,
-- 25 pairwise controls,
-- a stratified 50-row real-output spot check.
-
-Two blinded raters label criteria and disagreements; an adjudicator resolves
-disagreements. Labels, evidence hashes, and adjudication records are frozen
-before live judging. The holdout is not used to revise prompts.
+Before the full external run, execute a canary against the frozen population,
+prompts, schemas, and source hashes. The canary verifies the pinned model ID,
+JSON parsing, evidence validation, call accounting, retry behavior, and budget
+refusal. A successful canary is required before the full capped run. Low
+confidence and abstentions are recorded as forced-label signals; they do not
+create a human queue.
 
 ## Bias Study
 
 Evaluate 40 controlled pairs (8 per task) and 50 frozen stratified real-output
-pairs (10 per task). Every pair is evaluated in both orientations by both local
-judges. The sample is balanced across task, family, quality, output length, and
+pairs (10 per task). Every pair is evaluated in both orientations by the
+external judge. Disagreements use one additional call with a forced label until
+the configured call cap; a documented forward fallback is used after the cap.
+The sample is balanced across task, family, quality, output length, and
 controlled nuisance factors.
 
-Report position-flip rate, pairwise and tie accuracy, invalid/abstention rate,
-self/family preference, quantization preference, verbosity/style/authority
-effects, inter-judge agreement, adjudication rate, and post-adjudication
-accuracy. Use pair-clustered uncertainty; repeated deterministic outputs are not
-independent observations.
+Report position-flip rate, pairwise and tie accuracy, invalid/forced-label
+rate, self/family preference, quantization preference, verbosity/style/authority
+effects, third-call rate, and fallback rate. Use pair-clustered uncertainty;
+repeated deterministic outputs are not independent observations.
 
 ## Storage And Privacy
 
 Use a dedicated local SQLite database with protocol, source item, judge call,
-rubric result, pair, pair result, failure, and adjudication tables. Public
+rubric result, pair, pair result, failure, and external-call tables. Public
 artifacts contain hashes, counts, confidence, and redacted evidence only. Raw
-candidate and judge text remains local and restricted. No credentials or API
-keys are stored.
+candidate and judge text remains local and restricted; exact candidate text is
+transmitted only to the configured external endpoint and is not stored in the
+public report. No credentials or API keys are stored.
 
 ## Verification And Release
 
 Offline tests cover schema validation, evidence quotes, precheck exclusion,
 blinding, deterministic pair IDs, A/B inverse mapping, abstention, invalid
 responses, disagreement states, source immutability, and metric denominators.
-Live judge calls require a separately approved budget after the frozen
-population, gold labels, prompts, schemas, and source hashes pass the gate.
+Live judge calls require runtime endpoint and credential configuration plus an
+approved call and cost budget after the frozen population, prompts, schemas,
+and source hashes pass the gate.
 
 ## Completion
 
-The judge suite is complete only with a frozen protocol, source manifest, human
-adjudication record, local panel report, bias report, database, freeze manifest,
-and explicit separation from Eval-v1.1 deterministic results.
+The judge suite is complete only with a frozen protocol, source manifest,
+external-call database, external report, and freeze manifest. Human calibration
+and human adjudication records are intentionally absent, and judge scores
+remain separate from Eval-v1.1 deterministic results.

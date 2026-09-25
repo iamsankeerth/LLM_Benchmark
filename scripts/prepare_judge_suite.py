@@ -1,4 +1,4 @@
-"""Prepare the Judge Suite V1 source population and human-adjudication queue."""
+"""Prepare the external-only Judge Suite V1 source population."""
 
 from __future__ import annotations
 
@@ -53,32 +53,16 @@ def prepare(root: Path, *, force: bool = False) -> dict[str, Any]:
         conn.close()
     if int(existing) != len(items):
         raise JudgeProtocolError('judge source persistence count mismatch')
-    queue = [
-        {
-            'item_id': item.source_item_id,
-            'task_id': item.task_id,
-            'trial': item.trial,
-            'precheck_status': item.precheck_status,
-            'task_prompt': item.task_prompt,
-            'candidate_text': item.raw_output,
-            'rubric': protocol.rubrics[item.task_id],
-        }
-        for item in items
-    ]
-    queue_path = root / 'results/local/judge-suite-v1-human-queue.json'
     report_path = root / 'results/reports/judge-suite-v1.json'
-    for path in (queue_path, report_path):
-        if path.exists() and not force:
-            raise JudgeProtocolError(f'refusing to overwrite {path}')
-    queue_path.parent.mkdir(parents=True, exist_ok=True)
-    queue_path.write_text(json.dumps(queue, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+    if report_path.exists() and not force:
+        raise JudgeProtocolError(f'refusing to overwrite {report_path}')
     precheck_counts: dict[str, int] = {}
     for item in items:
         precheck_counts[item.precheck_status] = precheck_counts.get(item.precheck_status, 0) + 1
     report = {
         'schema_version': 'judge-suite-report-v1',
         'study': 'judge-suite-v1',
-        'status': 'PREPARED_PENDING_HUMAN_CALIBRATION',
+        'status': 'PREPARED_EXTERNAL_ONLY',
         'protocol_version': protocol.document['protocol_version'],
         'source_population_hash': population_hash,
         'rubric_sha256': rubric_hash,
@@ -86,12 +70,14 @@ def prepare(root: Path, *, force: bool = False) -> dict[str, Any]:
         'dataset_sha256': protocol.contract.hashes['dataset_sha256'],
         'source_items': len(items),
         'precheck_counts': precheck_counts,
-        'local_panel': protocol.document['local_panel'],
+        'judge_mode': protocol.document['judge_mode'],
+        'external_judge': protocol.document['external_judge'],
+        'local_judges_enabled': protocol.document['local_judges_enabled'],
+        'human_involvement': False,
         'bias_pairs': protocol.document['bias_pairs'],
         'human_adjudication': protocol.document['human_adjudication'],
         'model_calls': 0,
         'raw_text_in_public_report': False,
-        'human_queue_path': 'results/local/judge-suite-v1-human-queue.json',
     }
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + '\n', encoding='utf-8')
@@ -109,7 +95,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f'JUDGE PREPARE REFUSED: {exc}', flush=True)
         return 2
     print(f"prepared {report['source_items']} judge source items")
-    print('model calls: 0; human calibration remains required')
+    print('model calls: 0; external-only API execution is not started by preparation')
     return 0
 
 

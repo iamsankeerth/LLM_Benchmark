@@ -1,27 +1,42 @@
 study: judge-suite-v1
 protocol_version: judge-rubric-v1
-status: DRAFT_PENDING_HUMAN_CALIBRATION
+status: DRAFT_PENDING_EXTERNAL_CALIBRATION
 eval_spec: evals/specs/eval-v1.1-grading.yaml
 eval_freeze: evals/specs/eval-v1.1-grading.freeze.json
 rubrics: evals/specs/judge-suite-v1-rubrics.yaml
 source_experiment: full-baseline-v2
 source_task_ids: [Q014, Q047, Q051, Q059, Q060]
 source_trials: 3
-local_panel:
-  - qwen3-4b-q5
-  - llama3.2-3b-q6
+local_judges_enabled: false
+local_panel: []
+judge_mode: external_openai_compatible
+external_judge:
+  provider: openai_compatible
+  model_id: stealth/space-bunny-alpha
+  base_url_env: JUDGE_API_BASE_URL
+  api_key_env: JUDGE_API_KEY
+  temperature: 0.0
+  max_output_tokens: 768
+  max_calls: 250
+  max_cost_usd: 5.0
+  cost_per_1k_tokens_env: JUDGE_COST_PER_1K_TOKENS
+  max_attempts_per_request: 3
+  timeout_seconds: 120
+  retry_statuses: [429, 500, 502, 503, 504]
+  send_exact_text: true
 bias_pairs:
   controlled_per_task: 8
   real_stratified_per_task: 10
   orientations: 2
 privacy:
-  api_allowed: false
+  api_allowed: true
   raw_text_in_public_reports: false
+  api_key_in_storage: false
 human_adjudication:
-  required: true
-  calibration_cases_per_task: 15
-  real_spot_check_rows: 50
-  disagreement_resolution: third_rater
+  required: false
+  mode: automated_external_only
+  disagreement_resolution: third_call_majority
+  low_confidence: force_label
 storage:
   kind: sqlite
   path: results/local/judge-suite-v1.db

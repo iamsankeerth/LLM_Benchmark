@@ -338,8 +338,12 @@ def run_local_panel(
     timeout_s: float = 300.0,
     generate_fn: Callable[..., GenerationResult] = generate,
 ) -> dict[str, Any]:
-    _calibration(calibration_path)
     protocol = load_judge_protocol(root)
+    if protocol.document.get('local_judges_enabled') is not False:
+        raise JudgeRunError('local judges are disabled; use run_external_judge.py')
+    if protocol.document.get('judge_mode') == 'external_openai_compatible':
+        raise JudgeRunError('external-only protocol cannot use the local runner')
+    _calibration(calibration_path)
     items = load_source_items(root, protocol)
     pending = [item for item in items if item.precheck_status == 'JUDGE_PENDING']
     real_pairs = select_real_pairs(items, per_task=10)
