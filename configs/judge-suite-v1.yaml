@@ -22,6 +22,7 @@ external_judge:
   max_cost_usd: null
   cost_per_1k_tokens_env: null
   max_attempts_per_request: 3
+  max_parse_attempts: 3
   timeout_seconds: 120
   retry_statuses: [429, 500, 502, 503, 504]
   send_exact_text: true

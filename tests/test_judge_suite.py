@@ -13,7 +13,6 @@ from unittest.mock import patch
 
 from analysis.judge import (
     JudgeProtocol,
-    JudgeProtocolError,
     JudgeSourceItem,
     build_rubric_prompt,
     build_controlled_pairs,
@@ -88,11 +87,12 @@ class JudgeProtocolTests(unittest.TestCase):
         )
         self.assertFalse(parsed['abstain'])
         response['criteria']['technically_sound']['evidence'] = ['not in candidate']
-        with self.assertRaises(JudgeProtocolError):
-            parse_rubric_response(
-                json.dumps(response), item_id=item.source_item_id,
-                rubric=rubric, candidate=item.raw_output,
-            )
+        pruned = parse_rubric_response(
+            json.dumps(response), item_id=item.source_item_id,
+            rubric=rubric, candidate=item.raw_output,
+        )
+        self.assertEqual(pruned['criteria']['technically_sound']['evidence'], [])
+        self.assertEqual(pruned['pruned_evidence'], 1)
 
     def test_parser_normalizes_common_reasoning_shapes(self) -> None:
         item = next(item for item in self.items if item.task_id == 'Q059')
@@ -121,13 +121,14 @@ class JudgeProtocolTests(unittest.TestCase):
                 'schema_version': 'judge-pair-v1',
                 'decision': 'A',
                 'confidence': 'high',
-                'evidence': {'A': 'alpha'},
+                'evidence': {'A': 'alpha', 'B': 'not in beta'},
                 'abstain': False,
             }),
             pair_id='pair',
             candidates={'A': 'alpha text', 'B': 'beta text'},
         )
         self.assertEqual(pair['evidence'], [{'candidate': 'A', 'quote': 'alpha'}])
+        self.assertEqual(pair['pruned_evidence'], 1)
 
     def test_external_protocol_is_active_and_human_free(self) -> None:
         document = self.protocol.document
@@ -135,6 +136,7 @@ class JudgeProtocolTests(unittest.TestCase):
         self.assertFalse(document['local_judges_enabled'])
         self.assertEqual(document['external_judge']['model_id'], 'stealth/space-bunny-alpha')
         self.assertTrue(document['external_judge']['reasoning_enabled'])
+        self.assertEqual(document['external_judge']['max_parse_attempts'], 3)
         self.assertFalse(document['human_adjudication']['required'])
 
     def test_external_canary_uses_no_local_judges(self) -> None:
@@ -326,6 +328,67 @@ class JudgeProtocolTests(unittest.TestCase):
             [tuple(row) for row in rows],
             [('aggregate', 'INVALID', 'INCOMPLETE'), ('inverse', 'RIGHT', 'VALID')],
         )
+        self.assertIn(('PARSE_ERROR', 'INVALID'), [tuple(row) for row in call_rows])
+
+    def test_external_pair_parse_failure_retries_with_a_fresh_call(self) -> None:
+        pair = select_real_pairs(self.items, per_task=1)[0]
+
+        class FakeRetryClient:
+            def __init__(self) -> None:
+                self.config = SimpleNamespace(
+                    model_id='stealth/space-bunny-alpha',
+                    base_url='https://api.example.test/v1',
+                    max_attempts=1,
+                    max_calls=10,
+                )
+                self.calls_made = 0
+                self.total_cost_usd = 0.0
+                self.known_cost_calls = 0
+                self.unknown_cost_calls = 0
+
+            def judge(self, prompt: str, _schema: Any) -> ExternalJudgeCall:
+                self.calls_made += 1
+                if self.calls_made == 1:
+                    return ExternalJudgeCall(
+                        text='{}', request_id='fake', usage={}, attempts=1,
+                        estimated_cost_usd=0.0,
+                    )
+                match = re.search(r'PAIR_ID: ([0-9a-f]+)', prompt)
+                if match is None:
+                    raise AssertionError('pair prompt omitted pair id')
+                payload: dict[str, Any] = {
+                    'schema_version': 'judge-pair-v1',
+                    'decision': 'A',
+                    'confidence': 'high',
+                    'evidence': [],
+                    'abstain': False,
+                }
+                return ExternalJudgeCall(
+                    text=json.dumps(payload), request_id='fake', usage={},
+                    attempts=1, estimated_cost_usd=0.0,
+                )
+
+        with TemporaryDirectory() as tmp:
+            connection = open_judge_db(Path(tmp) / 'judge.db')
+            client = FakeRetryClient()
+            counts = _run_pairs(
+                connection, client, protocol_id='judge-suite-v1',  # type: ignore[arg-type]
+                pairs=[pair], max_parse_attempts=2,
+            )
+            rows = connection.execute(
+                'SELECT orientation,parse_status FROM judge_pair_results'
+                ' WHERE pair_id=? ORDER BY orientation', (pair.pair_id,),
+            ).fetchall()
+            call_rows = connection.execute(
+                'SELECT status,parse_status FROM external_judge_calls'
+                ' WHERE pair_id=?', (pair.pair_id,),
+            ).fetchall()
+            connection.close()
+        self.assertEqual(counts['errors'], 0)
+        self.assertEqual(counts['parse_retries'], 1)
+        self.assertEqual(counts['pairs'], 1)
+        self.assertEqual(counts['calls'], 4)
+        self.assertIn(('aggregate', 'VALID'), [tuple(row) for row in rows])
         self.assertIn(('PARSE_ERROR', 'INVALID'), [tuple(row) for row in call_rows])
 
     def test_missing_human_calibration_refuses_before_calls(self) -> None:

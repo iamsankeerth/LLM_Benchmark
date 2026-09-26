@@ -39,7 +39,8 @@ criticality, and required evidence. A rubric response contains exact criterion
 keys, observed booleans, confidence, evidence quotes, and an abstention flag.
 Evidence quotes must be substrings of the candidate. Item and pair identifiers
 are bound to the persisted call by the runner and are not required in model
-output.
+output. Evidence that is not a verbatim candidate substring is discarded and
+counted as pruned; it is never accepted as evidence.
 
 Pairwise judging uses opaque candidate IDs, injection-resistant instructions,
 both A/B orientations, and `A`, `B`, `TIE`, `NEITHER`, or `INVALID` outcomes.
@@ -51,7 +52,9 @@ the pair identity; the model does not need to echo it.
 Before the full external run, execute a canary against the frozen population,
 prompts, schemas, and source hashes. The canary verifies the pinned model ID,
 JSON parsing, evidence validation, call accounting, retry behavior, and call-cap
-refusal. A successful canary is required before the full capped run. Low
+refusal. Malformed responses receive up to three fresh independent attempts;
+unverifiable evidence is discarded and counted rather than accepted. A
+successful canary is required before the full capped run. Low
 confidence and abstentions are recorded as forced-label signals; they do not
 create a human queue.
 

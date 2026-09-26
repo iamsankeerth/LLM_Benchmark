@@ -9,7 +9,7 @@ import sqlite3
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -223,6 +223,50 @@ def _normalize_pair(decision: str, orientation: str) -> str:
     return 'RIGHT' if decision == 'A' else 'LEFT'
 
 
+def _call_and_parse(
+    conn: sqlite3.Connection,
+    client: ExternalJudgeClient,
+    *,
+    protocol_id: str,
+    item_id: str | None,
+    pair_id: str | None,
+    orientation: str,
+    prompt: str,
+    schema: Mapping[str, Any],
+    parser: Callable[[str], tuple[dict[str, Any], bool]],
+    max_parse_attempts: int,
+    counts: dict[str, int],
+    call_ids: list[str] | None = None,
+    count_key: str | None = None,
+) -> tuple[str, dict[str, Any], bool] | None:
+    for parse_attempt in range(max_parse_attempts):
+        call_orientation = (
+            orientation if parse_attempt == 0
+            else f'{orientation}_retry_{parse_attempt}'
+        )
+        call_id, text = _call_external(
+            conn, client, protocol_id=protocol_id, item_id=item_id,
+            pair_id=pair_id, orientation=call_orientation,
+            prompt=prompt, schema=schema,
+        )
+        counts['calls'] += 1
+        if count_key is not None:
+            counts[count_key] += 1
+        if call_ids is not None:
+            call_ids.append(call_id)
+        try:
+            payload, forced = parser(text)
+        except JudgeProtocolError as exc:
+            _mark_parse_failure(conn, call_id, exc)
+            if parse_attempt + 1 < max_parse_attempts:
+                counts['parse_retries'] += 1
+                continue
+            counts['errors'] += 1
+            return None
+        return call_id, payload, forced
+    return None
+
+
 def _run_rubric(
     conn: sqlite3.Connection,
     client: ExternalJudgeClient,
@@ -230,34 +274,37 @@ def _run_rubric(
     protocol_id: str,
     protocol: Any,
     items: list[JudgeSourceItem],
+    max_parse_attempts: int = 1,
 ) -> dict[str, int]:
-    counts = {'calls': 0, 'forced': 0, 'errors': 0}
+    counts = {
+        'calls': 0, 'forced': 0, 'errors': 0, 'parse_retries': 0,
+        'evidence_pruned': 0,
+    }
     for item in items:
         rubric = protocol.rubrics[item.task_id]
-        call_id, text = _call_external(
+        result = _call_and_parse(
             conn, client, protocol_id=protocol_id, item_id=item.source_item_id,
             pair_id=None, orientation='rubric',
             prompt=build_rubric_prompt(item, {'criteria': rubric}),
             schema=_schema_for_rubric(rubric),
+            parser=lambda text: _force_rubric(text, item, rubric),
+            max_parse_attempts=max_parse_attempts, counts=counts,
         )
-        counts['calls'] += 1
-        try:
-            payload, forced = _force_rubric(text, item, rubric)
-        except JudgeProtocolError as exc:
-            counts['errors'] += 1
-            _mark_parse_failure(conn, call_id, exc)
+        if result is None:
             continue
+        call_id, payload, forced = result
+        counts['evidence_pruned'] += int(payload.get('pruned_evidence', 0))
         if forced:
             counts['forced'] += 1
-        for criterion_id, result in payload['criteria'].items():
+        for criterion_id, result_value in payload['criteria'].items():
             desired = bool(rubric[criterion_id]['desired'])
-            passed = bool(result['observed']) == desired
+            passed = bool(result_value['observed']) == desired
             conn.execute(
                 'INSERT OR REPLACE INTO judge_rubric_results'
                 '(call_id,criterion_id,observed,desired,passed,confidence,evidence_json)'
                 ' VALUES(?,?,?,?,?,?,?)',
-                (call_id, criterion_id, int(bool(result['observed'])), int(desired),
-                 int(passed), result['confidence'], json.dumps(result['evidence'])),
+                (call_id, criterion_id, int(bool(result_value['observed'])), int(desired),
+                 int(passed), result_value['confidence'], json.dumps(result_value['evidence'])),
             )
         conn.execute(
             'UPDATE external_judge_calls SET parse_status=\'VALID\',forced_label=?,confidence=?'
@@ -283,8 +330,12 @@ def _run_pairs(
     *,
     protocol_id: str,
     pairs: list[JudgePair],
+    max_parse_attempts: int = 1,
 ) -> dict[str, int]:
-    counts = {'pairs': 0, 'calls': 0, 'third_calls': 0, 'forced': 0, 'errors': 0}
+    counts = {
+        'pairs': 0, 'calls': 0, 'third_calls': 0, 'forced': 0,
+        'errors': 0, 'parse_retries': 0, 'evidence_pruned': 0,
+    }
     schema = _schema_for_pair()
     for pair in pairs:
         conn.execute(
@@ -305,20 +356,19 @@ def _run_pairs(
             ('inverse', pair.right, pair.left),
         ):
             oriented = JudgePair(pair.pair_id, pair.task_id, pair.trial, left, right)
-            call_id, text = _call_external(
+            candidates = {'A': left.raw_output, 'B': right.raw_output}
+            result = _call_and_parse(
                 conn, client, protocol_id=protocol_id, item_id=None,
                 pair_id=pair.pair_id, orientation=orientation,
                 prompt=build_pair_prompt(oriented), schema=schema,
+                parser=lambda text: _force_pair(text, oriented, candidates),
+                max_parse_attempts=max_parse_attempts, counts=counts,
+                call_ids=call_ids,
             )
-            counts['calls'] += 1
-            call_ids.append(call_id)
-            candidates = {'A': left.raw_output, 'B': right.raw_output}
-            try:
-                payload, forced = _force_pair(text, oriented, candidates)
-            except JudgeProtocolError as exc:
-                counts['errors'] += 1
-                _mark_parse_failure(conn, call_id, exc)
+            if result is None:
                 continue
+            call_id, payload, forced = result
+            counts['evidence_pruned'] += int(payload.get('pruned_evidence', 0))
             if forced:
                 counts['forced'] += 1
             decision = _normalize_pair(payload['decision'], orientation)
@@ -351,20 +401,17 @@ def _run_pairs(
         parse_status = 'VALID'
         if decisions[0] != decisions[1] and client.calls_made < client.config.max_calls:
             tie_pair = JudgePair(pair.pair_id, pair.task_id, pair.trial, pair.left, pair.right)
-            call_id, text = _call_external(
+            third_candidates = {'A': tie_pair.left.raw_output, 'B': tie_pair.right.raw_output}
+            result = _call_and_parse(
                 conn, client, protocol_id=protocol_id, item_id=None,
                 pair_id=pair.pair_id, orientation='third_call',
                 prompt=build_pair_prompt(tie_pair) + '\nTIE_BREAK: choose the closest label.',
                 schema=schema,
+                parser=lambda text: _force_pair(text, tie_pair, third_candidates),
+                max_parse_attempts=max_parse_attempts, counts=counts,
+                call_ids=call_ids, count_key='third_calls',
             )
-            counts['third_calls'] += 1
-            call_ids.append(call_id)
-            third_candidates = {'A': tie_pair.left.raw_output, 'B': tie_pair.right.raw_output}
-            try:
-                payload, forced = _force_pair(text, tie_pair, third_candidates)
-            except JudgeProtocolError as exc:
-                counts['errors'] += 1
-                _mark_parse_failure(conn, call_id, exc)
+            if result is None:
                 _record_aggregate_pair(
                     conn,
                     pair_id=pair.pair_id,
@@ -374,6 +421,8 @@ def _run_pairs(
                 )
                 counts['pairs'] += 1
                 continue
+            call_id, payload, forced = result
+            counts['evidence_pruned'] += int(payload.get('pruned_evidence', 0))
             if forced:
                 counts['forced'] += 1
             third_decision = _normalize_pair(payload['decision'], 'forward')
@@ -437,6 +486,8 @@ def run_external_judge(
     else:
         real_pairs = select_real_pairs(items, per_task=10)
         pairs = real_pairs + build_controlled_pairs(items, per_task=8)
+    external_config = protocol.document.get('external_judge', {})
+    max_parse_attempts = max(1, int(external_config.get('max_parse_attempts', 1)))
     protocol_id = str(protocol.document['study'])
     conn = open_judge_db(root / 'results/local/judge-suite-v1.db')
     try:
@@ -460,12 +511,15 @@ def run_external_judge(
         try:
             rubric_counts = _run_rubric(
                 conn, client, protocol_id=protocol_id, protocol=protocol,
-                items=pending,
+                items=pending, max_parse_attempts=max_parse_attempts,
             )
             pair_counts = _run_pairs(
                 conn, client, protocol_id=protocol_id, pairs=pairs,
+                max_parse_attempts=max_parse_attempts,
             ) if pairs else {
-                'pairs': 0, 'calls': 0, 'third_calls': 0, 'forced': 0, 'errors': 0,
+                'pairs': 0, 'calls': 0, 'third_calls': 0, 'forced': 0,
+        'errors': 0, 'parse_retries': 0, 'evidence_pruned': 0,
+
             }
         except Exception:
             conn.execute(
@@ -491,6 +545,7 @@ def run_external_judge(
         'study': 'judge-suite-v1',
         'model_id': client.config.model_id,
         'reasoning_enabled': bool(getattr(client.config, 'reasoning_enabled', False)),
+        'max_parse_attempts': max_parse_attempts,
         'source_items': len(items),
         'precheck_pass_items': len(pending),
         'calls_made': client.calls_made,

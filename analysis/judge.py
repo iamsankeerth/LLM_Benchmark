@@ -247,10 +247,13 @@ def parse_rubric_response(
                 normalized_evidence.append(quote)
             evidence = normalized_evidence
             result['evidence'] = evidence
-        if not isinstance(evidence, list) or not all(isinstance(q, str) for q in evidence):
-            raise JudgeProtocolError(f'{item_id}/{criterion_id}: invalid evidence')
-        if any(q not in candidate for q in evidence):
-            raise JudgeProtocolError(f'{item_id}/{criterion_id}: evidence is not a quote')
+        if not isinstance(evidence, list):
+            result['evidence'] = []
+            payload['pruned_evidence'] = int(payload.get('pruned_evidence', 0)) + 1
+            continue
+        valid_evidence = [quote for quote in evidence if quote in candidate]
+        result['evidence'] = valid_evidence
+        payload['pruned_evidence'] = int(payload.get('pruned_evidence', 0)) + len(evidence) - len(valid_evidence)
     return payload
 
 
@@ -397,13 +400,18 @@ def parse_pair_response(
                 normalized_list.append(entry)
         evidence = normalized_list
     if not isinstance(evidence, list):
-        raise JudgeProtocolError(f'{pair_id}: invalid evidence')
+        payload['evidence'] = []
+        payload['pruned_evidence'] = int(payload.get('pruned_evidence', 0)) + 1
+        return payload
+    valid_evidence: list[dict[str, Any]] = []
     for item in evidence:
         if not isinstance(item, dict) or item.get('candidate') not in candidates:
-            raise JudgeProtocolError(f'{pair_id}: invalid evidence candidate')
+            continue
         if not isinstance(item.get('quote'), str) or item['quote'] not in candidates[item['candidate']]:
-            raise JudgeProtocolError(f'{pair_id}: evidence is not an exact quote')
-    payload['evidence'] = evidence
+            continue
+        valid_evidence.append({'candidate': item['candidate'], 'quote': item['quote']})
+    payload['evidence'] = valid_evidence
+    payload['pruned_evidence'] = int(payload.get('pruned_evidence', 0)) + len(evidence) - len(valid_evidence)
     return payload
 
 
