@@ -1,9 +1,12 @@
 # Lint/type-check toolchain is PINNED to requirements-dev.lock, not ranged.
-# A ranged constraint let CI resolve a newer ruff whose expanded default rule
-# set reported 220 findings against code the project never linted with, so the
-# gate failed on a tool upgrade rather than on a real regression. Pinning keeps
-# CI bit-reproducible with the recorded local toolchain.
+# Two reproducibility defects motivated this file:
+#   1. A ranged constraint let CI resolve a newer ruff whose expanded default
+#      rule set reported 220 findings against code never linted with it.
+#   2. types-PyYAML was absent, so strict mypy failed on every `import yaml`
+#      with "Library stubs not installed" even though local runs passed.
+# CI must install exactly the recorded local toolchain.
 -r requirements.txt
 jsonschema==4.25.1
 ruff==0.15.7
 mypy==1.20.2
+types-PyYAML==6.0.12.20260906
