@@ -13,12 +13,14 @@ import yaml
 
 from analysis.long_context import load_long_context_tasks
 from scripts.generate_long_context_full import build_full
+from tests.platform_scope import requires_windows_digests
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class LongContextFullTests(unittest.TestCase):
+    @requires_windows_digests
     def test_full_cohort_validates_exact_population(self) -> None:
         config = yaml.safe_load(
             (ROOT / 'configs/long-context-v1.yaml').read_text(encoding='utf-8')

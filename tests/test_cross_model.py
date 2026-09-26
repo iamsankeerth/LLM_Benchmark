@@ -12,6 +12,7 @@ from analysis.cross_model import (
     pareto_skyline,
     summarize_quant_pairs,
 )
+from tests.platform_scope import requires_windows_digests
 
 
 def _measured(mid: str, acc: float, dec: float, vram: float) -> dict[str, object]:
@@ -164,6 +165,21 @@ class RetryRescueProvenanceTests(unittest.TestCase):
         self.assertEqual(report['baseline_deterministic_trial_accuracy'], 0.5245)
         self.assertEqual(report['post_retry']['post_retry_pass_rate'], 0.5833)
         self.assertEqual(report['post_retry']['absolute_uplift'], 0.0588)
+
+    @requires_windows_digests
+    def test_recorded_artifact_digests_match_worktree(self) -> None:
+        """Byte-level digest check, split out so it can be platform-scoped.
+
+        The lineage and rate assertions above are content checks and run on
+        every platform. Only this sha256 comparison depends on the recorded
+        CRLF materialization, so it carries the platform scope on its own.
+        """
+        import json
+
+        root = Path(__file__).resolve().parents[1]
+        freeze = json.loads(
+            (root / 'results/reports/retry-rescue-v1-freeze.json').read_text(encoding='utf-8')
+        )
         for path, digest in freeze['artifacts'].items():
             self.assertEqual(sha256((root / path).read_bytes()).hexdigest(), digest, path)
 

@@ -37,6 +37,26 @@ from storage.judge import (
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _missing_judge_source_databases() -> tuple[str, ...]:
+    """Judge source databases absent from this checkout.
+
+    ``.gitignore`` keeps ``results/local/*`` out of git except three sealed
+    databases, but the judge protocol needs one database per completed model in
+    the sweep summary. Tests that read the full source population therefore
+    cannot run from a fresh clone and skip explicitly rather than erroring.
+    """
+    summary = json.loads(
+        (ROOT / 'results/summaries/sweep-full-baseline-v2-complete.json').read_text(
+            encoding='utf-8'
+        )
+    )
+    relative = tuple(
+        f'results/local/full-baseline-v2__{model_id}.db'
+        for model_id in sorted(str(value) for value in summary['completed_ids'])
+    )
+    return tuple(path for path in relative if not (ROOT / path).is_file())
+
+
 class JudgeProtocolTests(unittest.TestCase):
     protocol: ClassVar[JudgeProtocol]
     items: ClassVar[list[JudgeSourceItem]]
@@ -399,6 +419,13 @@ class JudgeProtocolTests(unittest.TestCase):
                 )
 
     def test_real_pair_selector_handles_small_eligible_groups(self) -> None:
+        missing = _missing_judge_source_databases()
+        if missing:
+            self.skipTest(
+                'judge source databases are excluded from git by project policy, '
+                f'so this test cannot run from a fresh clone (absent: {missing[0]}, '
+                f'+{len(missing) - 1} more)'
+            )
         all_items = load_source_items(ROOT, self.protocol)
         pairs = select_real_pairs(all_items, per_task=10)
         self.assertEqual(len(pairs), 30)

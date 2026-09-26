@@ -219,16 +219,27 @@ disagreed. See section 9 of the technical report.
 Read these before citing any number from this repository.
 
 1. Quantization quality differences were **not** statistically distinguishable here.
-2. Temperature-0 repeatability holds for this benchmark, hardware, and runtime
+2. **Recorded artifact digests verify on Windows only.** The digests stored in the sealed
+   freeze files were captured from a Windows checkout, where git materializes CRLF line
+   endings. A Linux or macOS checkout materializes LF for the same committed content, so
+   the byte-level sha256 differs. The 6 tests that consume those digests are therefore
+   scoped to Windows and report as **skipped** on POSIX, not as passing. This is a real
+   limitation of the evidence trail, not a platform quirk: a reader on Linux cannot
+   re-verify those digests from a fresh clone. See `tests/platform_scope.py`.
+3. **7 tests skip on a fresh clone.** Besides the digest tests above,
+   `test_real_pair_selector_handles_small_eligible_groups` needs one sealed database per
+   completed model under `results/local/`, which project policy keeps out of git. It skips
+   explicitly rather than erroring.
+4. Temperature-0 repeatability holds for this benchmark, hardware, and runtime
    configuration only. No universal determinism claim is made.
-3. Single machine, RTX 2050 / 4 GB VRAM. Feasibility findings are hardware-specific by
+5. Single machine, RTX 2050 / 4 GB VRAM. Feasibility findings are hardware-specific by
    construction. Three Phi-3.5-mini configurations were excluded with recorded evidence
    because full GPU residency alone did not guarantee runtime headroom.
-4. `READY_JUDGE` tasks are excluded from all capability denominators.
-5. Strict substring matchers for terms, dates, and units punish paraphrase, so contract
+6. `READY_JUDGE` tasks are excluded from all capability denominators.
+7. Strict substring matchers for terms, dates, and units punish paraphrase, so contract
    accuracy understates reasoning capability by design.
-6. Latency metrics are descriptive only, not causal accuracy evidence.
-7. Three Phi configurations and the long-context M/L lengths scored 0.0; those zeros are
+8. Latency metrics are descriptive only, not causal accuracy evidence.
+9. Three Phi configurations and the long-context M/L lengths scored 0.0; those zeros are
    reported as measured, not explained away.
 
 ---
@@ -257,7 +268,9 @@ The lint and type-check toolchain is pinned in `requirements-ci.txt` to match
 `requirements-dev.lock`, so CI reproduces the recorded local toolchain exactly.
 
 CI runs the full offline quality gate on both `ubuntu-latest` and `windows-latest`, so a
-platform-specific regression fails the build.
+platform-specific regression fails the build. Note that the Windows-only digest assertions
+report as *skipped* on Linux; the Linux job validates lint, types, functional behaviour, and
+the suite audits, while the recorded-digest verification runs on the Windows job.
 
 ---
 

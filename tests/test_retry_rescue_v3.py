@@ -18,6 +18,7 @@ from analysis.retry_rescue_v3 import (
     render_numeric,
 )
 from scripts.run_retry_rescue_v3 import build_v3_document
+from tests.platform_scope import requires_windows_digests
 
 
 class RendererTests(unittest.TestCase):
@@ -42,6 +43,7 @@ class RendererTests(unittest.TestCase):
 
 
 class SourceAndContractTests(unittest.TestCase):
+    @requires_windows_digests
     def test_repo_contract_selects_exact_frozen_18(self) -> None:
         contract = load_v3_contract('configs/retry-rescue-v3.yaml')
         self.assertEqual(len(contract.identities), 18)
@@ -54,6 +56,7 @@ class SourceAndContractTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'baseline source hash mismatch'):
                 load_v3_contract('configs/retry-rescue-v3.yaml')
 
+    @requires_windows_digests
     def test_report_generation_is_deterministic(self) -> None:
         config = Path('configs/retry-rescue-v3.yaml')
         self.assertEqual(build_v3_document(config), build_v3_document(config))

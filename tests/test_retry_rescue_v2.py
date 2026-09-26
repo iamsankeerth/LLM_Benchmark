@@ -29,6 +29,7 @@ from inference.adapters import get_model_config
 from scripts.probe_retry_rescue_v2 import build_cleanup_record
 from scripts.run_retry_rescue_v2 import verify_prompt_invariance
 from storage.db import RunRecord, connect, create_experiment, insert_run, migrate_v2_run_columns
+from tests.platform_scope import requires_windows_digests
 
 
 def _draft_matrix() -> dict[str, Any]:
@@ -167,6 +168,7 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(format_mapping_sha256(first), format_mapping_sha256(second))
 
+    @requires_windows_digests
     def test_repo_contract_resolves_frozen_18_and_6_population(self) -> None:
         contract = load_v2_contract(
             'configs/retry-rescue-v2.yaml',
@@ -183,6 +185,7 @@ class ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'retry suffix'):
             reject_retry_suffix('Original task prompt\n\nReturn only the final numeric value required by the task.')
 
+    @requires_windows_digests
     def test_sealed_baseline_prompt_invariance(self) -> None:
         contract = load_v2_contract(
             'configs/retry-rescue-v2.yaml',
