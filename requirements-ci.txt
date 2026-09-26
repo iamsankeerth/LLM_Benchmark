@@ -1,4 +1,9 @@
+# Lint/type-check toolchain is PINNED to requirements-dev.lock, not ranged.
+# A ranged constraint let CI resolve a newer ruff whose expanded default rule
+# set reported 220 findings against code the project never linted with, so the
+# gate failed on a tool upgrade rather than on a real regression. Pinning keeps
+# CI bit-reproducible with the recorded local toolchain.
 -r requirements.txt
-jsonschema>=4.23,<5
-ruff>=0.9,<1
-mypy>=1.14,<2
+jsonschema==4.25.1
+ruff==0.15.7
+mypy==1.20.2
