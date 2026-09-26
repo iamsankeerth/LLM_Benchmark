@@ -1,0 +1,144 @@
+{
+  "models": {
+    "gemma-3n-e2b-q4": {
+      "after": {
+        "FAIL": 6,
+        "PASS": 18
+      },
+      "before": {
+        "UNKNOWN": 24
+      },
+      "repaired_rows": 24,
+      "rows": 24
+    },
+    "gemma-3n-e2b-q5": {
+      "after": {
+        "FAIL": 6,
+        "PASS": 18
+      },
+      "before": {
+        "UNKNOWN": 24
+      },
+      "repaired_rows": 24,
+      "rows": 24
+    },
+    "llama3.2-3b-q4": {
+      "after": {
+        "FAIL": 6,
+        "PASS": 12,
+        "STATIC_FAILURE": 6
+      },
+      "before": {
+        "EXTRACTION_ERROR": 6,
+        "UNKNOWN": 18
+      },
+      "repaired_rows": 24,
+      "rows": 24
+    },
+    "llama3.2-3b-q5": {
+      "after": {
+        "FAIL": 3,
+        "PASS": 15,
+        "STATIC_FAILURE": 6
+      },
+      "before": {
+        "EXTRACTION_ERROR": 6,
+        "UNKNOWN": 18
+      },
+      "repaired_rows": 24,
+      "rows": 24
+    },
+    "llama3.2-3b-q6": {
+      "after": {
+        "FAIL": 3,
+        "PASS": 15,
+        "STATIC_FAILURE": 6
+      },
+      "before": {
+        "EXTRACTION_ERROR": 6,
+        "UNKNOWN": 18
+      },
+      "repaired_rows": 24,
+      "rows": 24
+    },
+    "qwen3-4b-q4": {
+      "after": {
+        "FAIL": 6,
+        "PASS": 18
+      },
+      "before": {
+        "UNKNOWN": 24
+      },
+      "repaired_rows": 24,
+      "rows": 24
+    },
+    "qwen3-4b-q5": {
+      "after": {
+        "FAIL": 3,
+        "PASS": 21
+      },
+      "before": {
+        "UNKNOWN": 24
+      },
+      "repaired_rows": 24,
+      "rows": 24
+    },
+    "smolm2-1.7b-q4": {
+      "after": {
+        "FAIL": 9,
+        "PASS": 12,
+        "STATIC_FAILURE": 3
+      },
+      "before": {
+        "EXTRACTION_ERROR": 3,
+        "UNKNOWN": 21
+      },
+      "repaired_rows": 24,
+      "rows": 24
+    },
+    "smolm2-1.7b-q5": {
+      "after": {
+        "FAIL": 6,
+        "PASS": 15,
+        "STATIC_FAILURE": 3
+      },
+      "before": {
+        "EXTRACTION_ERROR": 3,
+        "UNKNOWN": 21
+      },
+      "repaired_rows": 24,
+      "rows": 24
+    },
+    "smolm2-1.7b-q6": {
+      "after": {
+        "FAIL": 6,
+        "PASS": 12,
+        "STATIC_FAILURE": 6
+      },
+      "before": {
+        "EXTRACTION_ERROR": 3,
+        "STATIC_FAILURE": 3,
+        "UNKNOWN": 18
+      },
+      "repaired_rows": 21,
+      "rows": 24
+    },
+    "smolm2-1.7b-q8": {
+      "after": {
+        "FAIL": 6,
+        "PASS": 15,
+        "STATIC_FAILURE": 3
+      },
+      "before": {
+        "EXTRACTION_ERROR": 3,
+        "UNKNOWN": 21
+      },
+      "repaired_rows": 24,
+      "rows": 24
+    }
+  },
+  "repaired_at_utc": "2026-09-26T13:00:26+00:00",
+  "schema_version": "coding-classification-repair-v1",
+  "status": "VERIFIED",
+  "suite": "coding-v1"
+}

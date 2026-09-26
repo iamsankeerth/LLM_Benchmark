@@ -28,11 +28,11 @@ temperature_study:
 optional_suites:
   coding-v1:
     enabled: true
-    status: FROZEN_OFFLINE_LIVE_BLOCKED
+    status: LIVE_SEALED
     requires: pinned OCI runtime digests
   long-context-v1:
     enabled: true
-    status: FROZEN_OFFLINE
+    status: FULL_SEALED
   judge-bias-v1:
     enabled: true
-    status: PREPARED_PENDING_HUMAN_CALIBRATION
+    status: EXTERNAL_FULL_COMPLETE

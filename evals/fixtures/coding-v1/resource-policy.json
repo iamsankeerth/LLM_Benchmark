@@ -5,6 +5,7 @@
   "per_test_wall_seconds": 1,
   "whole_candidate_wall_seconds": 5,
   "cpu_seconds": 2,
+  "cpus": 1,
   "memory_mib": 256,
   "processes": 64,
   "file_descriptors": 32,

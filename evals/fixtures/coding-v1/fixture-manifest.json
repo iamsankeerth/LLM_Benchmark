@@ -3,7 +3,7 @@
   "suite_id": "coding-v1",
   "source_experiment": "full-baseline-v2",
   "source_executable_sha256": "0cdfc4f5099b4822e0de1d01e8807b54441042407cde1293fd6f5d07492c315b",
-  "bundle_sha256": "65e68b8cfbea79fe79ee5685a2ace42a2f5ab9ebca4e9280bb91da666113e9bc",
+  "bundle_sha256": "71d68fe246d3663b57377d91b2fee8208f29b9e9a48c5fa3d04297c666ed6563",
   "tasks": {
     "Q027": {"language": "python", "entrypoint": "dedupe_preserve_order", "fixture_path": "tasks/Q027/cases.json", "test_path": "tasks/Q027/test_q027.py", "static_rules": ["no_set", "no_dict_fromkeys", "no_third_party_imports"]},
     "Q028": {"language": "python", "entrypoint": "average", "fixture_path": "tasks/Q028/cases.json", "test_path": "tasks/Q028/test_q028.py", "static_rules": ["no_try_except"]},
@@ -15,7 +15,17 @@
     "Q034": {"language": "python", "entrypoint": "run_with_retry", "fixture_path": "tasks/Q034/cases.json", "test_path": "tasks/Q034/test_q034.py", "static_rules": ["no_sleep"]}
   },
   "runtimes": {
-    "python": {"reference": "python:3.12-slim", "digest": null, "status": "NOT_PINNED_FOR_LIVE"},
-    "node": {"reference": "node:22-bookworm-slim", "digest": null, "status": "NOT_PINNED_FOR_LIVE"}
+    "python": {
+      "reference": "coding-worker-python:1",
+      "digest": "sha256:2891bbb85bb5324f4ee023b8b4f01f3bbdcfb0c1ee9c624371557f643395226f",
+      "base_digest": "sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f",
+      "status": "PINNED_FOR_LIVE"
+    },
+    "node": {
+      "reference": "coding-worker-node:1",
+      "digest": "sha256:e4b5bf6efd169abb05b87b679fa3c58957dee9560114991cb80be272c275ef74",
+      "base_digest": "sha256:43ac6c60b8f89723f746e8a92ce91abd5017e627ce1ddfe4238355d3a30b772c",
+      "status": "PINNED_FOR_LIVE"
+    }
   }
 }

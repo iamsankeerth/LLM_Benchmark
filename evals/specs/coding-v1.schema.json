@@ -6,7 +6,7 @@
   "required": ["spec_version", "status", "suite_id", "task_ids", "trials", "temperature", "num_predict", "host_execution_allowed", "oci_worker_required", "runtime_digest_required_for_live"],
   "properties": {
     "spec_version": {"const": "coding-v1"},
-    "status": {"enum": ["DRAFT", "FROZEN_OFFLINE"]},
+    "status": {"enum": ["DRAFT", "FROZEN_OFFLINE", "FROZEN_LIVE"]},
     "suite_id": {"const": "coding-v1"},
     "source_experiment": {"const": "full-baseline-v2"},
     "task_ids": {"type": "array", "minItems": 8, "maxItems": 8, "uniqueItems": true, "items": {"pattern": "^Q0(2[7-9]|3[0-4])$"}},

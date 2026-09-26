@@ -1,0 +1,86 @@
+{
+  "claim_scope": "Binary task success in pinned isolated OCI workers; no host execution.",
+  "model_count": 11,
+  "models": [
+    {
+      "model_config_id": "qwen3-4b-q4",
+      "passes": 18,
+      "sandbox_errors": 0,
+      "static_failures": 0
+    },
+    {
+      "model_config_id": "qwen3-4b-q5",
+      "passes": 21,
+      "sandbox_errors": 0,
+      "static_failures": 0
+    },
+    {
+      "model_config_id": "llama3.2-3b-q4",
+      "passes": 12,
+      "sandbox_errors": 0,
+      "static_failures": 6
+    },
+    {
+      "model_config_id": "llama3.2-3b-q5",
+      "passes": 15,
+      "sandbox_errors": 0,
+      "static_failures": 6
+    },
+    {
+      "model_config_id": "llama3.2-3b-q6",
+      "passes": 15,
+      "sandbox_errors": 0,
+      "static_failures": 6
+    },
+    {
+      "model_config_id": "gemma-3n-e2b-q4",
+      "passes": 18,
+      "sandbox_errors": 0,
+      "static_failures": 0
+    },
+    {
+      "model_config_id": "gemma-3n-e2b-q5",
+      "passes": 18,
+      "sandbox_errors": 0,
+      "static_failures": 0
+    },
+    {
+      "model_config_id": "smolm2-1.7b-q4",
+      "passes": 12,
+      "sandbox_errors": 0,
+      "static_failures": 3
+    },
+    {
+      "model_config_id": "smolm2-1.7b-q5",
+      "passes": 15,
+      "sandbox_errors": 0,
+      "static_failures": 3
+    },
+    {
+      "model_config_id": "smolm2-1.7b-q6",
+      "passes": 12,
+      "sandbox_errors": 0,
+      "static_failures": 6
+    },
+    {
+      "model_config_id": "smolm2-1.7b-q8",
+      "passes": 15,
+      "sandbox_errors": 0,
+      "static_failures": 3
+    }
+  ],
+  "partial_scores_are_diagnostic_only": true,
+  "runtime_digests": {
+    "node": "sha256:e4b5bf6efd169abb05b87b679fa3c58957dee9560114991cb80be272c275ef74",
+    "python": "sha256:2891bbb85bb5324f4ee023b8b4f01f3bbdcfb0c1ee9c624371557f643395226f"
+  },
+  "sandbox_errors": 0,
+  "schema_version": "coding-full-v1",
+  "static_failures": 33,
+  "status": "FULL_COMPLETE",
+  "suite": "coding-v1",
+  "task_count": 8,
+  "total_passes": 171,
+  "trial_accuracy": 0.6477272727272727,
+  "trial_count": 264
+}

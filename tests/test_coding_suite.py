@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import json
+import subprocess
 import unittest
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
 from analysis.coding import (
     CodingProtocolError,
@@ -13,7 +14,6 @@ from analysis.coding import (
     static_check,
 )
 from inference.sandbox import SandboxRequest, SandboxUnavailable, run_isolated_tests
-from scripts.run_coding_suite import CodingRunError, run_coding_model
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,22 +55,83 @@ class CodingSuiteTests(unittest.TestCase):
         manifest = load_fixture_manifest(FIXTURES / 'fixture-manifest.json')
         self.assertEqual(set(manifest['tasks']), {f'Q{i:03d}' for i in range(27, 35)})
 
-    def test_live_runner_refuses_unpinned_runtime_before_generation(self) -> None:
-        with TemporaryDirectory() as tmp:
-            with self.assertRaises(CodingRunError):
-                run_coding_model(
-                    ROOT, model_id='qwen3-4b-q4', db_path=Path(tmp) / 'coding.db',
-                    generate_fn=lambda *_args, **_kwargs: self.fail('must not generate'),
-                )
+    def test_live_runner_requires_pinned_runtime(self) -> None:
+        manifest = load_fixture_manifest(FIXTURES / 'fixture-manifest.json')
+        self.assertTrue(manifest['runtimes']['python']['digest'])
+        self.assertTrue(manifest['runtimes']['node']['digest'])
 
     def test_sandbox_requires_pinned_digest(self) -> None:
         request = SandboxRequest(
             language='python', entrypoint='f', candidate_source='def f():\n    return 1\n',
-            test_source='', cases_json='[]', image_ref='python:3.12-slim',
+            test_source='', cases_json='[]', image_ref='coding-worker-python:1',
             image_digest=None, policy={'whole_candidate_wall_seconds': 5},
         )
         with self.assertRaises(SandboxUnavailable):
             run_isolated_tests(request)
+
+    def test_sandbox_command_enforces_docker_boundary(self) -> None:
+        calls: list[list[str]] = []
+
+        def runner(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+            calls.append(command)
+            if 'inspect' in command:
+                return subprocess.CompletedProcess(command, 0, 'sha256:abc\n', '')
+            return subprocess.CompletedProcess(
+                command, 0,
+                json.dumps({'passed': True, 'tests': {'static_passed': 1, 'total': 1}}),
+                '',
+            )
+
+        request = SandboxRequest(
+            language='python', entrypoint='f', candidate_source='def f():\n    return 1\n',
+            test_source='', cases_json='[]', image_ref='coding-worker-python:1',
+            image_digest='sha256:abc',
+            policy={
+                'processes': 64, 'memory_mib': 256, 'cpus': 1,
+                'file_descriptors': 32, 'tmpfs_mib': 16,
+                'whole_candidate_wall_seconds': 5, 'output_bytes': 1024,
+            },
+        )
+        result = run_isolated_tests(request, runner=runner)
+        self.assertTrue(result['passed'])
+        self.assertEqual(len(calls), 2)
+        command = calls[1]
+        for flag in ('-i', '--network', '--read-only', '--cap-drop',
+                     '--security-opt', '--pids-limit', '--memory', '--cpus',
+                     '--tmpfs', '--user'):
+            self.assertIn(flag, command)
+        self.assertNotIn('--privileged', command)
+        self.assertNotIn('docker.sock', ' '.join(command))
+        self.assertNotIn('-v', command)
+
+    def test_worker_test_failure_is_classified_as_task_failure(self) -> None:
+        def runner(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+            if 'inspect' in command:
+                return subprocess.CompletedProcess(command, 0, 'sha256:abc\n', '')
+            return subprocess.CompletedProcess(
+                command, 0,
+                json.dumps({
+                    'passed': False,
+                    'failure_kind': 'WORKER_ERROR',
+                    'tests': {'static_passed': 0, 'total': 1},
+                }),
+                '',
+            )
+
+        request = SandboxRequest(
+            language='javascript', entrypoint='groupBy',
+            candidate_source='export const other = 1;\n', test_source='',
+            cases_json='[]', image_ref='coding-worker-node:1',
+            image_digest='sha256:abc',
+            policy={
+                'processes': 64, 'memory_mib': 256, 'cpus': 1,
+                'file_descriptors': 32, 'tmpfs_mib': 16,
+                'whole_candidate_wall_seconds': 5, 'output_bytes': 1024,
+            },
+        )
+        result = run_isolated_tests(request, runner=runner)
+        self.assertEqual(result['status'], 'FAIL')
+        self.assertEqual(result['failure_kind'], 'FUNCTIONAL_FAIL')
 
 
 if __name__ == '__main__':

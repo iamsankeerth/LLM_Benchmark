@@ -1,0 +1,276 @@
+{
+  "claim_scope": "Configured 4096-token full-context window across 11 V2 configurations; no native 8K/32K claim; no RAG.",
+  "measured_trials": 693,
+  "model_count": 11,
+  "models": [
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 1.0,
+          "passes": 21,
+          "trials": 21
+        }
+      },
+      "model_config_id": "qwen3-4b-q4",
+      "passes": 21,
+      "reused_sealed_pilot": true,
+      "trial_accuracy": 0.3333333333333333
+    },
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 1.0,
+          "passes": 21,
+          "trials": 21
+        }
+      },
+      "model_config_id": "qwen3-4b-q5",
+      "passes": 21,
+      "reused_sealed_pilot": false,
+      "trial_accuracy": 0.3333333333333333
+    },
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.42857142857142855,
+          "passes": 9,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 0.42857142857142855,
+          "passes": 9,
+          "trials": 21
+        }
+      },
+      "model_config_id": "llama3.2-3b-q4",
+      "passes": 18,
+      "reused_sealed_pilot": false,
+      "trial_accuracy": 0.2857142857142857
+    },
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.42857142857142855,
+          "passes": 9,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 0.42857142857142855,
+          "passes": 9,
+          "trials": 21
+        }
+      },
+      "model_config_id": "llama3.2-3b-q5",
+      "passes": 18,
+      "reused_sealed_pilot": false,
+      "trial_accuracy": 0.2857142857142857
+    },
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.42857142857142855,
+          "passes": 9,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 0.42857142857142855,
+          "passes": 9,
+          "trials": 21
+        }
+      },
+      "model_config_id": "llama3.2-3b-q6",
+      "passes": 18,
+      "reused_sealed_pilot": true,
+      "trial_accuracy": 0.2857142857142857
+    },
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 0.5714285714285714,
+          "passes": 12,
+          "trials": 21
+        }
+      },
+      "model_config_id": "gemma-3n-e2b-q4",
+      "passes": 12,
+      "reused_sealed_pilot": true,
+      "trial_accuracy": 0.19047619047619047
+    },
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 0.5714285714285714,
+          "passes": 12,
+          "trials": 21
+        }
+      },
+      "model_config_id": "gemma-3n-e2b-q5",
+      "passes": 12,
+      "reused_sealed_pilot": false,
+      "trial_accuracy": 0.19047619047619047
+    },
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 0.23809523809523808,
+          "passes": 5,
+          "trials": 21
+        }
+      },
+      "model_config_id": "smolm2-1.7b-q4",
+      "passes": 5,
+      "reused_sealed_pilot": true,
+      "trial_accuracy": 0.07936507936507936
+    },
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 0.14285714285714285,
+          "passes": 3,
+          "trials": 21
+        }
+      },
+      "model_config_id": "smolm2-1.7b-q5",
+      "passes": 3,
+      "reused_sealed_pilot": false,
+      "trial_accuracy": 0.047619047619047616
+    },
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 0.14285714285714285,
+          "passes": 3,
+          "trials": 21
+        }
+      },
+      "model_config_id": "smolm2-1.7b-q6",
+      "passes": 3,
+      "reused_sealed_pilot": false,
+      "trial_accuracy": 0.047619047619047616
+    },
+    {
+      "by_length": {
+        "L": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "M": {
+          "accuracy": 0.0,
+          "passes": 0,
+          "trials": 21
+        },
+        "S": {
+          "accuracy": 0.14285714285714285,
+          "passes": 3,
+          "trials": 21
+        }
+      },
+      "model_config_id": "smolm2-1.7b-q8",
+      "passes": 3,
+      "reused_sealed_pilot": false,
+      "trial_accuracy": 0.047619047619047616
+    }
+  ],
+  "pilot_models_reused": [
+    "gemma-3n-e2b-q4",
+    "llama3.2-3b-q6",
+    "qwen3-4b-q4",
+    "smolm2-1.7b-q4"
+  ],
+  "request_accounting": {
+    "new_requests_for_remaining_models": 609,
+    "requests_per_model": 87,
+    "total_requests_including_sealed_pilot": 957
+  },
+  "schema_version": "long-context-full-v1",
+  "status": "FULL_COMPLETE",
+  "suite": "long-context-v1",
+  "task_count": 21,
+  "total_passes": 134
+}

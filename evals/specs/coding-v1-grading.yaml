@@ -1,5 +1,5 @@
 spec_version: coding-v1
-status: FROZEN_OFFLINE
+status: FROZEN_LIVE
 suite_id: coding-v1
 source_experiment: full-baseline-v2
 task_ids: [Q027, Q028, Q029, Q030, Q031, Q032, Q033, Q034]

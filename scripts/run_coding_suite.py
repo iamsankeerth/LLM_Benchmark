@@ -13,7 +13,7 @@ from typing import Any, Callable
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from analysis.coding import extract_code, load_fixture_manifest, static_check
-from inference.adapters import get_model_config, render_prompt
+from inference.adapters import get_model_config, load_overlays_from_dir, render_prompt
 from inference.ollama_client import GenerationRequest, GenerationResult, generate
 from inference.sandbox import SandboxRequest, SandboxUnavailable, run_isolated_tests
 from storage.coding import open_coding_db, record_coding_run
@@ -51,6 +51,7 @@ def run_coding_model(
     base_url: str = 'http://127.0.0.1:11434',
     timeout_s: float = 300.0,
 ) -> dict[str, Any]:
+    load_overlays_from_dir(root / 'configs/adapters')
     manifest = load_fixture_manifest(
         root / 'evals/fixtures/coding-v1/fixture-manifest.json'
     )

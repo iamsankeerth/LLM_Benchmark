@@ -1,7 +1,7 @@
 {
   "release": "core-v1.1",
   "release_commit": "5760df8",
-  "status": "CORE_TEMPERATURE_LONG_CONTEXT_PILOT_SEALED",
+  "status": "CORE_TEMPERATURE_LONG_CONTEXT_FULL_JUDGE_CODING_SEALED",
   "current_grading": {
     "spec_version": "eval-v1.1",
     "overlay_sha256": "856855597025df828effe7e19e8b81d2ac31f686aefef7452798958facf113fb",
@@ -11,7 +11,7 @@
   },
   "quality_gate": {
     "command": "python scripts/quality_gate.py",
-    "tests_passed": 369,
+    "tests_passed": 373,
     "ruff": "PASS",
     "mypy": "PASS",
     "workbook_check": "PASS",
@@ -51,8 +51,23 @@
     "measured_trials": 252,
     "configured_window": 4096
   },
-  "pending_live": {
-    "judge_suite": "external_full_complete",
-    "coding_suite": "offline_frozen_docker_daemon_unavailable"
-  }
+  "long_context_full": {
+    "status": "FULL_SEALED",
+    "freeze": "results/reports/long-context-v1-full-freeze.json",
+    "report": "results/reports/long-context-v1-full.json",
+    "cleanup": "results/reports/long-context-v1-full-cleanup.json",
+    "models": 11,
+    "measured_trials": 693
+  },
+  "coding_suite": {
+    "status": "LIVE_SEALED",
+    "freeze": "results/reports/coding-v1-full-freeze.json",
+    "report": "results/reports/coding-v1-full.json",
+    "cleanup": "results/reports/coding-v1-full-cleanup.json",
+    "classification_repair": "results/reports/coding-v1-classification-repair.json",
+    "models": 11,
+    "rows": 264,
+    "sandbox_errors": 0
+  },
+  "pending_live": {}
 }

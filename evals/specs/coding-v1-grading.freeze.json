@@ -1,22 +1,44 @@
 {
   "record_type": "suite-freeze",
   "suite": "coding-v1",
-  "frozen_at": "2026-09-24",
-  "status": "FROZEN_OFFLINE_LIVE_BLOCKED",
+  "frozen_at": "2026-09-26",
+  "status": "FROZEN_LIVE",
   "task_ids": ["Q027", "Q028", "Q029", "Q030", "Q031", "Q032", "Q033", "Q034"],
   "artifacts": {
-    "fixture-manifest.json": "ec9b8b5e375a2eb9fa08e61d21384ac528d18d24bf63c53029039f4215a5aa76",
+    "fixture-manifest.json": "b255f45586416e7ecfb95bed9826131aa42f099145c5d3727d2f0925c2230473",
     "extraction-policy.json": "cb7e5ba157cedc647f3d59b32e9bc3fd94c686d3a072cf5aafadd36e0cf3e471",
-    "resource-policy.json": "ed777f538722c859e0a81d46208d1f971cfab0539ee901571086cf6eb4bc6713",
-    "coding-v1-grading.yaml": "84c3eda152f5badefbed2fc6c1feefe8237f02fc7cc6df6855a66d757226c313",
-    "coding-v1.schema.json": "6a020df0cb209bf6a433c83f96da69ff8cccc7b1f700395afc1ac650aa0b9239",
+    "resource-policy.json": "c2848dc3f38cd7427001e461016cf6a36f17274990ee6662f06d15757fe33ea3",
+    "coding-v1-grading.yaml": "cb97f1767e645f4e91f09cf13aae5cb5945d381da25d75b1247d3e2a16224661",
+    "coding-v1.schema.json": "c35b737f9a90501a253565807902793c02cca6d7d4ace50c4d8ca4f6ad1164ab",
     "audit_coding_suite.py": "bdf18482ff7230dd3d353b77cd8d5227d2a0bbcbe6cb8203797647b466594452",
     "validate_coding_fixtures.py": "51b06f2f4b181bebf42aaf9963824dd2dfb0871fe64ab6f56e46a39983efebed",
-    "run_coding_suite.py": "d45897c7a644c752a8b188a052a2816fa757ac252415897bb6bf304a501c1aff",
+    "run_coding_suite.py": "1650a4138f31edfd5990d1cec2d76e5f2306625c4fbd8f9f2078515cf964440a",
     "generate_coding_report.py": "2722a77ae0dbb3f436a91856e5bc769553730211ed8b545b92bcc3776b4cd198",
+    "generate_coding_full.py": "aff65b3542d7f0ae2ffdc1e8a73b0c175c3be1cd4a4e58ac4c48cb381a68bc79",
     "analysis/coding.py": "313a1123a34a387a2a36db7cc608562fef527c6726ce2cfc974c5af3aac651e3",
-    "inference/sandbox.py": "b786b8e929fc2cd39b307527159d8020817cbae036e0865b8bf087bd2b49f284",
-    "storage/coding.py": "c25f0d8ca348d1c8d883d91b7f212ee12d18e48b4af5110be65f5534bc7ebb7b"
+    "inference/sandbox.py": "847a4ddcdea018da00e06b3ef84c250533092cebd306335d6e993fce264c2e1e",
+    "storage/coding.py": "c25f0d8ca348d1c8d883d91b7f212ee12d18e48b4af5110be65f5534bc7ebb7b",
+    "coding_worker/python/Dockerfile": "065d15e4fcd3f211fca203996fe679c9b3d545779024b393511303509d9e5919",
+    "coding_worker/python/coding_worker.py": "bb653d28399151c398e527d478e51f41ffd23c53e0abe30b928cd59751e07eb6",
+    "coding_worker/node/Dockerfile": "2fa2fef5a3321f92beab00659518b87ca545e5633b9ec11d3af710901856de93",
+    "coding_worker/node/coding_worker.mjs": "92940bf65fd4659317c78374fcc42099e09bd131290597127186a7fbc33296bf"
   },
-  "live_blocker": "Python and Node OCI image digests are not pinned; host execution remains forbidden."
+  "runtime_evidence": {
+    "python_base_digest": "sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f",
+    "python_worker_digest": "sha256:2891bbb85bb5324f4ee023b8b4f01f3bbdcfb0c1ee9c624371557f643395226f",
+    "node_base_digest": "sha256:43ac6c60b8f89723f746e8a92ce91abd5017e627ce1ddfe4238355d3a30b772c",
+    "node_worker_digest": "sha256:e4b5bf6efd169abb05b87b679fa3c58957dee9560114991cb80be272c275ef74",
+    "docker_engine": "linux-x86_64-overlayfs"
+  },
+  "live_evidence": {
+    "full_report": "results/reports/coding-v1-full.json",
+    "full_report_sha256": "426bae944703865f2a3bc751f992578abba961d10c5066c6d0df2739e5577dbc",
+    "full_freeze": "results/reports/coding-v1-full-freeze.json",
+    "cleanup": "results/reports/coding-v1-full-cleanup.json",
+    "classification_repair": "results/reports/coding-v1-classification-repair.json",
+    "rows": 264,
+    "models": 11,
+    "sandbox_errors": 0
+  },
+  "live_blocker": null
 }
